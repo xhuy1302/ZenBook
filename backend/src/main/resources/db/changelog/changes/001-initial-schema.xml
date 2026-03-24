@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="001-create-roles-table" author="dongdang">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="roles"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="roles" remarks="Bảng roles">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_role_name"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <rollback>
+            <dropTable tableName="roles" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="002-create-users-table" author="dongdang">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="users"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="users" remarks="Bảng users">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="email"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="full_name" type="VARCHAR(100)"/>
+            <column name="phone" type="VARCHAR(15)"/>
+            <column name="avatar" type="VARCHAR(500)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE" />
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="users" indexName="idx_user_email">
+            <column name="email"/>
+        </createIndex>
+
+        <createIndex tableName="users" indexName="idx_user_status">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="users" indexName="idx_user_created">
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="users" indexName="idx_user_deleted">
+            <column name="deleted_at"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="users" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="003-create-user-roles-table" author="dongdang">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_roles"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="user_roles" remarks="Bảng users_roles">
+            <column name="user_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="user_roles"
+                columnNames="user_id, role_id"
+                constraintName="pk_user_roles"/>
+
+        <rollback>
+            <dropTable tableName="user_roles"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: ZenBook
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/zenbook_store_db
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+#  servlet:
+#    multipart:
+#      max-file-size: 5MB
+#      max-request-size: 5MB
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+#    drop-first: true
+
+#jwt:
+#  signerKey: ${JWT_SIGNER_KEY}
+#  valid-duration: 3600
+#  refreshable-duration: 36000
+
+#aws:
+#  s3:
+#    region: ${AWS_REGION}
+#    bucket: ${AWS_S3_BUCKET}
+#    access-key: ${AWS_ACCESS_KEY}
+#    secret-key: ${AWS_SECRET_KEY}
+#
+#cleanup-data:
+#  #  expire-minutes: 1
+#  expire-minutes: 43200
+#  cleanup-rate-ms: 60000
+#
+#security:
+#  public:
+#    post-endpoints:
+#      - /api/v1/users/register
+#      - /api/v1/login
+#      - /api/v1/introspect
+#      - /api/v1/logout
+#      - /api/v1/refresh
+#    get-endpoints:
+#      - /api/v1/categories/**
+#      - /api/v1/brands/**
