@@ -22,7 +22,16 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    // shadcn
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"],
+      "@components/*": ["components/*"],
+      "@defines/*": ["defines/*"],
+      "@pages/*": ["pages/*"]
+    }
   },
   "include": ["src"]
 }
