@@ -1,0 +1,16 @@
+{
+  "title": "Login",
+  "username": "Username",
+  "email": "Email",
+  "password": "Password",
+  "rememberMe": "Remember me",
+  "forgotPassword": "Forgot password?",
+  "loginButton": "Sign In",
+  "noAccount": "Don't have an account?",
+  "signUp": "Sign up here",
+  "messages": {
+    "success": "Login successful!",
+    "errorEmptyFields": "Please fill in all required fields.",
+    "errorInvalidCredentials": "Invalid username or password."
+  }
+}

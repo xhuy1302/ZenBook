@@ -1,7 +1,10 @@
+import { useTranslation } from 'react-i18next'
+
 export default function LoginPage() {
+  const { t } = useTranslation('login')
   return (
     <div className='bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10'>
-      <div className='w-full max-w-sm md:max-w-4xl'>Login</div>
+      <div className='w-full max-w-sm md:max-w-4xl'>{t('title')}</div>
     </div>
   )
 }
