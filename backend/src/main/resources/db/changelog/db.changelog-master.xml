@@ -7,4 +7,5 @@
 
     <include file="classpath:db/changelog/changes/001-initial-schema.xml"/>
     <include file="classpath:db/changelog/changes/002-insert-roles.xml"/>
+
 </databaseChangeLog>

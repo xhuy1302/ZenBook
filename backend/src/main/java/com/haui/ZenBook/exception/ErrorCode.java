@@ -47,8 +47,9 @@ public enum ErrorCode {
 
     FILE_TYPE_INVALID(6000, "file.type.invalid", HttpStatus.BAD_REQUEST),
     FILE_TOO_LARGE(6001, "file.too.large", HttpStatus.BAD_REQUEST),
-    UPLOAD_IMAGE_FAILED(6002, "upload.image.failed", HttpStatus.INTERNAL_SERVER_ERROR)
-    ;
+    UPLOAD_IMAGE_FAILED(6002, "upload.image.failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    UPLOAD_FAILED(1009, "Upload file to S3 failed!", HttpStatus.INTERNAL_SERVER_ERROR),
+    USERNAME_EXISTED(1010, "username.exists", HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

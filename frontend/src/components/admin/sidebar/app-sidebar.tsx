@@ -36,7 +36,7 @@ const data = {
   },
   teams: [
     {
-      name: 'Acme Inc',
+      name: 'Zenbook Store.',
       logo: GalleryVerticalEnd,
       plan: 'Enterprise'
     },
@@ -53,25 +53,13 @@ const data = {
   ],
   navMain: [
     {
-      title: 'Products',
+      title: 'Books',
       url: '#',
       icon: Box,
       isActive: true,
       items: [
         {
-          title: 'List Products',
-          url: '#'
-        },
-        {
-          title: 'Product Variant',
-          url: '#'
-        },
-        {
-          title: 'Colors',
-          url: '#'
-        },
-        {
-          title: 'Versions',
+          title: 'List Books',
           url: '#'
         },
         {
@@ -111,8 +99,8 @@ const data = {
       icon: ListCollapseIcon
     },
     {
-      name: 'Brands',
-      url: '/dashboard/brands',
+      name: 'Authors',
+      url: '/dashboard/authors',
       icon: CircleStar
     },
     {
