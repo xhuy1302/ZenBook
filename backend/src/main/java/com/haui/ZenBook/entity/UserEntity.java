@@ -39,7 +39,8 @@ public class UserEntity extends BaseEntity{
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private UserStatus status;
+    @lombok.Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;

@@ -12,6 +12,11 @@ import LanguageSelector from '@/components/common/LanguageSelector'
 // import { useAuthStore } from '@/store/auth.store'
 import { Trans, useTranslation } from 'react-i18next'
 import type z from 'zod'
+import { toast } from 'sonner'
+import type { AxiosError } from 'axios'
+import { useNavigate } from 'react-router'
+import { useSignUp } from '@/hooks/user-signup'
+import type { ApiErrorResponse } from '@/defines/error.type'
 
 export function SignupForm({ className, ...props }: React.ComponentProps<'div'>) {
   const { t } = useTranslation('auth')
@@ -26,23 +31,22 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
   } = useForm<SignUpFormValue>({
     resolver: zodResolver(signUpSchema)
   })
-
+  const navigate = useNavigate()
+  const signUpMutation = useSignUp()
   const onSubmit = async (data: SignUpFormValue) => {
-    // try {
-    //   await registerUser({
-    //     username: data.username,
-    //     email: data.email,
-    //     password: data.password
-    //   })
-    //   toast.success(t('signup.success'))
-    //   navigate('/login')
-    // } catch (error: unknown) {
-    //   if (error instanceof Error) {
-    //     toast.error(error.message)
-    //   } else {
-    //     toast.error(t('signup.errors'))
-    //   }
-    // }
+    try {
+      await signUpMutation.mutateAsync(data)
+
+      toast.success(t('signup.success'))
+
+      navigate('/login')
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>
+
+      const message = axiosError.response?.data?.message || t('signup.errors')
+
+      toast.error(message)
+    }
   }
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
