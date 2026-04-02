@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
@@ -19,35 +20,47 @@ public class S3Service {
     private String bucketName;
 
     @Value("${aws.s3.region}")
-    private String region; // Thêm biến này để tạo URL đầy đủ
+    private String region;
 
     public S3Service(S3Client s3Client) {
         this.s3Client = s3Client;
     }
 
-    /**
-     * Hàm upload dùng chung cho toàn bộ Project
-     * @param file: File từ Request
-     * @param folder: Thư mục trên S3 (ví dụ: "avatars", "books", "promotions")
-     * @return URL đầy đủ của file trên S3
-     */
+
     public String uploadFile(MultipartFile file, String folder) throws IOException {
-        // Tạo đường dẫn file: folder/uuid_name.jpg (giúp S3 tự chia thư mục)
         String fileName = folder + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-        // Xây dựng request gửi lên S3
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(fileName)
                 .contentType(file.getContentType())
                 .build();
 
-        // Thực hiện Upload
         s3Client.putObject(putObjectRequest,
                 RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-        // Trả về URL đầy đủ để lưu vào Database
-        // Cấu trúc: https://bucketname.s3.region.amazonaws.com/folder/filename
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName);
+    }
+
+    public void deleteFile(String fileUrl) {
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            return;
+        }
+
+        try {
+            String bucketUrlPart = String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
+            String key = fileUrl.replace(bucketUrlPart, "");
+
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            s3Client.deleteObject(deleteObjectRequest);
+
+            System.out.println("Đã xóa file trên S3 thành công: " + key);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi xóa file trên S3: " + e.getMessage());
+        }
     }
 }

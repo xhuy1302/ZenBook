@@ -5,6 +5,7 @@ import com.haui.ZenBook.enums.AuthorStatus;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,6 +17,11 @@ public class AuthorResponse {
     private String name;
 
     private String avatar;
+
+    private String nationality;
+
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime dateOfBirth;
 
     private String email;
 

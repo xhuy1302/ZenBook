@@ -26,7 +26,7 @@
 
         <column name="nationality" type="VARCHAR(100)"/>
 
-        <column name="biography" type="VARCHAR(500)"/>
+        <column name="biography" type="TEXT"/>
 
         <column name="avatar" type="VARCHAR(500)"/>
 

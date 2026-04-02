@@ -22,12 +22,12 @@ public class AuthorEntity extends BaseEntity {
     private String name;
 
     @Column(name = "date_of_birth")
-    private LocalDate dateOfBirth;
+    private LocalDateTime dateOfBirth;
 
     @Column(name = "nationality", length = 100)
     private String nationality;
 
-    @Column(name = "biography", length = 500)
+    @Column(columnDefinition = "TEXT")
     private String biography;
 
     @Column(name = "avatar", length = 500)
