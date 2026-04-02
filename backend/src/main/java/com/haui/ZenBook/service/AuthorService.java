@@ -32,4 +32,6 @@ public interface AuthorService {
     void restoreAuthor(String authorId);
 
     String updateAvatar(String authorId, MultipartFile file);
+
+    // TODO:
 }
