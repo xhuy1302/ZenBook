@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+<changeSet id="007-seed-authors" author="xuanhuy" context="dev,test,prod">
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000201"/>
+        <column name="name" value="Nguyễn Nhật Ánh"/>
+        <column name="email" value="author1@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/01.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000202"/>
+        <column name="name" value="Tô Hoài"/>
+        <column name="email" value="author2@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/02.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000203"/>
+        <column name="name" value="Nam Cao"/>
+        <column name="email" value="author3@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/03.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000204"/>
+        <column name="name" value="Ngô Tất Tố"/>
+        <column name="email" value="author4@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/04.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000205"/>
+        <column name="name" value="Xuân Diệu"/>
+        <column name="email" value="author5@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/05.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000206"/>
+        <column name="name" value="Hàn Mặc Tử"/>
+        <column name="email" value="author6@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/06.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000207"/>
+        <column name="name" value="Chế Lan Viên"/>
+        <column name="email" value="author7@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/07.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000208"/>
+        <column name="name" value="Nguyễn Du"/>
+        <column name="email" value="author8@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/08.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000209"/>
+        <column name="name" value="Hồ Xuân Hương"/>
+        <column name="email" value="author9@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/09.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000210"/>
+        <column name="name" value="Nguyễn Trãi"/>
+        <column name="email" value="author10@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/10.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000211"/>
+        <column name="name" value="Tố Hữu"/>
+        <column name="email" value="author11@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/01.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000212"/>
+        <column name="name" value="Nguyễn Bính"/>
+        <column name="email" value="author12@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/02.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000213"/>
+        <column name="name" value="Thạch Lam"/>
+        <column name="email" value="author13@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/03.png"/>
+    </insert>
+
+    <insert tableName="authors">
+        <column name="id" value="00000000-0000-7000-0000-000000000214"/>
+        <column name="name" value="Vũ Trọng Phụng"/>
+        <column name="email" value="author14@gmail.com"/>
+        <column name="avatar" value="https://ui.shadcn.com/avatars/04.png"/>
+    </insert>
+
+    <rollback>
+        <delete tableName="authors">
+            <where>email LIKE 'author%@gmail.com'</where>
+        </delete>
+    </rollback>
+
+</changeSet>
+</databaseChangeLog>
