@@ -80,6 +80,11 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.20.0</version> <!-- Hoặc phiên bản mới nhất -->
+        </dependency>
 	</dependencies>
 
     <build>

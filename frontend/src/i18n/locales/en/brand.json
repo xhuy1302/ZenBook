@@ -1,0 +1,35 @@
+{
+  "titles": {
+    "trash": "User Trash Bin"
+  },
+  "table": {
+    "columns": {
+      "brand": "User",
+      "deletedAt": "Deleted Date",
+      "actions": "Actions"
+    }
+  },
+  "fields": {
+    "deletedAt": "Deleted Date"
+  },
+  "trash": {
+    "trashEmpty": "Trash bin is currently empty",
+    "remainingDays": "{{days}} days remaining before permanent deletion",
+    "restoreTooltip": "Restore user",
+    "permanentDeleteTooltip": "Delete permanently"
+  },
+  "messages": {
+    "confirm": {
+      "restore": "Are you sure you want to restore user {{name}}?",
+      "permanentDelete": "This action cannot be undone. Are you sure you want to permanently delete {{name}}?"
+    },
+    "success": {
+      "restore": "User restored successfully!",
+      "permanentDelete": "User has been permanently deleted from the system."
+    },
+    "error": {
+      "restore": "Error restoring user.",
+      "permanentDelete": "Error during permanent deletion."
+    }
+  }
+}

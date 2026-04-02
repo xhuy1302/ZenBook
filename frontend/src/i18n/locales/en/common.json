@@ -1,0 +1,57 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success!",
+    "save": "Save",
+    "cancel": "Cancel",
+    "add": "Add",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "more": "More"
+  },
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "about": "About",
+    "contact": "Contact",
+    "login": "Login",
+    "signup": "Sign Up",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "footer": {
+    "copyright": "© {{year}} VTech. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "help": "Help Center"
+  },
+  "language": {
+    "vietnamese": "Vietnamese",
+    "english": "English"
+  },
+  "datatablePagination": {
+    "rowsSelected": "{{selected}} of {{total}} row(s) selected.",
+    "rowsPerPage": "Rows per page",
+    "page": "Page {{current}} of {{total}}",
+    "goToFirst": "Go to first page",
+    "goToPrevious": "Go to previous page",
+    "goToNext": "Go to next page",
+    "goToLast": "Go to last page"
+  },
+  "datatableHeader": {
+    "sortAsc": "ASC",
+    "sortDesc": "DESC",
+    "hide": "Hide column"
+  },
+
+  "datatableView": {
+    "view": "View",
+    "toggleColumns": "Toggle columns"
+  }
+}

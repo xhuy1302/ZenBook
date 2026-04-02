@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProfileUpdateResponse {
-    @NotBlank(message = "USERNAME_NOTBLANK")
     private String id;
     private String username;
     private String fullName;
