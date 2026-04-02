@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+<changeSet id="004-create-authors-table" author="xuanhuy">
+    <preConditions onFail="MARK_RAN">
+        <not>
+            <tableExists tableName="authors"/>
+        </not>
+    </preConditions>
+
+    <createTable tableName="authors" remarks="Bảng authors">
+
+        <column name="id" type="VARCHAR(36)">
+            <constraints primaryKey="true" nullable="false"/>
+        </column>
+
+        <column name="name" type="VARCHAR(150)">
+            <constraints nullable="false"/>
+        </column>
+
+        <column name="date_of_birth" type="DATE"/>
+
+        <column name="nationality" type="VARCHAR(100)"/>
+
+        <column name="biography" type="VARCHAR(500)"/>
+
+        <column name="avatar" type="VARCHAR(500)"/>
+
+        <column name="email" type="VARCHAR(100)"/>
+
+        <column name="website" type="VARCHAR(255)"/>
+
+        <!-- Soft delete + status -->
+        <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE"/>
+
+        <column name="deleted_at" type="TIMESTAMP"/>
+
+        <!-- Audit -->
+        <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+            <constraints nullable="false"/>
+        </column>
+
+        <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+            <constraints nullable="false"/>
+        </column>
+
+    </createTable>
+
+    <!-- Index -->
+    <createIndex tableName="authors" indexName="idx_author_name">
+        <column name="name"/>
+    </createIndex>
+
+    <createIndex tableName="authors" indexName="idx_author_status">
+        <column name="status"/>
+    </createIndex>
+
+    <createIndex tableName="authors" indexName="idx_author_created">
+        <column name="created_at"/>
+    </createIndex>
+
+    <createIndex tableName="authors" indexName="idx_author_deleted">
+        <column name="deleted_at"/>
+    </createIndex>
+
+    <rollback>
+        <dropTable tableName="authors" cascadeConstraints="true"/>
+    </rollback>
+</changeSet>
+
+</databaseChangeLog>

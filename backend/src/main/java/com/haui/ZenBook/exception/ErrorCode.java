@@ -45,6 +45,14 @@ public enum ErrorCode {
     BRAND_SLUG_NOTBLANK(5009, "brand.slug.not.blank", HttpStatus.BAD_REQUEST),
     BRAND_SLUG_EXISTED(5010, "brand.slug.exists", HttpStatus.BAD_REQUEST),
 
+    AUTHOR_NOT_FOUND(7000, "author.not.found", HttpStatus.NOT_FOUND),
+    AUTHOR_NAME_NOTBLANK(7001, "author.name.not.blank", HttpStatus.BAD_REQUEST),
+    AUTHOR_NAME_EXISTED(7002, "author.name.exists", HttpStatus.BAD_REQUEST),
+    AUTHOR_EMAIL_NOTBLANK(7003, "author.email.not.blank", HttpStatus.BAD_REQUEST),
+    AUTHOR_EMAIL_VALID(7004, "author.email.valid", HttpStatus.BAD_REQUEST),
+    AUTHOR_EMAIL_EXISTED(7005, "author.email.exists", HttpStatus.BAD_REQUEST),
+    AUTHOR_CANNOT_DELETE(7006, "author.cannot.delete", HttpStatus.BAD_REQUEST),
+
     FILE_TYPE_INVALID(6000, "file.type.invalid", HttpStatus.BAD_REQUEST),
     FILE_TOO_LARGE(6001, "file.too.large", HttpStatus.BAD_REQUEST),
     UPLOAD_IMAGE_FAILED(6002, "upload.image.failed", HttpStatus.INTERNAL_SERVER_ERROR)
