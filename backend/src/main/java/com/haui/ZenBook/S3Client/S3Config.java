@@ -22,11 +22,10 @@ public class S3Config {
 
     @Bean
     public S3Client s3Client() {
-        // Chìa khóa truy cập
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
 
         return S3Client.builder()
-                .region(Region.of(region)) // Nhớ là Region của software.amazon.awssdk
+                .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .build();
     }

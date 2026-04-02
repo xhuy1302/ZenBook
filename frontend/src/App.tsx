@@ -6,6 +6,7 @@ import LayoutAdmin from '@/pages/admin/LayoutAdmin'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import DashboardHome from './pages/admin/dashboard/content/DashBoardHome'
 import UserPage from './pages/admin/manage-user/page'
+import AuthorPage from './pages/admin/manage-author/page'
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path='/dashboard' element={<LayoutAdmin />}>
               <Route index element={<DashboardHome />} />
               <Route path='users' element={<UserPage />} />
+              <Route path='authors' element={<AuthorPage />} />
               {/* <Route path='categories' element={<CategoryPage />} /> */}
               {/* <Route path='brands' element={<BrandPage />} /> */}
             </Route>
