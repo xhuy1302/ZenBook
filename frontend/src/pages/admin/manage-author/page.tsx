@@ -1,3 +1,5 @@
+'use client'
+
 import { UserTableSkeleton } from '@/components/common/LoadingTable'
 import { useFetchData } from '@/hooks/useFetchData'
 import { getAllAuthorsApi } from '@/services/author/author.api'
@@ -12,10 +14,13 @@ export default function AuthorPage() {
   const { data, isLoading } = useFetchData('authors', getAllAuthorsApi)
 
   return (
-    <div>
-      <div className='mb-8 px-4 py-2 bg-secondary rounded-md'>
-        <h1 className='font-semibold'>{t('list.title')}</h1>
+    <div className='p-4 space-y-4'>
+      <div className='mb-6 px-4 py-3 bg-secondary/50 border rounded-md'>
+        <h1 className='text-xl font-bold tracking-tight text-foreground'>
+          {t('list.title', 'Quản lý tác giả')}
+        </h1>
       </div>
+
       {isLoading ? <UserTableSkeleton /> : <DataTable columns={columns} data={data || []} />}
     </div>
   )

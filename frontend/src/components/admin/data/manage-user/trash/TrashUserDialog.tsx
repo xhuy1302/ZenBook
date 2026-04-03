@@ -23,8 +23,9 @@ export function TrashUserDialog() {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant='default'>
-            <Trash2 />
+          <Button variant='outline' className='gap-2'>
+            <Trash2 className='h-4 w-4' />
+            {t('trash.openButton', 'Thùng rác')}
           </Button>
         </DialogTrigger>
 

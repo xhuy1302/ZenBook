@@ -1,0 +1,109 @@
+{
+  "list": "Quản lý danh mục",
+  "dialogTitle": {
+    "create": "Tạo danh mục mới",
+    "view": "Chi tiết danh mục",
+    "update": "Cập nhật danh mục",
+    "delete": "Xác nhận xóa danh mục",
+    "restore": "Khôi phục danh mục",
+    "permanentDelete": "Xóa vĩnh viễn danh mục"
+  },
+  "dialogDescription": {
+    "create": "Điền các thông tin dưới đây để tạo cấu trúc danh mục cho cửa hàng."
+  },
+  "table": {
+    "noResults": "Không tìm thấy danh mục nào.",
+    "columns": {
+      "name": "Tên danh mục",
+      "slug": "Slug / Đường dẫn",
+      "level": "Cấp độ",
+      "order": "Thứ tự",
+      "status": "Trạng thái",
+      "actions": "Thao tác",
+      "parentId": "Danh mục cha",
+      "desc": "Mô tả",
+      "descPlaceholder": "Nhập mô tả tóm tắt về danh mục này...",
+      "isFeatured": "Nổi bật",
+      "thumbnail": "Ảnh bìa"
+    }
+  },
+  "filters": {
+    "search": "Tìm theo tên danh mục...",
+    "reset": "Đặt lại",
+    "status": {
+      "label": "Trạng thái",
+      "all": "Tất cả trạng thái",
+      "ACTIVE": "Hoạt động",
+      "INACTIVE": "Tạm ẩn"
+    },
+    "parent": {
+      "placeholder": "Chọn danh mục cha",
+      "none": "Không có (Cấp gốc)"
+    },
+    "level": {
+      "label": "Cấp độ",
+      "all": "Tất cả cấp độ",
+      "1": "Cấp 1 (Gốc)",
+      "2": "Cấp 2",
+      "3": "Cấp 3"
+    }
+  },
+  "fields": {
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Cập nhật cuối",
+    "deletedAt": "Ngày xóa",
+    "status": {
+      "label": "Trạng thái"
+    }
+  },
+  "actions": {
+    "create": "Thêm mới",
+    "edit": "Lưu thay đổi",
+    "cancel": "Hủy",
+    "close": "Đóng",
+    "confirm": "Xác nhận xóa",
+    "restore": "Khôi phục",
+    "deleteForever": "Xóa vĩnh viễn",
+    "upload_thumb": "Chọn ảnh bìa",
+    "add": "Thêm danh mục",
+    "processing": "Đang xử lý...",
+    "view": "Xem chi tiết",
+    "change_avatar": "Thay đổi ảnh",
+    "uploading": "Đang tải lên...",
+    "delete": "Xóa",
+    "update": "Cập nhật"
+  },
+  "trash": {
+    "title": "Thùng rác danh mục",
+    "openButton": "Thùng rác",
+    "trashEmpty": "Thùng rác đang trống.",
+    "remainingDays": "Còn lại {{days}} ngày để khôi phục"
+  },
+  "message": {
+    "success": {
+      "create": "Thêm danh mục thành công!",
+      "update": "Cập nhật danh mục thành công!",
+      "delete": "Đã chuyển danh mục vào thùng rác.",
+      "restore": "Khôi phục danh mục thành công!",
+      "permanentDelete": "Đã xóa vĩnh viễn danh mục!",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa danh mục \"{{name}}\"?"
+    },
+    "error": {
+      "create": "Thêm danh mục thất bại.",
+      "update": "Cập nhật thất bại.",
+      "delete": "Không thể xóa danh mục này.",
+      "restore": "Khôi phục thất bại.",
+      "generic": "Đã có lỗi xảy ra, vui lòng thử lại.",
+      "hasChildren": "Không thể xóa danh mục đang có danh mục con!",
+      "slugExisted": "Slug này đã tồn tại, vui lòng chọn slug khác.",
+      "upload_thumb": "Tải ảnh lên thất bại!"
+    },
+    "warning": {
+      "restoreConfirm": "Bạn có chắc chắn muốn khôi phục danh mục \"{{name}}\"?",
+      "permanentDeleteConfirm": "Bạn có chắc chắn muốn xóa vĩnh viễn \"{{name}}\"?",
+      "cannotUndo": "Hành động này không thể hoàn tác!",
+      "softDeleteNote": "* Danh mục này sẽ được chuyển vào thùng rác và có thể khôi phục trong vòng 30 ngày.",
+      "parentLocked": "Không thể thay đổi danh mục cha sau khi đã tạo"
+    }
+  }
+}

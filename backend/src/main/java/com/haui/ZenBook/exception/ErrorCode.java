@@ -39,6 +39,11 @@ public enum ErrorCode {
     CATEGORY_PARENT_NOT_FOUND(5004, "category.parent.not.found", HttpStatus.BAD_REQUEST),
     CATEGORY_PARENT_INVALID(5005, "category.parent.invalid", HttpStatus.BAD_REQUEST),
     CATEGORY_HAS_CHILD(5006, "category.has.child", HttpStatus.BAD_REQUEST),
+    CATEGORY_NAME_INVALID_SIZE(5011, "category.name.invalid.size", HttpStatus.BAD_REQUEST),
+    CATEGORY_CANNOT_PARENT_ITSELF(5012, "category.cannot.parent.itself", HttpStatus.BAD_REQUEST),
+    CATEGORY_LEVEL_TOO_DEEP(5013, "category.level.too.deep", HttpStatus.BAD_REQUEST),
+    PARENT_CATEGORY_NOT_FOUND(5004, "category.parent.not.found", HttpStatus.BAD_REQUEST),
+    CATEGORY_HAS_CHILDREN(5006, "category.has.child", HttpStatus.BAD_REQUEST),
 
     BRAND_NOT_FOUND(5007, "brand.not.found", HttpStatus.NOT_FOUND),
     BRAND_NAME_NOTBLANK(5008, "brand.name.not.blank", HttpStatus.BAD_REQUEST),
