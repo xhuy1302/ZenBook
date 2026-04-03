@@ -1,17 +1,16 @@
 import {
-  AudioWaveform,
-  Box,
-  CircleStar,
-  Command,
-  GalleryVerticalEnd,
-  ListCollapseIcon,
-  MessageCircleMore,
-  Settings,
-  ShoppingCart,
-  StickyNote,
-  Tags,
+  BookOpen,
+  LayoutGrid,
+  ShoppingBag,
+  UserRoundPen,
+  Users2,
+  FileText,
   TicketPercent,
-  Users2
+  Tags,
+  Star,
+  Settings2,
+  AudioWaveform,
+  GalleryVerticalEnd
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -27,111 +26,87 @@ import {
   SidebarRail
 } from '@/components/ui/sidebar'
 
-// This is sample data.
 const data = {
   user: {
-    name: 'Zenbook',
-    email: 'zenbook@gmail.com',
-    avatar: '/avatars/shadcn.jpg'
+    name: 'Zenbook Admin',
+    email: 'admin@zenbook.com',
+    avatar: '/avatars/admin.jpg'
   },
   teams: [
     {
       name: 'Zenbook Store.',
       logo: GalleryVerticalEnd,
-      plan: 'Enterprise'
+      plan: 'Pro Plan'
     },
     {
-      name: 'Acme Corp.',
+      name: 'Zenbook Logistics',
       logo: AudioWaveform,
       plan: 'Startup'
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free'
     }
   ],
   navMain: [
     {
-      title: 'Books',
+      title: 'Quản lý Sách',
       url: '#',
-      icon: Box,
+      icon: BookOpen,
       isActive: true,
       items: [
-        {
-          title: 'List Books',
-          url: '#'
-        },
-        {
-          title: 'Specifications',
-          url: '#'
-        }
+        { title: 'Tất cả sách', url: '/dashboard/books' },
+        { title: 'Thuộc tính sách', url: '/dashboard/books/specs' }
       ]
     },
     {
-      title: 'Orders',
+      title: 'Đơn hàng',
       url: '#',
-      icon: ShoppingCart,
+      icon: ShoppingBag,
+      badge: '24', // Hiển thị số đơn hàng mới
       items: [
-        {
-          title: 'Introduction',
-          url: '#'
-        },
-        {
-          title: 'Get Started',
-          url: '#'
-        },
-        {
-          title: 'Tutorials',
-          url: '#'
-        },
-        {
-          title: 'Changelog',
-          url: '#'
-        }
+        { title: 'Đang xử lý', url: '/dashboard/orders/pending' },
+        { title: 'Hoàn thành', url: '/dashboard/orders/completed' },
+        { title: 'Đã hủy', url: '/dashboard/orders/cancelled' }
       ]
     }
   ],
   projects: [
     {
-      name: 'Categories',
+      name: 'Danh mục',
       url: '/dashboard/categories',
-      icon: ListCollapseIcon
+      icon: LayoutGrid
     },
     {
-      name: 'Authors',
+      name: 'Tác giả',
       url: '/dashboard/authors',
-      icon: CircleStar
+      icon: UserRoundPen
     },
     {
-      name: 'Blog',
-      url: '#',
-      icon: StickyNote
+      name: 'Bài viết',
+      url: '/dashboard/blog',
+      icon: FileText
     },
     {
-      name: 'Users',
+      name: 'Người dùng',
       url: '/dashboard/users',
       icon: Users2
     },
     {
-      name: 'Vouchers',
-      url: '#',
+      name: 'Mã giảm giá',
+      url: '/dashboard/vouchers',
       icon: TicketPercent
     },
     {
       name: 'Tags',
-      url: '#',
+      url: '/dashboard/tags',
       icon: Tags
     },
     {
-      name: 'Reviews',
-      url: '#',
-      icon: MessageCircleMore
+      name: 'Đánh giá',
+      url: '/dashboard/reviews',
+      icon: Star
     },
     {
-      name: 'Settings',
-      url: '#',
-      icon: Settings
+      name: 'Cài đặt',
+      url: '/dashboard/settings',
+      icon: Settings2
     }
   ]
 }

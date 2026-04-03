@@ -13,20 +13,14 @@ import java.util.Optional;
 
 public interface AuthorRepository extends JpaRepository<AuthorEntity, String> {
 
-    // ================= BASIC =================
     boolean existsByName(String name);
 
-    List<AuthorEntity> findByStatus(AuthorStatus status);
-
-    List<AuthorEntity> findByStatusNot(AuthorStatus status);
 
     List<AuthorEntity> findByStatusNotOrderByIdDesc(AuthorStatus status);
 
     List<AuthorEntity> findByStatusOrderByIdDesc(AuthorStatus status);
 
-    List<AuthorEntity> findAllByOrderByIdDesc();
 
-    Optional<AuthorEntity> findByIdAndStatus(String id, AuthorStatus status);
 
     // ================= SEARCH =================
     List<AuthorEntity> findByNameContainingIgnoreCaseAndStatus(String name, AuthorStatus status);

@@ -9,4 +9,5 @@
     <include file="classpath:db/changelog/changes/002-insert-roles.xml"/>
     <include file="classpath:db/changelog/changes/003-create-table-authors.xml"/>
     <include file="classpath:db/changelog/changes/004-insert-authors.xml"/>
+    <include file="classpath:db/changelog/changes/005-create-table-categories.xml"/>
 </databaseChangeLog>

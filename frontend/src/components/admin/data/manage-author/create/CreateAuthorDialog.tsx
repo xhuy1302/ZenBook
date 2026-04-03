@@ -20,12 +20,9 @@ export function CreateAuthorDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {/* Thêm title để hỗ trợ trải nghiệm người dùng */}
-        <Button
-          size='icon'
-          className='h-9 w-9 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-sm'
-          title={t('actions.add', 'Thêm tác giả')}
-        >
+        <Button variant='outline' className='gap-2'>
           <Plus className='h-4 w-4' />
+          {t('actions.add', 'Thêm tác giả')}
         </Button>
       </DialogTrigger>
 

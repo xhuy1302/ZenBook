@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,17 +14,18 @@ import {
 import { AxiosError } from 'axios'
 import { UserRole, UserStatus } from '@/defines/user.enum'
 import type { User } from '@/pages/admin/manage-user/columns'
-import { updateUserApi, uploadAvatarApi } from '@/services/user/user.api' // Đảm bảo đã export uploadAvatarApi
+import { updateUserApi, uploadAvatarApi } from '@/services/user/user.api'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { Loader2, Upload } from 'lucide-react'
+import { Loader2, Camera } from 'lucide-react'
 import {
   editUserSchema,
   type EditUserFormValues
 } from '@/components/admin/data/manage-user/schema/user.schema'
+import { cn } from '@/lib/utils'
 
 interface EditUserFormProps {
   user: User
@@ -56,58 +59,36 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
     }
   })
 
-  // Theo dõi giá trị avatar để hiển thị ảnh preview ngay lập tức
   const currentAvatar = watch('avatar')
 
-  // Hàm xử lý upload ảnh lên S3
   const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     try {
       setIsUploading(true)
-      // Gọi API Patch /api/v1/users/{userId}/avatar đã viết ở Backend
       const response = await uploadAvatarApi(user.id, file)
-
-      // Backend trả về ApiResponse<String> chứa URL
       const avatarUrl = response.data.data
-
-      // Cập nhật giá trị vào form field 'avatar'
       setValue('avatar', avatarUrl)
-      toast.success(t('message.success.upload_avatar') || 'Upload avatar success!')
+      toast.success(t('message.success.upload_avatar') || 'Cập nhật ảnh thành công!')
     } catch {
-      toast.error(t('message.error.upload_avatar') || 'Upload failed!')
+      toast.error(t('message.error.upload_avatar') || 'Upload thất bại!')
     } finally {
       setIsUploading(false)
     }
   }
 
   const mutation = useMutation({
-    mutationFn: (values: EditUserFormValues) =>
-      updateUserApi(user.id, {
-        username: values.username,
-        fullName: values.fullName,
-        phone: values.phone,
-        avatar: values.avatar, // Link ảnh mới (nếu có) sẽ được gửi ở đây
-        status: values.status,
-        roles: values.roles
-      }),
+    mutationFn: (values: EditUserFormValues) => updateUserApi(user.id, values),
     onSuccess: () => {
       toast.success(t('message.success.update'))
       queryClient.invalidateQueries({ queryKey: ['users'] })
       onSuccess()
     },
     onError: (error: AxiosError<{ code?: number | string; message?: string }>) => {
-      // Ép kiểu an toàn về Number để bao quát cả 2 trường hợp Backend trả về 1010 hoặc "1010"
       const errorCode = Number(error.response?.data?.code)
-
-      if (errorCode == 1010) {
-        // 1010 là mã USERNAME_EXISTED bên Backend
-        setError('username', {
-          type: 'server',
-          message: t('message.error.username_existed')
-        })
-        toast.error(t('message.error.username_existed'))
+      if (errorCode === 1010) {
+        setError('username', { type: 'server', message: t('message.error.username_existed') })
       } else {
         toast.error(t('message.error.update'))
       }
@@ -115,24 +96,41 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
   })
 
   return (
-    <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className='space-y-6'>
-      {/* SECTION: UPLOAD AVATAR */}
-      <div className='flex flex-col items-center justify-center space-y-4 py-4 border-b bg-muted/30 rounded-t-lg'>
+    <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className='space-y-8'>
+      {/* SECTION: AVATAR DISPLAY & UPLOAD */}
+      <div className='flex flex-col items-center justify-center space-y-4'>
         <div className='relative group'>
-          <img
-            src={currentAvatar || 'https://ui.shadcn.com/avatars/02.png'}
-            alt='Avatar Preview'
-            className='w-28 h-28 rounded-full object-cover border-4 border-background shadow-sm'
-          />
-          {isUploading && (
-            <div className='absolute inset-0 bg-black/40 rounded-full flex items-center justify-center'>
-              <Loader2 className='w-8 h-8 text-white animate-spin' />
-            </div>
-          )}
+          <div
+            className={cn(
+              'w-40 h-40 rounded-full border-4 border-background shadow-2xl overflow-hidden relative transition-all duration-300 group-hover:ring-4 group-hover:ring-primary/20',
+              isUploading && 'opacity-50'
+            )}
+          >
+            <img
+              src={currentAvatar || 'https://ui.shadcn.com/avatars/02.png'}
+              alt='Avatar Preview'
+              className='w-full h-full object-cover'
+            />
+            {isUploading && (
+              <div className='absolute inset-0 flex items-center justify-center bg-black/20'>
+                <Loader2 className='w-10 h-10 text-white animate-spin' />
+              </div>
+            )}
+          </div>
+
+          {/* Nút bấm nhanh trên ảnh */}
+          <button
+            type='button'
+            onClick={() => document.getElementById('avatar-input')?.click()}
+            className='absolute bottom-1 right-1 p-2.5 bg-primary text-primary-foreground rounded-full shadow-lg hover:scale-110 transition-transform disabled:opacity-50'
+            disabled={isUploading}
+          >
+            <Camera className='w-5 h-5' />
+          </button>
         </div>
 
-        <div className='flex flex-col items-center gap-2'>
-          <Input
+        <div className='text-center'>
+          <input
             id='avatar-input'
             type='file'
             accept='image/*'
@@ -140,54 +138,44 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
             onChange={handleUploadAvatar}
             disabled={isUploading}
           />
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            disabled={isUploading}
-            onClick={() => document.getElementById('avatar-input')?.click()}
-          >
-            <Upload className='w-4 h-4 mr-2' />
-            {isUploading
-              ? t('actions.uploading') || 'Uploading...'
-              : t('actions.change_avatar') || 'Change Avatar'}
-          </Button>
-          <p className='text-[10px] text-muted-foreground uppercase tracking-wider font-medium'>
-            JPG, PNG or GIF. Max 5MB.
+          <p className='text-[11px] text-muted-foreground uppercase tracking-widest font-bold'>
+            {isUploading ? 'Đang tải lên...' : 'Định dạng: JPG, PNG, GIF (Max 5MB)'}
           </p>
         </div>
-        {/* Hidden input để hook-form nhận giá trị string avatar */}
         <input type='hidden' {...register('avatar')} />
       </div>
 
-      {/* SECTION: USER INFO */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      {/* SECTION: USER DATA FIELDS */}
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5'>
         <div className='space-y-2'>
-          <Label>{t('fields.username.label')}</Label>
-          <Input {...register('username')} placeholder='Username' />
-          {errors.username && <p className='text-destructive text-sm'>{errors.username.message}</p>}
+          <Label className='font-semibold'>{t('fields.username.label')}</Label>
+          <Input {...register('username')} className='h-10' />
+          {errors.username && (
+            <p className='text-destructive text-xs italic'>{errors.username.message}</p>
+          )}
         </div>
 
         <div className='space-y-2'>
-          <Label>{t('fields.fullName.label')}</Label>
-          <Input {...register('fullName')} placeholder='Full Name' />
+          <Label className='font-semibold'>{t('fields.fullName.label')}</Label>
+          <Input {...register('fullName')} className='h-10' />
         </div>
 
         <div className='space-y-2'>
-          <Label>{t('fields.phone.label')}</Label>
-          <Input {...register('phone')} placeholder='Phone Number' />
-          {errors.phone && <p className='text-destructive text-sm'>{errors.phone.message}</p>}
+          <Label className='font-semibold'>{t('fields.phone.label')}</Label>
+          <Input {...register('phone')} className='h-10' />
+          {errors.phone && (
+            <p className='text-destructive text-xs italic'>{errors.phone.message}</p>
+          )}
         </div>
 
-        {/* Status Select */}
         <div className='space-y-2'>
-          <Label>{t('fields.status.label')}</Label>
+          <Label className='font-semibold'>{t('fields.status.label')}</Label>
           <Controller
             control={control}
             name='status'
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
+                <SelectTrigger className='h-10'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -202,9 +190,8 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
           />
         </div>
 
-        {/* Roles Select */}
-        <div className='space-y-2'>
-          <Label>{t('fields.role.label')}</Label>
+        <div className='space-y-2 md:col-span-2'>
+          <Label className='font-semibold'>{t('fields.role.label')}</Label>
           <Controller
             control={control}
             name='roles'
@@ -213,7 +200,7 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
                 value={field.value?.[0]}
                 onValueChange={(value) => field.onChange([value as UserRole])}
               >
-                <SelectTrigger>
+                <SelectTrigger className='h-10'>
                   <SelectValue placeholder={t('fields.role.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -226,20 +213,28 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
               </Select>
             )}
           />
-          {errors.roles && <p className='text-destructive text-sm'>{errors.roles.message}</p>}
+          {errors.roles && (
+            <p className='text-destructive text-xs italic'>{errors.roles.message}</p>
+          )}
         </div>
       </div>
 
-      <div className='flex justify-end pt-4 border-t gap-3'>
+      {/* FOOTER ACTIONS */}
+      <div className='flex justify-end pt-6 border-t gap-3'>
         <Button
           type='button'
           variant='ghost'
           onClick={onSuccess}
           disabled={mutation.isPending || isUploading}
+          className='px-6'
         >
-          {t('actions.cancel') || 'Cancel'}
+          {t('actions.cancel')}
         </Button>
-        <Button type='submit' disabled={mutation.isPending || isUploading}>
+        <Button
+          type='submit'
+          disabled={mutation.isPending || isUploading}
+          className='px-8 bg-primary hover:bg-primary/90 shadow-md'
+        >
           {mutation.isPending && <Loader2 className='w-4 h-4 mr-2 animate-spin' />}
           {t('actions.edit')}
         </Button>

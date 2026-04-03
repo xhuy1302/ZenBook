@@ -23,6 +23,7 @@ export function NavMain({
     url: string
     icon?: LucideIcon
     isActive?: boolean
+    badge?: string // Thêm trường badge
     items?: {
       title: string
       url: string
@@ -31,7 +32,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
+      <SidebarGroupLabel>Hệ thống</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible
@@ -43,13 +44,17 @@ export function NavMain({
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span>
-                    {item.title}
-                    <SidebarMenuBadge>10</SidebarMenuBadge>
-                  </span>
+                  {item.icon && <item.icon className='size-4' />}
+                  <span className='flex-1'>{item.title}</span>
 
-                  <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+                  {/* Chỉ hiển thị badge nếu có dữ liệu */}
+                  {item.badge && (
+                    <SidebarMenuBadge className='bg-red-500 text-white hover:bg-red-600 transition-colors'>
+                      {item.badge}
+                    </SidebarMenuBadge>
+                  )}
+
+                  <ChevronRight className='ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>

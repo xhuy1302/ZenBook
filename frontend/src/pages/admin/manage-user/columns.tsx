@@ -25,20 +25,25 @@ export const columns: ColumnDef<User>[] = [
   {
     id: 'select',
     header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label='Select all'
-      />
+      <div className='pl-2'>
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label='Select all'
+        />
+      </div>
     ),
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label='Select row'
-      />
+      <div className='pl-2'>
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label='Select row'
+        />
+      </div>
     ),
     enableSorting: false,
     enableHiding: false
@@ -53,16 +58,21 @@ export const columns: ColumnDef<User>[] = [
       const user = row.original
 
       return (
-        <div className='flex items-center gap-3'>
+        <div className='flex items-center gap-3 py-1'>
           <img
             src={user.avatar || 'https://ui.shadcn.com/avatars/02.png'}
             alt={user.username}
-            className='h-9 w-9 rounded-full object-cover border'
+            className='h-10 w-10 rounded-full object-cover border shadow-sm'
+            onError={(e) => {
+              e.currentTarget.src = 'https://ui.shadcn.com/avatars/02.png'
+            }}
           />
 
           <div className='flex flex-col'>
-            <span className='font-medium leading-none'>{user.username}</span>
-            <span className='text-sm text-muted-foreground'>{user.email}</span>
+            <span className='font-semibold leading-none text-nowrap text-foreground'>
+              {user.username}
+            </span>
+            <span className='text-[11px] text-muted-foreground mt-1.5'>{user.email}</span>
           </div>
         </div>
       )
@@ -72,12 +82,22 @@ export const columns: ColumnDef<User>[] = [
     accessorKey: 'fullName',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={i18n.t('user:table.columns.fullName')} />
+    ),
+    cell: ({ row }) => (
+      <div className='text-sm font-medium text-foreground'>
+        {row.getValue('fullName') || <span className='text-muted-foreground'>---</span>}
+      </div>
     )
   },
   {
     accessorKey: 'phone',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title={i18n.t('user:table.columns.phone')} />
+    ),
+    cell: ({ row }) => (
+      <div className='text-sm font-medium text-foreground'>
+        {row.getValue('phone') || <span className='text-muted-foreground'>---</span>}
+      </div>
     )
   },
   {
@@ -93,7 +113,12 @@ export const columns: ColumnDef<User>[] = [
 
       return roles.includes(filterValue)
     },
-    cell: ({ row }) => <UserRoleBadges roles={row.getValue('roles')} />
+    cell: ({ row }) => (
+      // Bọc thêm thẻ div để nếu user có nhiều role thì nó tự động rớt dòng đẹp mắt
+      <div className='flex flex-wrap items-center gap-1.5 max-w-[200px]'>
+        <UserRoleBadges roles={row.getValue('roles')} />
+      </div>
+    )
   },
   {
     accessorKey: 'status',
@@ -107,7 +132,12 @@ export const columns: ColumnDef<User>[] = [
 
       return status === filterValue
     },
-    cell: ({ row }) => <UserStatusBadge status={row.getValue('status')} />
+    cell: ({ row }) => (
+      // Căn giữa cột trạng thái, ép khung w-[110px] để các badge đều nhau
+      <div className='w-[110px] flex justify-center'>
+        <UserStatusBadge status={row.getValue('status')} />
+      </div>
+    )
   },
   {
     id: 'actions',

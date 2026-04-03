@@ -1,13 +1,14 @@
 {
   "list": {
-    "title": "Danh sách tác giả"
+    "title": "Quan lý tác giả",
+    "description": "Quản lý thông tin tác giả, bao gồm tên, ảnh đại diện và trạng thái hoạt động."
   },
   "filters": {
     "search": "Tìm kiếm tên tác giả...",
     "status": {
       "label": "Trạng thái",
       "all": "Tất cả trạng thái",
-      "ACTIVE": "Đang hoạt động",
+      "ACTIVE": "Hoạt động",
       "INACTIVE": "Ngừng hoạt động",
       "BLOCKED": "Đã khóa"
     },
@@ -21,7 +22,11 @@
       "status": "Trạng thái",
       "createdAt": "Ngày tạo",
       "actions": "Thao tác",
-      "noBiography": "Không có tiểu sử"
+      "biography": "Tiểu sử",
+      "noBiography": "Không có tiểu sử",
+      "nationality": "Quốc tịch",
+      "dateOfBirth": "Ngày sinh",
+      "deathDate": "Ngày mất"
     }
   },
   "dialogTitle": {
@@ -46,7 +51,17 @@
     "error": {
       "delete": "Xóa thất bại",
       "fetch": "Không thể tải danh sách tác giả",
-      "update": "Cập nhật thất bại"
+      "update": "Cập nhật thất bại",
+      "create": "Tạo tác giả thất bại",
+      "restore": "Khôi phục thất bại",
+      "permanentDelete": "Xóa vĩnh viễn thất bại",
+      "softDelete": "Chuyển vào thùng rác thất bại",
+      "validation": {
+        "nameRequired": "Tên tác giả là bắt buộc",
+        "nameMinLength": "Tên tác giả phải có ít nhất 2 ký tự",
+        "nameMaxLength": "Tên tác giả không được vượt quá 100 ký tự"
+      },
+      "existed": "Tác giả đã tồn tại"
     }
   },
   "actions": {
@@ -54,6 +69,10 @@
     "deleteForever": "Xóa vĩnh viễn",
     "restore": "Khôi phục",
     "confirm": "Xác nhận",
-    "close": "Đóng"
+    "close": "Đóng",
+    "edit": "Lưu thay đổi",
+    "delete": "Xóa",
+    "add": "Thêm mới",
+    "create": "Tạo"
   }
 }

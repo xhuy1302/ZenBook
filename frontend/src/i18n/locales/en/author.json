@@ -1,6 +1,7 @@
 {
   "list": {
-    "title": "Author List"
+    "title": "Author Management",
+    "description": "Manage author information, including name, avatar, and active status."
   },
   "filters": {
     "search": "Search author name...",
@@ -21,7 +22,11 @@
       "status": "Status",
       "createdAt": "Created At",
       "actions": "Actions",
-      "noBiography": "No biography"
+      "noBiography": "No biography",
+      "biography": "Biography",
+      "nationality": "Nationality",
+      "dateOfBirth": "Date of Birth",
+      "deathDate": "Death Date"
     }
   },
   "dialogTitle": {
@@ -46,7 +51,17 @@
     "error": {
       "delete": "Delete failed",
       "fetch": "Failed to fetch authors",
-      "update": "Update failed"
+      "update": "Update failed",
+      "create": "Create author failed",
+      "restore": "Restore failed",
+      "permanentDelete": "Permanent delete failed",
+      "softDelete": "Move to trash failed",
+      "validation": {
+        "nameRequired": "Author name is required",
+        "nameMinLength": "Author name must be at least 2 characters long",
+        "nameMaxLength": "Author name must not exceed 100 characters"
+      },
+      "existed": "Author already exists"
     }
   },
   "actions": {
@@ -54,6 +69,10 @@
     "deleteForever": "Delete Forever",
     "restore": "Restore",
     "confirm": "Confirm",
-    "close": "Close"
+    "close": "Close",
+    "edit": "Save Changes",
+    "delete": "Delete",
+    "add": "Add New",
+    "create": "Create"
   }
 }
