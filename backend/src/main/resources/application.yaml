@@ -37,6 +37,13 @@ spring:
 #  valid-duration: 3600
 #  refreshable-duration: 36000
 
+jwt:
+  # Ưu tiên lấy từ biến môi trường JWT_SECRET.
+  # Nếu chạy ở máy cá nhân chưa có biến này, sẽ dùng chuỗi chuỗi hex (256-bit) mặc định phía sau dấu ':'
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+
+  # Thời gian hết hạn của Access Token: 1 ngày (86400000 milliseconds)
+  expiration: 86400000
 aws:
   access-key: ${AWS_ACCESS_KEY}
   secret-key: ${AWS_SECRET_KEY}

@@ -3,21 +3,26 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-
 import { logInSchema } from '@/components/auth/schemas/schemas'
 import { useTranslation } from 'react-i18next'
-
 import LanguageSelector from '@/components/common/LanguageSelector'
-// import { useAuthStore } from '@/store/auth.store'
 import type z from 'zod'
+
+import { useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import { AuthContext } from '@/context/AuthContext'
+import type { AxiosError } from 'axios'
+import type { ApiErrorResponse } from '@/defines/error.type'
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const { t } = useTranslation('auth')
   type LogInFormValue = z.infer<typeof logInSchema>
-  // const navigate = useNavigate()
+
+  const navigate = useNavigate()
+  const authContext = useContext(AuthContext)
 
   const {
     register,
@@ -27,23 +32,24 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     resolver: zodResolver(logInSchema)
   })
 
-  // const { login, roles } = useAuthStore()
-
   const onSubmit = async (data: LogInFormValue) => {
-    // try {
-    //   await login(data)
-    //   if (roles.includes('ADMIN')) {
-    //     navigate('/dashboard')
-    //   } else {
-    //     navigate('/profile')
-    //   }
-    // } catch (error: unknown) {
-    //   if (error instanceof Error) {
-    //     toast.error(error.message)
-    //   } else {
-    //     toast.error('Login failed')
-    //   }
-    // }
+    if (!authContext) return
+
+    try {
+      const res = await authContext.login(data.email, data.password)
+      toast.success(t('login.messages.success'))
+
+      const roles = res.user.roles || []
+      if (roles.includes('ADMIN') || roles.includes('ROLE_ADMIN')) {
+        navigate('/dashboard')
+      } else {
+        navigate('/')
+      }
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>
+      const message = axiosError.response?.data?.message || t('login.errors.failed')
+      toast.error(message)
+    }
   }
 
   return (
@@ -55,30 +61,36 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
             <div className='flex flex-col gap-6'>
               <div className='flex flex-col items-center gap-2'>
                 <a href='/' className='mx-auto block w-fit text-center'>
-                  <img src='/black_on_trans2.png' alt='Logo' />
+                  <img
+                    src='https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/Logo/Zen+Book.png'
+                    alt='Logo'
+                    className='w-32 h-auto object-contain' // Thêm dòng này để ép size
+                  />
                 </a>
                 <h1 className='text-2xl font-bold'>{t('login.title')}</h1>
                 <p className='text-muted-foreground text-balance'>{t('login.subtitle')}</p>
               </div>
 
               <div className='flex flex-col gap-3'>
-                <Label htmlFor='email' className='block text-sm'>
-                  {t('login.email')}
-                </Label>
+                <Label htmlFor='email'>{t('login.email')}</Label>
                 <Input
                   type='text'
                   id='email'
                   placeholder='zenbook@gmail.com'
+                  autoComplete='off'
                   {...register('email')}
                 />
                 {errors.email && <p className='text-destructive text-sm'>{errors.email.message}</p>}
               </div>
 
               <div className='flex flex-col gap-3'>
-                <Label htmlFor='password' className='block text-sm'>
-                  {t('login.password')}
-                </Label>
-                <Input type='password' id='password' {...register('password')} />
+                <Label htmlFor='password'>{t('login.password')}</Label>
+                <Input
+                  type='password'
+                  id='password'
+                  autoComplete='new-password'
+                  {...register('password')}
+                />
                 {errors.password && (
                   <p className='text-destructive text-sm'>{errors.password.message}</p>
                 )}
@@ -97,9 +109,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
           </form>
           <div className='bg-muted relative hidden md:block'>
             <img
-              src='background_login.png'
+              src='https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/auth/1.png'
               alt='Image'
-              className='absolute top-1/2 -translate-y-1/2 object-cover'
+              className='absolute inset-0 h-full w-full object-cover'
             />
           </div>
         </CardContent>
