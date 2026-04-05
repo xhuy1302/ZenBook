@@ -12,7 +12,8 @@ import {
   Star,
   Settings2,
   AudioWaveform,
-  GalleryVerticalEnd
+  GalleryVerticalEnd,
+  Truck
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -69,6 +70,7 @@ const data = {
   projects: [
     { name: 'Danh mục', url: '/dashboard/categories', icon: LayoutGrid },
     { name: 'Tác giả', url: '/dashboard/authors', icon: UserRoundPen },
+    { name: 'Nhà cung cấp', url: '/dashboard/suppliers', icon: Truck },
     { name: 'Bài viết', url: '/dashboard/blog', icon: FileText },
     { name: 'Người dùng', url: '/dashboard/users', icon: Users2 },
     { name: 'Mã giảm giá', url: '/dashboard/vouchers', icon: TicketPercent },

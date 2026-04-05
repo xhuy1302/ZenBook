@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="20240405-insert-suppliers" author="zenbook">
+        <insert tableName="suppliers">
+            <column name="id" value="sup-01-uuid-0000-0000-000000000001"/>
+            <column name="name" value="Nhà xuất bản Kim Đồng"/>
+            <column name="contact_name" value="Nguyễn Văn Hoan"/>
+            <column name="tax_code" value="0100123456"/>
+            <column name="email" value="info@nxbkimdong.com.vn"/>
+            <column name="phone" value="02439434730"/>
+            <column name="address" value="55 Quang Trung, Hai Bà Trưng, Hà Nội"/>
+            <column name="website" value="https://nxbkimdong.com.vn"/>
+            <column name="description" value="Nhà xuất bản chuyên sách thiếu nhi lớn nhất Việt Nam."/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-02-uuid-0000-0000-000000000002"/>
+            <column name="name" value="Công ty CP Văn hóa và Truyền thông Nhã Nam"/>
+            <column name="contact_name" value="Nguyễn Nhật Anh"/>
+            <column name="tax_code" value="0101654321"/>
+            <column name="email" value="lienhe@nhanam.vn"/>
+            <column name="phone" value="02435146876"/>
+            <column name="address" value="59 Đỗ Quang, Trung Hòa, Cầu Giấy, Hà Nội"/>
+            <column name="website" value="https://nhanam.vn"/>
+            <column name="description" value="Thương hiệu sách văn học và kỹ năng hàng đầu."/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-03-uuid-0000-0000-000000000003"/>
+            <column name="name" value="Nhà xuất bản Trẻ"/>
+            <column name="contact_name" value="Phan Thị Thu Hà"/>
+            <column name="tax_code" value="0300987654"/>
+            <column name="email" value="hopto@nxbtre.com.vn"/>
+            <column name="phone" value="02839316289"/>
+            <column name="address" value="161B Lý Chính Thắng, Quận 3, TP.HCM"/>
+            <column name="website" value="https://nxbtre.com.vn"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-04-uuid-0000-0000-000000000004"/>
+            <column name="name" value="Alpha Books"/>
+            <column name="contact_name" value="Nguyễn Cảnh Bình"/>
+            <column name="tax_code" value="0102123456"/>
+            <column name="email" value="info@alphabooks.vn"/>
+            <column name="phone" value="02437226234"/>
+            <column name="address" value="11A Ngõ 282 Nguyễn Huy Tưởng, Thanh Xuân, Hà Nội"/>
+            <column name="website" value="https://alphabooks.vn"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-05-uuid-0000-0000-000000000005"/>
+            <column name="name" value="Thái Hà Books"/>
+            <column name="contact_name" value="Nguyễn Mạnh Hùng"/>
+            <column name="tax_code" value="0103123456"/>
+            <column name="email" value="info@thaihabooks.com"/>
+            <column name="phone" value="02437930480"/>
+            <column name="address" value="119 C5 Tô Hiệu, Cầu Giấy, Hà Nội"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-06-uuid-0000-0000-000000000006"/>
+            <column name="name" value="First News - Trí Việt"/>
+            <column name="contact_name" value="Nguyễn Văn Phước"/>
+            <column name="tax_code" value="0304123456"/>
+            <column name="email" value="triviet@firstnews.com.vn"/>
+            <column name="phone" value="02838227979"/>
+            <column name="address" value="11H Nguyễn Thị Minh Khai, Quận 1, TP.HCM"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-07-uuid-0000-0000-000000000007"/>
+            <column name="name" value="Đinh Tị Books"/>
+            <column name="tax_code" value="0105123456"/>
+            <column name="email" value="cskh@dinhtibooks.vn"/>
+            <column name="phone" value="02435640123"/>
+            <column name="address" value="78 Lê Duẩn, Hoàn Kiếm, Hà Nội"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-08-uuid-0000-0000-000000000008"/>
+            <column name="name" value="Nhà xuất bản Phụ Nữ Việt Nam"/>
+            <column name="tax_code" value="0106123456"/>
+            <column name="email" value="info@nxbphunu.com.vn"/>
+            <column name="address" value="39 Hàng Chuối, Hai Bà Trưng, Hà Nội"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-09-uuid-0000-0000-000000000009"/>
+            <column name="name" value="AZ Việt Nam"/>
+            <column name="contact_name" value="Trần Az"/>
+            <column name="tax_code" value="0107123456"/>
+            <column name="email" value="contact@azvietnam.vn"/>
+            <column name="address" value="Ngõ 82 Dịch Vọng Hậu, Cầu Giấy, Hà Nội"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-10-uuid-0000-0000-000000000010"/>
+            <column name="name" value="MCBooks"/>
+            <column name="tax_code" value="0108123456"/>
+            <column name="email" value="info@mcbooks.vn"/>
+            <column name="address" value="26/245 Mai Dịch, Cầu Giấy, Hà Nội"/>
+            <column name="description" value="Nhà cung cấp số 1 về sách ngoại ngữ."/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-11-uuid-0000-0000-000000000011"/>
+            <column name="name" value="Nhà xuất bản Tổng Hợp TP.HCM"/>
+            <column name="email" value="nxbtonghop@tphcm.gov.vn"/>
+            <column name="address" value="62 Nguyễn Thị Minh Khai, Quận 1, TP.HCM"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-12-uuid-0000-0000-000000000012"/>
+            <column name="name" value="Bách Việt Books"/>
+            <column name="tax_code" value="0110123456"/>
+            <column name="email" value="bachvietbooks@gmail.com"/>
+            <column name="address" value="114 Trần Điền, Hoàng Mai, Hà Nội"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-13-uuid-0000-0000-000000000013"/>
+            <column name="name" value="Nhà xuất bản Giáo Dục Việt Nam"/>
+            <column name="tax_code" value="0111123456"/>
+            <column name="email" value="nxbgiaduc@nxbgd.vn"/>
+            <column name="address" value="81 Trần Hưng Đạo, Hoàn Kiếm, Hà Nội"/>
+            <column name="status" value="INACTIVE"/>
+        </insert>
+
+        <insert tableName="suppliers">
+            <column name="id" value="sup-14-uuid-0000-0000-000000000014"/>
+            <column name="name" value="SkyBooks"/>
+            <column name="email" value="info@skybooks.vn"/>
+            <column name="address" value="53 ngõ 114 Phạm Văn Đồng, Cầu Giấy, Hà Nội"/>
+            <column name="description" value="Chuyên sách văn học trẻ."/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

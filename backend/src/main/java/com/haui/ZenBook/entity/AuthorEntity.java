@@ -43,4 +43,7 @@ public class AuthorEntity extends BaseEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @ManyToMany(mappedBy = "authors", fetch = FetchType.LAZY)
+    private java.util.Set<BookEntity> books;
 }
