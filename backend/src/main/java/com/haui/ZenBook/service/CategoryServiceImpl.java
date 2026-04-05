@@ -5,6 +5,7 @@ import com.haui.ZenBook.dto.category.CategoryCreationRequest;
 import com.haui.ZenBook.dto.category.CategoryResponse;
 import com.haui.ZenBook.dto.category.CategoryUpdateRequest;
 import com.haui.ZenBook.dto.category.CategoryUpdateResponse;
+import com.haui.ZenBook.entity.BookEntity;
 import com.haui.ZenBook.entity.CategoryEntity;
 import com.haui.ZenBook.enums.CategoryStatus;
 import com.haui.ZenBook.exception.AppException;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +44,8 @@ public class CategoryServiceImpl implements CategoryService {
                 : request.getSlug();
 
         if (categoryRepository.existsBySlug(slug)) {
-            throw new AppException(ErrorCode.CATEGORY_SLUG_EXISTED);
+            // Ném lỗi kèm slug bị trùng
+            throw new AppException(ErrorCode.CATEGORY_SLUG_EXISTED, slug);
         }
 
         CategoryEntity category = categoryMapper.toEntity(request);
@@ -50,7 +53,8 @@ public class CategoryServiceImpl implements CategoryService {
 
         if (request.getParentId() != null && !request.getParentId().isBlank()) {
             CategoryEntity parent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new AppException(ErrorCode.PARENT_CATEGORY_NOT_FOUND));
+                    // Ném lỗi kèm ID danh mục cha
+                    .orElseThrow(() -> new AppException(ErrorCode.PARENT_CATEGORY_NOT_FOUND, request.getParentId()));
             category.setLevel(parent.getLevel() + 1);
         } else {
             category.setLevel(0);
@@ -78,7 +82,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponse getCategoryById(String id) {
         CategoryEntity category = categoryRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND, id));
         return categoryMapper.toResponse(category);
     }
 
@@ -86,21 +90,23 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public CategoryUpdateResponse update(String id, CategoryUpdateRequest request) {
         CategoryEntity category = categoryRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND, id));
 
         if (id.equals(request.getParentId())) {
-            throw new AppException(ErrorCode.CATEGORY_PARENT_INVALID);
+            // Báo rõ lỗi do chọn chính nó làm cha
+            throw new AppException(ErrorCode.CATEGORY_PARENT_INVALID, "Danh mục không thể là cha của chính nó");
         }
 
         if (request.getParentId() != null && !request.getParentId().isBlank()) {
             if (isCircularReference(id, request.getParentId())) {
-                throw new AppException(ErrorCode.CATEGORY_PARENT_INVALID);
+                // Báo lỗi do tạo vòng lặp
+                throw new AppException(ErrorCode.CATEGORY_PARENT_INVALID, "Gây ra vòng lặp danh mục");
             }
         }
 
         if (request.getSlug() != null && !request.getSlug().equals(category.getSlug())) {
             if (categoryRepository.existsBySlug(request.getSlug())) {
-                throw new AppException(ErrorCode.CATEGORY_SLUG_EXISTED);
+                throw new AppException(ErrorCode.CATEGORY_SLUG_EXISTED, request.getSlug());
             }
         }
 
@@ -108,7 +114,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         if (request.getParentId() != null && !request.getParentId().isBlank()) {
             CategoryEntity parent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new AppException(ErrorCode.PARENT_CATEGORY_NOT_FOUND));
+                    .orElseThrow(() -> new AppException(ErrorCode.PARENT_CATEGORY_NOT_FOUND, request.getParentId()));
 
             category.setParentId(request.getParentId());
             category.setLevel(parent.getLevel() + 1);
@@ -126,10 +132,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void hardDeleteCategory(String id) {
         if (!categoryRepository.existsById(id)) {
-            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND, id);
         }
         if (!categoryRepository.findAllByParentIdOrderByDisplayOrderAsc(id).isEmpty()) {
-            throw new AppException(ErrorCode.CATEGORY_HAS_CHILDREN);
+            throw new AppException(ErrorCode.CATEGORY_HAS_CHILDREN, id);
         }
         categoryRepository.deleteById(id);
     }
@@ -138,12 +144,28 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void softDeleteCategory(String id) {
         CategoryEntity category = categoryRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND, id));
 
+        // 1. KIỂM TRA XEM CÓ DANH MỤC CON KHÔNG (Truyền tên danh mục vào báo lỗi cho trực quan)
         if (!categoryRepository.findAllByParentIdOrderByDisplayOrderAsc(id).isEmpty()) {
-            throw new AppException(ErrorCode.CATEGORY_HAS_CHILDREN);
+            throw new AppException(ErrorCode.CATEGORY_HAS_CHILDREN, category.getCategoryName());
         }
 
+        // 2. KIỂM TRA XEM CÓ SÁCH LIÊN KẾT KHÔNG
+        if (category.getBooks() != null && !category.getBooks().isEmpty()) {
+            String linkedBookTitles = category.getBooks().stream()
+                    .limit(3)
+                    .map(BookEntity::getTitle)
+                    .collect(Collectors.joining(", "));
+
+            int totalBooks = category.getBooks().size();
+            String extra = totalBooks > 3 ? " và " + (totalBooks - 3) + " cuốn khác" : "";
+            String detailInfo = totalBooks + " sách (VD: " + linkedBookTitles + extra + ")";
+
+            throw new AppException(ErrorCode.CATEGORY_HAS_BOOKS, detailInfo);
+        }
+
+        // 3. THỰC HIỆN XÓA MỀM
         category.setDeletedAt(LocalDateTime.now());
         category.setStatus(CategoryStatus.INACTIVE);
 
@@ -162,7 +184,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void restoreCategory(String id) {
         CategoryEntity category = categoryRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND, id));
 
         category.setDeletedAt(null);
         category.setStatus(CategoryStatus.ACTIVE);
@@ -181,7 +203,7 @@ public class CategoryServiceImpl implements CategoryService {
     public String uploadThumbnail(String id, MultipartFile file) {
         try {
             CategoryEntity category = categoryRepository.findById(id)
-                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND, id));
 
             String thumbnailUrl = s3Service.uploadFile(file, "categories");
 

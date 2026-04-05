@@ -1,6 +1,5 @@
 package com.haui.ZenBook.exception;
 
-
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -42,8 +41,9 @@ public enum ErrorCode {
     CATEGORY_NAME_INVALID_SIZE(5011, "category.name.invalid.size", HttpStatus.BAD_REQUEST),
     CATEGORY_CANNOT_PARENT_ITSELF(5012, "category.cannot.parent.itself", HttpStatus.BAD_REQUEST),
     CATEGORY_LEVEL_TOO_DEEP(5013, "category.level.too.deep", HttpStatus.BAD_REQUEST),
-    PARENT_CATEGORY_NOT_FOUND(5004, "category.parent.not.found", HttpStatus.BAD_REQUEST),
-    CATEGORY_HAS_CHILDREN(5006, "category.has.child", HttpStatus.BAD_REQUEST),
+    PARENT_CATEGORY_NOT_FOUND(5004, "category.parent.not.found", HttpStatus.BAD_REQUEST), // Note: Duplicate key in original, kept to avoid breaking changes if used
+    CATEGORY_HAS_CHILDREN(5006, "category.has.child", HttpStatus.BAD_REQUEST), // Note: Duplicate key in original, kept to avoid breaking changes if used
+    CATEGORY_HAS_BOOKS(5014, "category.has.books", HttpStatus.BAD_REQUEST),
 
     BRAND_NOT_FOUND(5007, "brand.not.found", HttpStatus.NOT_FOUND),
     BRAND_NAME_NOTBLANK(5008, "brand.name.not.blank", HttpStatus.BAD_REQUEST),
@@ -57,6 +57,28 @@ public enum ErrorCode {
     AUTHOR_EMAIL_VALID(7004, "author.email.valid", HttpStatus.BAD_REQUEST),
     AUTHOR_EMAIL_EXISTED(7005, "author.email.exists", HttpStatus.BAD_REQUEST),
     AUTHOR_CANNOT_DELETE(7006, "author.cannot.delete", HttpStatus.BAD_REQUEST),
+    AUTHOR_HAS_BOOKS(7007, "author.has.book", HttpStatus.BAD_REQUEST),
+
+    // ================= Thêm mới cho Supplier =================
+    SUPPLIER_NOT_FOUND(8000, "supplier.not.found", HttpStatus.NOT_FOUND),
+    SUPPLIER_NAME_NOTBLANK(8001, "supplier.name.not.blank", HttpStatus.BAD_REQUEST),
+    SUPPLIER_EMAIL_EXISTED(8002, "supplier.email.exists", HttpStatus.BAD_REQUEST),
+    SUPPLIER_TAX_CODE_EXISTED(8003, "supplier.tax.code.exists", HttpStatus.BAD_REQUEST),
+    SUPPLIER_CANNOT_DELETE(8004, "supplier.cannot.delete", HttpStatus.BAD_REQUEST),
+
+    // ================= Thêm mới cho Books =================
+    BOOK_NOT_FOUND(9000, "book.not.found", HttpStatus.NOT_FOUND),
+    BOOK_TITLE_NOTBLANK(9001, "book.title.not.blank", HttpStatus.BAD_REQUEST),
+    BOOK_SLUG_EXISTED(9002, "book.slug.exists", HttpStatus.BAD_REQUEST),
+    BOOK_ISBN_EXISTED(9003, "book.isbn.exists", HttpStatus.BAD_REQUEST),
+    BOOK_PRICE_INVALID(9004, "book.price.invalid", HttpStatus.BAD_REQUEST),
+    BOOK_STOCK_INVALID(9005, "book.stock.invalid", HttpStatus.BAD_REQUEST),
+    BOOK_UPDATE_FAILED(9006, "book.update.failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    BOOK_DELETE_FAILED(9007, "book.delete.failed", HttpStatus.BAD_REQUEST),
+
+    // Tag errors
+    TAG_NOT_FOUND(9100, "tag.not.found", HttpStatus.NOT_FOUND),
+    TAG_NAME_EXISTED(9101, "tag.name.exists", HttpStatus.BAD_REQUEST),
 
     FILE_TYPE_INVALID(6000, "file.type.invalid", HttpStatus.BAD_REQUEST),
     FILE_TOO_LARGE(6001, "file.too.large", HttpStatus.BAD_REQUEST),

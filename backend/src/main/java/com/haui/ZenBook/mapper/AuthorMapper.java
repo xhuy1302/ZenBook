@@ -16,7 +16,8 @@ public interface AuthorMapper {
     AuthorEntity toEntity(AuthorCreationRequest request);
 
     // ================= RESPONSE =================
-    AuthorResponse toResponse(AuthorEntity entity);
+    @Mapping(target = "bookCount", expression = "java(author.getBooks() != null ? author.getBooks().size() : 0)")
+    AuthorResponse toResponse(AuthorEntity author);
 
     AuthorUpdateResponse toUpdateResponse(AuthorEntity entity);
 

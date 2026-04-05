@@ -26,8 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -48,18 +46,16 @@ public class UserServiceImpl implements UserService {
         }
 
         UserEntity newUser = userMapper.toEntity(request);
-
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
 
         Set<RoleEntity> roles = new HashSet<>();
         RoleEntity role = roleRepository.findByName(Role.USER.name())
-                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND, Role.USER.name()));
         roles.add(role);
         newUser.setRoles(roles);
         newUser.setAvatar("https://ui.shadcn.com/avatars/02.png");
         UserEntity savedUser = userRepository.save(newUser);
         return userMapper.toUserResponse(savedUser);
-
     }
 
     @Override
@@ -70,43 +66,37 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserById(String id) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, id));
         return userMapper.toUserResponse(user);
     }
 
     @Override
     public ProfileUpdateResponse updateProfile(String id, ProfileUpdateRequest request) {
-        // 1. Tìm user trong Database
         UserEntity userEntity = userRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, id));
 
-        // 2. KIỂM TRA TRÙNG TÊN ĐĂNG NHẬP (Phải làm trước khi Map dữ liệu)
         String newUsername = request.getUsername();
         String currentUsername = userEntity.getUsername();
 
-        // Nếu có đổi tên đăng nhập VÀ tên đăng nhập mới đã tồn tại -> Báo lỗi ngay lập tức
         if (newUsername != null && !newUsername.equals(currentUsername)) {
             if (userRepository.existsByUsername(newUsername)) {
-                throw new AppException(ErrorCode.USERNAME_EXISTED);
+                throw new AppException(ErrorCode.USERNAME_EXISTED, newUsername);
             }
         }
 
-        // 3. Map dữ liệu mới vào Entity (Cập nhật các trường khác như fullName, phone, avatar...)
         userMapper.updateUser(userEntity, request);
 
-        // 4. Cập nhật Roles
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             Set<String> roleNames = request.getRoles();
             List<RoleEntity> roleEntities = roleRepository.findByNameIn(roleNames);
 
             if (roleEntities.size() != roleNames.size()) {
-                throw new AppException(ErrorCode.ROLE_NOT_FOUND);
+                throw new AppException(ErrorCode.ROLE_NOT_FOUND, "những role cung cấp");
             }
 
             userEntity.setRoles(new HashSet<>(roleEntities));
         }
 
-        // 5. Lưu xuống DB và trả về kết quả
         return userMapper.toProfileUpdateResponse(userRepository.save(userEntity));
     }
 
@@ -114,24 +104,18 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void hardDeleteUser(String userId) {
         if (!userRepository.existsById(userId)) {
-            throw new AppException(ErrorCode.USER_NOT_FOUND);
+            throw new AppException(ErrorCode.USER_NOT_FOUND, userId);
         }
         userRepository.deleteById(userId);
     }
 
     @Override
     public void softDeleteUser(String userId) {
-        // 1. Tìm user, nếu không thấy thì báo lỗi
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, userId));
 
-        // 2. Cập nhật thời gian xóa là thời điểm hiện tại
         user.setDeletedAt(LocalDateTime.now());
-
-        // 3. (Tùy chọn) Cập nhật trạng thái thành INACTIVE nếu bạn muốn
-         user.setStatus(UserStatus.DELETED);
-
-        // 4. Lưu lại
+        user.setStatus(UserStatus.DELETED);
         userRepository.save(user);
     }
 
@@ -143,21 +127,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void restoreUser(String userId) {
-        // 1. Tìm user trong DB (bao gồm cả người đã bị xóa mềm)
-        // Nếu bạn dùng Hibernate @Where, hãy dùng phương thức có Native Query trong Repo
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, userId));
 
-        // 2. Kiểm tra xem user này có thực sự đang bị xóa không
         if (user.getDeletedAt() == null) {
             throw new RuntimeException("Tài khoản này hiện không nằm trong thùng rác.");
         }
 
-        // 3. Khôi phục dữ liệu
-        user.setDeletedAt(null); // Xóa mốc thời gian xóa
-        user.setStatus(UserStatus.ACTIVE); // Chuyển lại trạng thái hoạt động
-
-        // 4. Lưu lại
+        user.setDeletedAt(null);
+        user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
     }
 
@@ -165,24 +143,16 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public String updateAvatar(String userId, MultipartFile file) {
         try {
-            // 1. Dùng UserEntity thay vì User của thư viện lạ
             UserEntity user = userRepository.findById(userId)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, userId));
 
-            // 2. Upload lên S3
             String avatarUrl = s3Service.uploadFile(file, "avatars");
-
-            // 3. Cập nhật field avatar
             user.setAvatar(avatarUrl);
-
-            // 4. Lưu lại
             userRepository.save(user);
 
-            // Lưu ý: Nếu chưa có thư viện log, bạn có thể dùng System.out.println hoặc thêm @Slf4j ở đầu Class
             return avatarUrl;
         } catch (IOException e) {
             throw new AppException(ErrorCode.UPLOAD_FAILED);
         }
     }
-
 }

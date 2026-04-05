@@ -1,0 +1,114 @@
+{
+  "common": {
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "saveChanges": "Lưu thay đổi",
+    "delete": "Xóa",
+    "restore": "Khôi phục",
+    "reset": "Làm mới",
+    "action": "Thao tác",
+    "status": "Trạng thái",
+    "na": "N/A"
+  },
+  "fields": {
+    "status": {
+      "options": {
+        "ACTIVE": "Đang bán",
+        "INACTIVE": "Ngừng bán",
+        "OUT_OF_STOCK": "Hết hàng",
+        "DELETED": "Đã xóa"
+      }
+    }
+  },
+  "book": {
+    "validation": {
+      "titleRequired": "Tên sách không được để trống",
+      "priceInvalid": "Vui lòng nhập số hợp lệ",
+      "priceNegative": "Giá bán phải lớn hơn 0",
+      "stockInvalid": "Vui lòng nhập số lượng hợp lệ",
+      "stockNegative": "Số lượng không được âm",
+      "pageCountInvalid": "Số trang phải lớn hơn 0",
+      "publicationYearInvalid": "Năm xuất bản không hợp lệ",
+      "weightInvalid": "Trọng lượng phải lớn hơn 0"
+    },
+    "page": {
+      "title": "Quản lý kho sách"
+    },
+    "table": {
+      "bookInfo": "Thông tin sách",
+      "salePrice": "Giá bán",
+      "stock": "Kho",
+      "status": "Trạng thái",
+      "action": "Thao tác",
+      "searchPlaceholder": "Tìm kiếm tên sách...",
+      "allStatus": "Tất cả trạng thái",
+      "btnAdd": "Thêm sách",
+      "noResults": "Không tìm thấy kết quả nào."
+    },
+    "dialog": {
+      "createTitle": "Thêm sách mới vào kho",
+      "editTitle": "Cập nhật thông tin sách",
+      "viewTitle": "Chi tiết thông tin sách",
+      "deleteTitle": "Xác nhận xóa sách",
+      "deleteConfirm1": "Bạn có chắc chắn muốn xóa cuốn sách ",
+      "deleteConfirm2": "? Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục lại sau.",
+      "btnSoftDelete": "Chuyển vào thùng rác"
+    },
+    "form": {
+      "section1": "1. Thông tin cơ bản",
+      "section2": "2. Giá cả & Tồn kho",
+      "section3": "3. Phân loại",
+      "section4": "4. Thông số kỹ thuật",
+      "section5": "5. Hình ảnh",
+      "title": "Tên sách",
+      "titlePlaceholder": "Nhập tên sách...",
+      "isbn": "Mã ISBN",
+      "isbnPlaceholder": "Ví dụ: 978-604-1-12345-6",
+      "description": "Mô tả sách",
+      "descPlaceholder": "Nhập nội dung giới thiệu sách...",
+      "noDescription": "Chưa có mô tả...",
+      "salePrice": "Giá bán (VNĐ)",
+      "originalPrice": "Giá gốc (VNĐ)",
+      "stockQuantity": "Số lượng kho",
+      "stockNote": "Tăng/giảm kho tự động qua Phiếu nhập.",
+      "category": "Danh mục",
+      "noCategory": "Chưa có danh mục nào.",
+      "author": "Tác giả",
+      "noAuthor": "Chưa có tác giả nào.",
+      "format": "Định dạng bìa",
+      "formatPlaceholder": "Chọn định dạng",
+      "language": "Ngôn ngữ",
+      "pageCount": "Số trang",
+      "publicationYear": "Năm xuất bản",
+      "dimensions": "Kích thước (cm)",
+      "weight": "Trọng lượng (gram)",
+      "mainImage": "Ảnh bìa chính",
+      "uploadCover": "Tải ảnh bìa",
+      "gallery": "Ảnh đọc thử / Cảnh phụ (Gallery)",
+      "addGallery": "Thêm ảnh",
+      "btnCreate": "Lưu sách mới",
+      "btnUpdate": "Lưu thay đổi",
+      "systemLog": "Log Hệ thống",
+      "createdAt": "Ngày tạo",
+      "updatedAt": "Cập nhật lần cuối",
+      "newImage": "Ảnh mới thêm",
+      "oldImage": "Ảnh cũ"
+    },
+    "messages": {
+      "createSuccess": "Thêm sách mới thành công!",
+      "createError": "Lỗi khi thêm sách!",
+      "updateSuccess": "Cập nhật sách thành công!",
+      "updateError": "Cập nhật thất bại!",
+      "softDeleteSuccess": "Đã chuyển sách \"{{title}}\" vào thùng rác!",
+      "softDeleteError": "Xóa sách thất bại. Vui lòng thử lại!",
+      "restoreSuccess": "Khôi phục sách thành công!",
+      "hardDeleteSuccess": "Đã xóa vĩnh viễn sách khỏi hệ thống!",
+      "confirmHardDelete": "Bạn có chắc chắn muốn XÓA VĨNH VIỄN sách \"{{title}}\" không?"
+    },
+    "trash": {
+      "title": "Thùng rác sách",
+      "empty": "Thùng rác trống.",
+      "btnTrash": "Thùng rác"
+    }
+  }
+}

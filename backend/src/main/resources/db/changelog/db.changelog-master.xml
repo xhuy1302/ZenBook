@@ -12,4 +12,7 @@
     <include file="classpath:db/changelog/changes/005-create-table-categories.xml"/>
     <include file="classpath:db/changelog/changes/006-insert-categories.xml"/>
     <include file="classpath:db/changelog/changes/007-create-table-suppliers.xml"/>
+    <include file="classpath:db/changelog/changes/008-insert-suppliers.xml"/>
+    <include file="classpath:db/changelog/changes/009-create-books-module.xml"/>
+    <include file="classpath:db/changelog/changes/010-insert-book.xml"/>
 </databaseChangeLog>
