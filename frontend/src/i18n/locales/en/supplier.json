@@ -1,0 +1,122 @@
+{
+  "list": "Supplier Management",
+  "dialogTitle": {
+    "create": "Add New Supplier",
+    "view": "Supplier Details",
+    "delete": "Confirm Delete Supplier",
+    "update": "Update Supplier",
+    "permanentDelete": "Delete Supplier Permanently",
+    "restore": "Confirm Restore"
+  },
+  "filters": {
+    "search": "Search supplier name...",
+    "reset": "Reset",
+    "status": {
+      "label": "Status",
+      "all": "All statuses",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "DELETED": "Deleted"
+    }
+  },
+  "table": {
+    "noResults": "No results found.",
+    "columns": {
+      "name": "Supplier Name",
+      "contactName": "Contact Name",
+      "phone": "Phone Number",
+      "status": "Status",
+      "actions": "Actions"
+    }
+  },
+  "create": {
+    "sections": {
+      "info": "General Information",
+      "contact": "Contact Information"
+    }
+  },
+  "fields": {
+    "name": {
+      "label": "Supplier Name"
+    },
+    "taxCode": {
+      "label": "Tax Code"
+    },
+    "contactName": {
+      "label": "Contact Name"
+    },
+    "phone": {
+      "label": "Phone Number"
+    },
+    "email": {
+      "label": "Email"
+    },
+    "address": {
+      "label": "Address"
+    },
+    "website": {
+      "label": "Website"
+    },
+    "description": {
+      "label": "Note"
+    },
+    "status": {
+      "label": "Status",
+      "options": {
+        "ACTIVE": "Active",
+        "INACTIVE": "Inactive",
+        "DELETED": "Deleted"
+      }
+    },
+    "createdAt": "Created At",
+    "updatedAt": "Last Updated",
+    "deletedAt": "Deleted At"
+  },
+  "message": {
+    "success": {
+      "create": "Supplier added successfully!",
+      "update": "Information updated successfully!",
+      "delete": "Supplier moved to trash!",
+      "deleteConfirm": "Are you sure you want to delete supplier {{name}}? Data will be moved to the trash.",
+      "permanentDelete": "Supplier permanently deleted from the system!",
+      "restore": "Supplier restored successfully!"
+    },
+    "error": {
+      "create": "An error occurred while adding. Please try again!",
+      "update": "An error occurred while updating. Please try again!",
+      "delete": "An error occurred while deleting. Please try again!",
+      "restore": "An error occurred while restoring. Please try again!",
+      "email_existed": "This email already exists in the system!",
+      "taxCode_existed": "This tax code already exists!",
+      "deleteLink": "Cannot delete! Supplier has linked data.",
+      "permanentDelete": "Failed to delete permanently!"
+    },
+    "warning": {
+      "permanentDeleteConfirm": "This action cannot be undone. Are you sure you want to permanently delete supplier {{name}}?",
+      "restoreConfirm": "Are you sure you want to restore supplier {{name}}?"
+    }
+  },
+  "actions": {
+    "create": "Add Supplier",
+    "confirm": "Confirm Delete",
+    "close": "Close",
+    "edit": "Save Changes",
+    "cancel": "Cancel",
+    "deleteForever": "Delete Permanently",
+    "restore": "Restore"
+  },
+  "trash": {
+    "openButton": "Trash",
+    "title": "Supplier Trash",
+    "remainingDays": "Remaining days: {{days}}",
+    "trashEmpty": "Trash is empty."
+  },
+  "errors": {
+    "name": {
+      "required": "Supplier name is required"
+    },
+    "email": {
+      "invalid": "Invalid email format"
+    }
+  }
+}
