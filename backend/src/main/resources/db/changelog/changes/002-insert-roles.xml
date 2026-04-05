@@ -31,8 +31,9 @@
             <column name="id" value="00000000-0000-7000-0000-000000000100"/>
             <column name="username" value="zbook"/>
             <column name="email" value="zbook@gmail.com"/>
-            <column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/>
+            <column name="password" value="$2a$12$MLPpyPZeVe/jKOCo29tCROpUnDbUbp5VtXDGneHm2rXD.pGiTYd7y"/>
             <column name="full_name" value="System Administrator"/>
+            <column name="avatar" value="https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/Logo/Zen+Book.png"/>
         </insert>
 
         <insert tableName="user_roles">

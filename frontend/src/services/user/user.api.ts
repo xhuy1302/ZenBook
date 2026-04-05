@@ -51,6 +51,6 @@ export const uploadAvatarApi = (userId: string, file: File) => {
 }
 
 export const signUpApi = async (data: SignUpRequest) => {
-  const res = await api.post<ApiResponse<UserResponse>>('/users/register', data)
+  const res = await api.post<ApiResponse<UserResponse>>('/auth/register', data)
   return res.data
 }

@@ -3,7 +3,7 @@ import { Toaster } from 'sonner'
 import LoginPage from '@/pages/auth/LoginPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
 import LayoutAdmin from '@/pages/admin/LayoutAdmin'
-import ProtectedRoute from './components/auth/ProtectedRoute'
+import ProtectedRoute from './routes/ProtectedRoute' // Đường dẫn của bạn
 import DashboardHome from './pages/admin/dashboard/content/DashBoardHome'
 import UserPage from './pages/admin/manage-user/page'
 import AuthorPage from './pages/admin/manage-author/page'
@@ -23,12 +23,27 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* <Route path='*' element={<NotFound404 />} /> */}
-          {/* TODO: tạo các public route */}
+
+          {/* =========================================
+              PUBLIC ROUTES (Ai cũng vào được)
+              ========================================= */}
           <Route path='/login' element={<LoginPage />} />
           <Route path='/signup' element={<SignUpPage />} />
-          {/* TODO: tạo protected route */}
-          <Route element={<ProtectedRoute />}>
+
+          {/* =========================================
+              PROTECTED ROUTES DÀNH CHO USER BÌNH THƯỜNG
+              ========================================= */}
+          {/* Ví dụ: Admin hay User đều có thể xem Profile */}
+          <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN', 'STAFF']} />}>
             {/* <Route path='/profile' element={<ProfilePage />} /> */}
+            {/* <Route path='/cart' element={<CartPage />} /> */}
+          </Route>
+
+          {/* =========================================
+              PROTECTED ROUTES CHỈ DÀNH CHO ADMIN
+              ========================================= */}
+          {/* Thêm allowedRoles={['ADMIN']} để gác cổng */}
+          <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
             <Route path='/dashboard' element={<LayoutAdmin />}>
               <Route index element={<DashboardHome />} />
               <Route path='users' element={<UserPage />} />

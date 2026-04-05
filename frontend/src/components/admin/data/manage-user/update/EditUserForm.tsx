@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useContext } from 'react'
+import { AuthContext } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+
 import {
   Select,
   SelectContent,
@@ -37,6 +39,10 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
   const [isUploading, setIsUploading] = useState(false)
   const queryClient = useQueryClient()
 
+  // Lấy context để cập nhật Sidebar
+  const auth = useContext(AuthContext)
+  const loggedInUser = auth?.user
+
   const {
     register,
     handleSubmit,
@@ -69,7 +75,14 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
       setIsUploading(true)
       const response = await uploadAvatarApi(user.id, file)
       const avatarUrl = response.data.data
+
       setValue('avatar', avatarUrl)
+
+      // Nếu đang sửa chính mình, cập nhật ảnh Sidebar ngay
+      if (loggedInUser?.id === user.id) {
+        auth?.updateUser({ avatar: avatarUrl })
+      }
+
       toast.success(t('message.success.upload_avatar') || 'Cập nhật ảnh thành công!')
     } catch {
       toast.error(t('message.error.upload_avatar') || 'Upload thất bại!')
@@ -80,8 +93,16 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
 
   const mutation = useMutation({
     mutationFn: (values: EditUserFormValues) => updateUserApi(user.id, values),
-    onSuccess: () => {
+    onSuccess: (_, values) => {
       toast.success(t('message.success.update'))
+
+      // Nếu đang sửa chính mình, cập nhật toàn bộ thông tin mới vào Sidebar
+      if (loggedInUser?.id === user.id) {
+        auth?.updateUser({
+          ...values
+        } as Partial<User>)
+      }
+
       queryClient.invalidateQueries({ queryKey: ['users'] })
       onSuccess()
     },
@@ -97,7 +118,6 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
 
   return (
     <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className='space-y-8'>
-      {/* SECTION: AVATAR DISPLAY & UPLOAD */}
       <div className='flex flex-col items-center justify-center space-y-4'>
         <div className='relative group'>
           <div
@@ -118,7 +138,6 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
             )}
           </div>
 
-          {/* Nút bấm nhanh trên ảnh */}
           <button
             type='button'
             onClick={() => document.getElementById('avatar-input')?.click()}
@@ -145,7 +164,6 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
         <input type='hidden' {...register('avatar')} />
       </div>
 
-      {/* SECTION: USER DATA FIELDS */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5'>
         <div className='space-y-2'>
           <Label className='font-semibold'>{t('fields.username.label')}</Label>
@@ -213,27 +231,22 @@ export function EditUserForm({ user, onSuccess }: EditUserFormProps) {
               </Select>
             )}
           />
-          {errors.roles && (
-            <p className='text-destructive text-xs italic'>{errors.roles.message}</p>
-          )}
         </div>
       </div>
 
-      {/* FOOTER ACTIONS */}
       <div className='flex justify-end pt-6 border-t gap-3'>
         <Button
           type='button'
           variant='ghost'
           onClick={onSuccess}
           disabled={mutation.isPending || isUploading}
-          className='px-6'
         >
           {t('actions.cancel')}
         </Button>
         <Button
           type='submit'
           disabled={mutation.isPending || isUploading}
-          className='px-8 bg-primary hover:bg-primary/90 shadow-md'
+          className='px-8 bg-primary hover:bg-primary/90'
         >
           {mutation.isPending && <Loader2 className='w-4 h-4 mr-2 animate-spin' />}
           {t('actions.edit')}

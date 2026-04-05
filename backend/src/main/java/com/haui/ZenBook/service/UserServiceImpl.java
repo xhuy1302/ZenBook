@@ -16,6 +16,7 @@ import com.haui.ZenBook.repository.RoleRepository;
 import com.haui.ZenBook.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final S3Service s3Service;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponse create(UserCreationRequest request) {
@@ -46,7 +48,8 @@ public class UserServiceImpl implements UserService {
         }
 
         UserEntity newUser = userMapper.toEntity(request);
-//        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
 
         Set<RoleEntity> roles = new HashSet<>();
         RoleEntity role = roleRepository.findByName(Role.USER.name())
