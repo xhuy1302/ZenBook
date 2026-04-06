@@ -58,10 +58,10 @@ export function ViewAuthorDialog({ open, onOpenChange, author }: ViewAuthorDialo
                 <div className='flex items-center gap-2'>
                   <BookOpen className='w-4 h-4 text-primary' />
                   <span className='text-xs font-medium text-muted-foreground uppercase'>
-                    {t('table.columns.booksCount', 'Số sách')}
+                    {t('table.columns.bookCount', 'Số sách')}
                   </span>
                 </div>
-                {/* <span className='text-lg font-bold text-primary'>{author.booksCount || 0}</span> */}
+                <span className='text-lg font-bold text-primary'>{author.bookCount || 0}</span>
               </div>
             </div>
           </div>

@@ -35,28 +35,23 @@ public class BookServiceImpl implements BookService {
 
     private final CategoryRepository categoryRepository;
     private final AuthorRepository authorRepository;
-    private final SupplierRepository supplierRepository;
     private final TagRepository tagRepository;
 
     @Override
     @Transactional
     public BookResponse createBook(BookRequest request) {
-        // 1. Kiểm tra ISBN nếu có (Tránh trùng mã sách)
-        if (request.getIsbn() != null && bookRepository.existsByIsbn(request.getIsbn())) {
-            throw new AppException(ErrorCode.BOOK_ISBN_EXISTED);
+        if (request.getIsbn() != null && !request.getIsbn().isBlank() && bookRepository.existsByIsbn(request.getIsbn())) {
+            throw new AppException(ErrorCode.BOOK_ISBN_EXISTED, request.getIsbn());
         }
 
-        // 2. Map cơ bản từ Request sang Entity
         BookEntity book = bookMapper.toEntity(request);
 
-        // 3. Xử lý Slug tự động
         String slug = SlugUtils.makeSlug(request.getTitle());
         if (bookRepository.existsBySlug(slug)) {
             slug = slug + "-" + System.currentTimeMillis();
         }
         book.setSlug(slug);
 
-        // 4. Upload Thumbnail lên S3
         if (request.getThumbnailFile() != null && !request.getThumbnailFile().isEmpty()) {
             try {
                 String thumbnailUrl = s3Service.uploadFile(request.getThumbnailFile(), "books/thumbnails");
@@ -67,7 +62,6 @@ public class BookServiceImpl implements BookService {
             }
         }
 
-        // 5. Upload Gallery lên S3
         if (request.getGalleryFiles() != null && !request.getGalleryFiles().isEmpty()) {
             Set<BookImageEntity> images = request.getGalleryFiles().stream()
                     .map(file -> {
@@ -82,10 +76,8 @@ public class BookServiceImpl implements BookService {
             book.setImages(images);
         }
 
-        // 6. Gán các quan hệ (Supplier, Categories, Authors, Tags)
         mapRelationships(book, request);
 
-        // 7. Gán quan hệ 2 chiều cho Specs (để cascade lưu tự động)
         if (book.getSpecification() != null) {
             book.getSpecification().setBook(book);
         }
@@ -93,7 +85,7 @@ public class BookServiceImpl implements BookService {
         try {
             return bookMapper.toResponse(bookRepository.save(book));
         } catch (Exception e) {
-            log.error("Lỗi lưu sách: {}", e.getMessage());
+            log.error("Lỗi lưu sách: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
@@ -102,20 +94,17 @@ public class BookServiceImpl implements BookService {
     @Transactional
     public BookResponse updateBook(String id, BookRequest request) {
         BookEntity book = bookRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
 
-        // Kiểm tra ISBN mới có trùng với sách khác không
-        if (request.getIsbn() != null && !request.getIsbn().equals(book.getIsbn())) {
+        if (request.getIsbn() != null && !request.getIsbn().isBlank() && !request.getIsbn().equals(book.getIsbn())) {
             if (bookRepository.existsByIsbn(request.getIsbn())) {
-                throw new AppException(ErrorCode.BOOK_ISBN_EXISTED);
+                throw new AppException(ErrorCode.BOOK_ISBN_EXISTED, request.getIsbn());
             }
         }
 
-        // Cập nhật thông tin cơ bản
         bookMapper.updateEntityFromRequest(request, book);
         book.setSlug(SlugUtils.makeSlug(request.getTitle()));
 
-        // Cập nhật Thumbnail nếu có file mới gửi lên
         if (request.getThumbnailFile() != null && !request.getThumbnailFile().isEmpty()) {
             try {
                 String newUrl = s3Service.uploadFile(request.getThumbnailFile(), "books/thumbnails");
@@ -125,9 +114,8 @@ public class BookServiceImpl implements BookService {
             }
         }
 
-        // Cập nhật Gallery nếu có files mới gửi lên
         if (request.getGalleryFiles() != null && !request.getGalleryFiles().isEmpty()) {
-            book.getImages().clear(); // Xóa sạch ảnh cũ để thay bằng list mới
+            book.getImages().clear();
             for (MultipartFile file : request.getGalleryFiles()) {
                 try {
                     String url = s3Service.uploadFile(file, "books/gallery");
@@ -143,7 +131,8 @@ public class BookServiceImpl implements BookService {
         try {
             return bookMapper.toResponse(bookRepository.save(book));
         } catch (Exception e) {
-            throw new AppException(ErrorCode.BOOK_UPDATE_FAILED);
+            log.error("Lỗi cập nhật sách: {}", e.getMessage(), e);
+            throw new AppException(ErrorCode.BOOK_UPDATE_FAILED, id);
         }
     }
 
@@ -151,41 +140,59 @@ public class BookServiceImpl implements BookService {
     public BookResponse getBookById(String id) {
         return bookRepository.findById(id)
                 .map(bookMapper::toResponse)
-                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
     }
 
     @Override
     public BookResponse getBookBySlug(String slug) {
         return bookRepository.findBySlug(slug)
                 .map(bookMapper::toResponse)
-                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, slug));
+    }
+
+    @Override
+    public Page<BookResponse> getAllBooks(Pageable pageable, String search) {
+        return bookRepository.findByDeletedAtIsNull(pageable).map(bookMapper::toResponse);
+    }
+
+    public Page<BookResponse> getBooksInTrash(Pageable pageable) {
+        return bookRepository.findByDeletedAtIsNotNull(pageable).map(bookMapper::toResponse);
     }
 
     @Override
     @Transactional
     public void deleteBook(String id) {
         BookEntity book = bookRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-
-        // Bạn có thể thêm check nếu sách đang có trong đơn hàng thì không cho xóa
-        // throw new AppException(ErrorCode.BOOK_DELETE_FAILED);
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
 
         book.setDeletedAt(LocalDateTime.now());
         book.setStatus(BookStatus.DELETED);
         bookRepository.save(book);
     }
 
-    @Override
-    public Page<BookResponse> getAllBooks(Pageable pageable, String search) {
-        // Tạm thời lấy tất cả, bạn có thể custom thêm filter search ở đây
-        return bookRepository.findAll(pageable).map(bookMapper::toResponse);
+    @Transactional
+    public void restoreBook(String id) {
+        BookEntity book = bookRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
+
+        book.setDeletedAt(null);
+        book.setStatus(BookStatus.INACTIVE);
+        bookRepository.save(book);
+    }
+
+    @Transactional
+    public void hardDeleteBook(String id) {
+        BookEntity book = bookRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
+
+        bookRepository.delete(book);
     }
 
     @Override
     @Transactional
     public BookResponse updateStatus(String id, String status) {
         BookEntity book = bookRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
         try {
             book.setStatus(BookStatus.valueOf(status.toUpperCase()));
             return bookMapper.toResponse(bookRepository.save(book));
@@ -195,31 +202,27 @@ public class BookServiceImpl implements BookService {
     }
 
     private void mapRelationships(BookEntity book, BookRequest request) {
-        // Map Supplier
-        if (request.getSupplierId() != null) {
-            book.setSupplier(supplierRepository.findById(request.getSupplierId())
-                    .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND)));
-        }
-
-        // Map Categories
         if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
             Set<CategoryEntity> categories = new HashSet<>(categoryRepository.findAllById(request.getCategoryIds()));
-            if (categories.isEmpty()) throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+            if (categories.isEmpty()) throw new AppException(ErrorCode.CATEGORY_NOT_FOUND, "những ID danh mục cung cấp");
             book.setCategories(categories);
+        } else {
+            if(book.getCategories() != null) book.getCategories().clear();
         }
 
-        // Map Authors
         if (request.getAuthorIds() != null && !request.getAuthorIds().isEmpty()) {
             Set<AuthorEntity> authors = new HashSet<>(authorRepository.findAllById(request.getAuthorIds()));
-            if (authors.isEmpty()) throw new AppException(ErrorCode.AUTHOR_NOT_FOUND);
+            if (authors.isEmpty()) throw new AppException(ErrorCode.AUTHOR_NOT_FOUND, "những ID tác giả cung cấp");
             book.setAuthors(authors);
+        } else {
+            if(book.getAuthors() != null) book.getAuthors().clear();
         }
 
-        // Map Tags
         if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
             Set<TagEntity> tags = new HashSet<>(tagRepository.findAllById(request.getTagIds()));
-            // Tag không bắt buộc nên không throw lỗi nếu trống, tùy bạn quyết định
             book.setTags(tags);
+        } else {
+            if(book.getTags() != null) book.getTags().clear();
         }
     }
 }

@@ -8,6 +8,7 @@ import org.hibernate.annotations.Where;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "authors")
@@ -45,5 +46,5 @@ public class AuthorEntity extends BaseEntity {
     private LocalDateTime deletedAt;
 
     @ManyToMany(mappedBy = "authors", fetch = FetchType.LAZY)
-    private java.util.Set<BookEntity> books;
+    Set<BookEntity> books;
 }

@@ -50,6 +50,4 @@ public class SupplierEntity extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @OneToMany(mappedBy = "supplier", fetch = FetchType.LAZY)
-    private java.util.Set<BookEntity> books;
 }

@@ -96,15 +96,15 @@ export const columns: ColumnDef<AuthorResponse>[] = [
   },
   // ✅ CỘT SỐ LƯỢNG SÁCH ĐÃ ĐƯỢC LÀM ĐẸP
   {
-    accessorKey: 'booksCount',
+    accessorKey: 'bookCount',
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
-        title={i18n.t('author:table.columns.booksCount', 'Số sách')}
+        title={i18n.t('author:table.columns.bookCount', 'Số sách')}
       />
     ),
     cell: ({ row }) => {
-      const count = (row.getValue('booksCount') as number) || 0
+      const count = (row.getValue('bookCount') as number) || 0
       return (
         // Ép width cố định và dùng flex để căn giữa tuyệt đối
         <div className='w-[80px] flex justify-center'>

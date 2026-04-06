@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl implements AuthService { // Thêm implements AuthService
+public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -24,19 +24,16 @@ public class AuthServiceImpl implements AuthService { // Thêm implements AuthSe
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        // 1. Kiểm tra User/Pass, nếu sai Spring Security sẽ tự động văng lỗi AuthenticationException
+        // authenticationManager tự động quăng lỗi nếu sai thông tin
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        // 2. Lấy thông tin UserEntity từ Database
         UserEntity user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, request.getEmail()));
 
-        // 3. Tạo JWT Token
         String jwtToken = jwtService.generateToken(user);
 
-        // 4. Trả về Token kèm thông tin Profile của User đã được map qua DTO
         return AuthResponse.builder()
                 .token(jwtToken)
                 .user(userMapper.toUserResponse(user))

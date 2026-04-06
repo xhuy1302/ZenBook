@@ -30,9 +30,9 @@ public class BookResponse {
     String thumbnail;
     BookStatus status;
     LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 
     // Thông tin chi tiết các liên kết
-    SupplierResponse supplier;
     Set<CategoryResponse> categories;
     Set<AuthorResponse> authors;
     Set<TagResponse> tags;

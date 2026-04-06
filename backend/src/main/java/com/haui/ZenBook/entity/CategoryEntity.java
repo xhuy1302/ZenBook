@@ -55,15 +55,10 @@ public class CategoryEntity extends BaseEntity {
     @Column(name = "deleted_at")
     LocalDateTime deletedAt;
 
-    // ✅ Quan hệ để lấy danh sách danh mục con
     @OneToMany
     @JoinColumn(name = "parent_id", insertable = false, updatable = false)
     List<CategoryEntity> children;
 
-    // ✅ Quan hệ Many-to-Many ngược lại với Book
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
     Set<BookEntity> books;
-
-    // ✅ Các trường id, createdAt, updatedAt đã có trong BaseEntity nên không cần khai báo lại
-    // ✅ Các hàm @PrePersist, @PreUpdate cũng đã có trong BaseEntity (hoặc được Hibernate xử lý)
 }

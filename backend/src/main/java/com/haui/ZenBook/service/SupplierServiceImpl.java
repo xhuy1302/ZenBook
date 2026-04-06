@@ -1,4 +1,4 @@
-package com.haui.ZenBook.service; // Lưu ý package nếu bạn để trong thư mục impl
+package com.haui.ZenBook.service;
 
 import com.haui.ZenBook.dto.supplier.SupplierCreationRequest;
 import com.haui.ZenBook.dto.supplier.SupplierResponse;
@@ -9,7 +9,6 @@ import com.haui.ZenBook.exception.AppException;
 import com.haui.ZenBook.exception.ErrorCode;
 import com.haui.ZenBook.mapper.SupplierMapper;
 import com.haui.ZenBook.repository.SupplierRepository;
-import com.haui.ZenBook.service.SupplierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,17 +24,15 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public SupplierResponse create(SupplierCreationRequest request) {
-        // 1. Kiểm tra Email đã tồn tại chưa (nếu client có gửi email lên)
         if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
             if (supplierRepository.existsByEmail(request.getEmail())) {
-                throw new AppException(ErrorCode.SUPPLIER_EMAIL_EXISTED);
+                throw new AppException(ErrorCode.SUPPLIER_EMAIL_EXISTED, request.getEmail());
             }
         }
 
-        // 2. Kiểm tra Mã số thuế đã tồn tại chưa (nếu client có gửi lên)
         if (request.getTaxCode() != null && !request.getTaxCode().trim().isEmpty()) {
             if (supplierRepository.existsByTaxCode(request.getTaxCode())) {
-                throw new AppException(ErrorCode.SUPPLIER_TAX_CODE_EXISTED);
+                throw new AppException(ErrorCode.SUPPLIER_TAX_CODE_EXISTED, request.getTaxCode());
             }
         }
 
@@ -55,28 +52,26 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     public SupplierResponse getSupplierById(String id) {
         SupplierEntity supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND, id));
         return supplierMapper.toResponse(supplier);
     }
 
     @Override
     public SupplierResponse updateSupplier(String id, SupplierUpdateRequest request) {
         SupplierEntity supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND, id));
 
-        // 1. Kiểm tra trùng Email (Chỉ kiểm tra nếu người dùng thay đổi Email mới khác Email cũ)
         String newEmail = request.getEmail();
         if (newEmail != null && !newEmail.trim().isEmpty() && !newEmail.equals(supplier.getEmail())) {
             if (supplierRepository.existsByEmail(newEmail)) {
-                throw new AppException(ErrorCode.SUPPLIER_EMAIL_EXISTED);
+                throw new AppException(ErrorCode.SUPPLIER_EMAIL_EXISTED, newEmail);
             }
         }
 
-        // 2. Kiểm tra trùng Mã số thuế (Chỉ kiểm tra nếu thay đổi)
         String newTaxCode = request.getTaxCode();
         if (newTaxCode != null && !newTaxCode.trim().isEmpty() && !newTaxCode.equals(supplier.getTaxCode())) {
             if (supplierRepository.existsByTaxCode(newTaxCode)) {
-                throw new AppException(ErrorCode.SUPPLIER_TAX_CODE_EXISTED);
+                throw new AppException(ErrorCode.SUPPLIER_TAX_CODE_EXISTED, newTaxCode);
             }
         }
 
@@ -87,7 +82,7 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     public void softDeleteSupplier(String id) {
         SupplierEntity supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND, id));
 
         supplier.setDeletedAt(LocalDateTime.now());
         supplier.setStatus(SupplierStatus.DELETED);
@@ -97,12 +92,8 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     public void hardDeleteSupplier(String id) {
         if (!supplierRepository.existsById(id)) {
-            throw new AppException(ErrorCode.SUPPLIER_NOT_FOUND);
+            throw new AppException(ErrorCode.SUPPLIER_NOT_FOUND, id);
         }
-
-        // Chú ý: Ở hệ thống thực tế, nếu Supplier đã được map với Book hoặc PurchaseOrder,
-        // việc hard delete có thể sinh ra lỗi Ràng buộc khóa ngoại (Foreign Key Constraint).
-        // Nếu sau này bạn bị lỗi 500 khi xóa cứng, hãy đổi về bắt ErrorCode.SUPPLIER_CANNOT_DELETE.
         supplierRepository.deleteById(id);
     }
 
@@ -116,9 +107,8 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     public void restoreSupplier(String id) {
         SupplierEntity supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND, id));
 
-        // Tránh lỗi nếu tài khoản không nằm trong thùng rác
         if (supplier.getDeletedAt() == null) {
             throw new RuntimeException("Nhà cung cấp này không nằm trong thùng rác!");
         }

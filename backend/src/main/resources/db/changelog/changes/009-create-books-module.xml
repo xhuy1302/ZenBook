@@ -53,10 +53,6 @@
                 <constraints nullable="false"/>
             </column>
 
-            <column name="supplier_id" type="VARCHAR(36)">
-                <constraints foreignKeyName="fk_books_supplier" references="suppliers(id)"/>
-            </column>
-
             <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
             <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
             <column name="deleted_at" type="TIMESTAMP"/>

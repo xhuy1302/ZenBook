@@ -14,19 +14,16 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring", uses = {CategoryMapper.class, AuthorMapper.class, SupplierMapper.class, TagMapper.class})
 public interface BookMapper {
 
-    // --- MAPPING TỪ REQUEST SANG ENTITY ---
+    // --- MAPPING TỪ REQUEST SANG ENTITY (Tạo mới) ---
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "slug", ignore = true)
     @Mapping(target = "status", source = "status")
     @Mapping(target = "specification", source = "request", qualifiedByName = "mapToSpecification")
-    // Bỏ qua images vì Service sẽ tự upload S3 và set vào Entity
     @Mapping(target = "images", ignore = true)
-    // Bỏ qua thumbnail vì Service tự upload S3 và set String URL
     @Mapping(target = "thumbnail", ignore = true)
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "authors", ignore = true)
     @Mapping(target = "tags", ignore = true)
-    @Mapping(target = "supplier", ignore = true)
     BookEntity toEntity(BookRequest request);
 
     // --- MAPPING TỪ ENTITY SANG RESPONSE ---
@@ -39,7 +36,7 @@ public interface BookMapper {
     @Mapping(target = "images", source = "images", qualifiedByName = "extractImageUrls")
     BookResponse toResponse(BookEntity entity);
 
-    // --- CÁC HÀM XỬ LÝ PHỤ (CUSTOM LOGIC) ---
+    // --- CÁC HÀM XỬ LÝ PHỤ ---
 
     @Named("mapToSpecification")
     default BookSpecificationEntity mapToSpecification(BookRequest request) {
@@ -70,6 +67,28 @@ public interface BookMapper {
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "authors", ignore = true)
     @Mapping(target = "tags", ignore = true)
-    @Mapping(target = "supplier", ignore = true)
+    // Phải ignore specification ở đây để xử lý thủ công trong AfterMapping, tránh lỗi lặp mapping
+    @Mapping(target = "specification", ignore = true)
     void updateEntityFromRequest(BookRequest request, @MappingTarget BookEntity entity);
+
+    // Hàm này giúp update các trường phẳng từ request vào object Specification lồng bên trong
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "book", ignore = true)
+    void updateSpecificationFromRequest(BookRequest request, @MappingTarget BookSpecificationEntity specification);
+
+    // Xử lý cập nhật object lồng nhau và duy trì mối quan hệ OneToOne
+    @AfterMapping
+    default void handleNestedUpdate(BookRequest request, @MappingTarget BookEntity entity) {
+        if (request == null) return;
+
+        // Nếu entity chưa có specification (sách cũ), tạo mới
+        if (entity.getSpecification() == null) {
+            BookSpecificationEntity newSpec = new BookSpecificationEntity();
+            newSpec.setBook(entity);
+            entity.setSpecification(newSpec);
+        }
+
+        // Gọi hàm update đã định nghĩa ở trên để đổ dữ liệu vào specification
+        updateSpecificationFromRequest(request, entity.getSpecification());
+    }
 }

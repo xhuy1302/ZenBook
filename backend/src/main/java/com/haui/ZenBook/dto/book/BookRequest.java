@@ -28,7 +28,7 @@ public class BookRequest {
     List<MultipartFile> galleryFiles;
 
     // Các ID quan hệ
-    String supplierId;
+
     Set<String> categoryIds;
     Set<String> authorIds;
     Set<String> tagIds;

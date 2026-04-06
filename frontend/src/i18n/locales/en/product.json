@@ -1,0 +1,114 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saveChanges": "Save Changes",
+    "delete": "Delete",
+    "restore": "Restore",
+    "reset": "Reset",
+    "action": "Action",
+    "status": "Status",
+    "na": "N/A"
+  },
+  "fields": {
+    "status": {
+      "options": {
+        "ACTIVE": "Active",
+        "INACTIVE": "Inactive",
+        "OUT_OF_STOCK": "Out of Stock",
+        "DELETED": "Deleted"
+      }
+    }
+  },
+  "book": {
+    "validation": {
+      "titleRequired": "Book title is required",
+      "priceInvalid": "Please enter a valid number",
+      "priceNegative": "Sale price must be greater than 0",
+      "stockInvalid": "Please enter a valid quantity",
+      "stockNegative": "Stock quantity cannot be negative",
+      "pageCountInvalid": "Page count must be greater than 0",
+      "publicationYearInvalid": "Publication year is not valid",
+      "weightInvalid": "Weight must be greater than 0"
+    },
+    "page": {
+      "title": "Book Inventory Management"
+    },
+    "table": {
+      "bookInfo": "Book Information",
+      "salePrice": "Sale Price",
+      "stock": "Stock",
+      "status": "Status",
+      "action": "Action",
+      "searchPlaceholder": "Search book title...",
+      "allStatus": "All Statuses",
+      "btnAdd": "Add Book",
+      "noResults": "No results found."
+    },
+    "dialog": {
+      "createTitle": "Add New Book to Inventory",
+      "editTitle": "Update Book Information",
+      "viewTitle": "Book Details",
+      "deleteTitle": "Confirm Deletion",
+      "deleteConfirm1": "Are you sure you want to delete the book ",
+      "deleteConfirm2": "? The data will be moved to the trash and can be restored later.",
+      "btnSoftDelete": "Move to Trash"
+    },
+    "form": {
+      "section1": "1. Basic Information",
+      "section2": "2. Pricing & Inventory",
+      "section3": "3. Classification",
+      "section4": "4. Specifications",
+      "section5": "5. Images",
+      "title": "Book Title",
+      "titlePlaceholder": "Enter book title...",
+      "isbn": "ISBN Code",
+      "isbnPlaceholder": "E.g., 978-604-1-12345-6",
+      "description": "Description",
+      "descPlaceholder": "Enter book introduction...",
+      "noDescription": "No description available...",
+      "salePrice": "Sale Price (VND)",
+      "originalPrice": "Original Price (VND)",
+      "stockQuantity": "Stock Quantity",
+      "stockNote": "Stock is adjusted automatically via Goods Receipts.",
+      "category": "Categories",
+      "noCategory": "No categories available.",
+      "author": "Authors",
+      "noAuthor": "No authors available.",
+      "format": "Cover Format",
+      "formatPlaceholder": "Select format",
+      "language": "Language",
+      "pageCount": "Page Count",
+      "publicationYear": "Publication Year",
+      "dimensions": "Dimensions (cm)",
+      "weight": "Weight (grams)",
+      "mainImage": "Main Cover Image",
+      "uploadCover": "Upload Cover",
+      "gallery": "Preview / Additional Images (Gallery)",
+      "addGallery": "Add Image",
+      "btnCreate": "Save New Book",
+      "btnUpdate": "Save Changes",
+      "systemLog": "System Log",
+      "createdAt": "Created At",
+      "updatedAt": "Last Updated",
+      "newImage": "New Image",
+      "oldImage": "Old Image"
+    },
+    "messages": {
+      "createSuccess": "Book added successfully!",
+      "createError": "Error adding book!",
+      "updateSuccess": "Book updated successfully!",
+      "updateError": "Update failed!",
+      "softDeleteSuccess": "Book \"{{title}}\" moved to trash!",
+      "softDeleteError": "Failed to delete the book. Please try again!",
+      "restoreSuccess": "Book restored successfully!",
+      "hardDeleteSuccess": "Book permanently deleted from the system!",
+      "confirmHardDelete": "Are you sure you want to PERMANENTLY delete the book \"{{title}}\"?"
+    },
+    "trash": {
+      "title": "Book Trash",
+      "empty": "Trash is empty.",
+      "btnTrash": "Trash"
+    }
+  }
+}

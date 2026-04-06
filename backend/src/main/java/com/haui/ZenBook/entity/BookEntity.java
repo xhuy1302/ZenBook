@@ -51,11 +51,6 @@ public class BookEntity extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    // --- Mối quan hệ 1-N (Many-To-One) với Supplier ---
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "supplier_id")
-    private SupplierEntity supplier;
-
     // --- Mối quan hệ N-N (Many-To-Many) với Category ---
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

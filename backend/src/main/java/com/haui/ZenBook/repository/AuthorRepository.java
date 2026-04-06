@@ -2,6 +2,7 @@ package com.haui.ZenBook.repository;
 
 import com.haui.ZenBook.entity.AuthorEntity;
 import com.haui.ZenBook.enums.AuthorStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +16,7 @@ public interface AuthorRepository extends JpaRepository<AuthorEntity, String> {
 
     boolean existsByName(String name);
 
-
+    @EntityGraph(attributePaths = {"books"})
     List<AuthorEntity> findByStatusNotOrderByIdDesc(AuthorStatus status);
 
     List<AuthorEntity> findByStatusOrderByIdDesc(AuthorStatus status);

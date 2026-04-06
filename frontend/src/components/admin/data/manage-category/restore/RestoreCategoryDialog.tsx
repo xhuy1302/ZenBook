@@ -31,12 +31,12 @@ export function RestoreCategoryDialog({ categoryId, categoryName }: RestoreCateg
   const mutation = useMutation({
     mutationFn: () => restoreCategoryApi(categoryId),
     onSuccess: () => {
-      toast.success(t('message.success.restore', 'Khôi phục danh mục thành công!'))
+      toast.success(t('message.success.restore'))
       queryClient.invalidateQueries({ queryKey: ['category-trash'] })
       queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
     onError: (error: unknown) => {
-      let errorMessage = t('message.error.restore', 'Khôi phục thất bại!')
+      let errorMessage = t('message.error.restore')
 
       if (axios.isAxiosError(error)) {
         const serverError = error as AxiosError<{ message: string }>

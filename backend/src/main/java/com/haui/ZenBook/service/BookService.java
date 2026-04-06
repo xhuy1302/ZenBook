@@ -27,4 +27,17 @@ public interface BookService {
 
     // Thay đổi trạng thái sách (Ẩn/Hiện/Hết hàng)
     BookResponse updateStatus(String id, String status);
+
+    // ==========================================
+    // CÁC HÀM QUẢN LÝ THÙNG RÁC (MỚI THÊM)
+    // ==========================================
+
+    // Lấy danh sách sách trong thùng rác (đã bị xóa mềm)
+    Page<BookResponse> getBooksInTrash(Pageable pageable);
+
+    // Khôi phục sách từ thùng rác về trạng thái bình thường
+    void restoreBook(String id);
+
+    // Xóa vĩnh viễn sách khỏi database (Hard Delete)
+    void hardDeleteBook(String id);
 }

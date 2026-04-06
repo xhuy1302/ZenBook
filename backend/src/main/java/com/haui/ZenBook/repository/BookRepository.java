@@ -1,6 +1,8 @@
 package com.haui.ZenBook.repository;
 
 import com.haui.ZenBook.entity.BookEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -12,4 +14,6 @@ public interface BookRepository extends JpaRepository<BookEntity, String>, JpaSp
     Optional<BookEntity> findBySlug(String slug);
     boolean existsBySlug(String slug);
     boolean existsByIsbn(String isbn);
+    Page<BookEntity> findByDeletedAtIsNull(Pageable pageable);
+    Page<BookEntity> findByDeletedAtIsNotNull(Pageable pageable);
 }

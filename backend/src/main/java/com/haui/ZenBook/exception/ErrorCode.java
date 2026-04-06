@@ -43,6 +43,7 @@ public enum ErrorCode {
     CATEGORY_LEVEL_TOO_DEEP(5013, "category.level.too.deep", HttpStatus.BAD_REQUEST),
     PARENT_CATEGORY_NOT_FOUND(5004, "category.parent.not.found", HttpStatus.BAD_REQUEST), // Note: Duplicate key in original, kept to avoid breaking changes if used
     CATEGORY_HAS_CHILDREN(5006, "category.has.child", HttpStatus.BAD_REQUEST), // Note: Duplicate key in original, kept to avoid breaking changes if used
+    CATEGORY_HAS_BOOKS(5014, "category.has.books", HttpStatus.BAD_REQUEST),
 
     BRAND_NOT_FOUND(5007, "brand.not.found", HttpStatus.NOT_FOUND),
     BRAND_NAME_NOTBLANK(5008, "brand.name.not.blank", HttpStatus.BAD_REQUEST),
@@ -56,6 +57,7 @@ public enum ErrorCode {
     AUTHOR_EMAIL_VALID(7004, "author.email.valid", HttpStatus.BAD_REQUEST),
     AUTHOR_EMAIL_EXISTED(7005, "author.email.exists", HttpStatus.BAD_REQUEST),
     AUTHOR_CANNOT_DELETE(7006, "author.cannot.delete", HttpStatus.BAD_REQUEST),
+    AUTHOR_HAS_BOOKS(7007, "author.has.book", HttpStatus.BAD_REQUEST),
 
     // ================= Thêm mới cho Supplier =================
     SUPPLIER_NOT_FOUND(8000, "supplier.not.found", HttpStatus.NOT_FOUND),

@@ -21,7 +21,6 @@ public class BookController {
 
     private final BookService bookService;
 
-    // 1. TẠO MỚI SÁCH (Sử dụng ModelAttribute để nhận Form-data kèm file)
     @PostMapping(consumes = {"multipart/form-data"})
     public ApiResponse<BookResponse> createBook(@ModelAttribute @Valid BookRequest request) {
         return ApiResponse.<BookResponse>builder()
@@ -30,7 +29,6 @@ public class BookController {
                 .build();
     }
 
-    // 2. CẬP NHẬT SÁCH
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ApiResponse<BookResponse> updateBook(
             @PathVariable String id,
@@ -41,7 +39,6 @@ public class BookController {
                 .build();
     }
 
-    // 3. LẤY CHI TIẾT SÁCH THEO ID
     @GetMapping("/{id}")
     public ApiResponse<BookResponse> getBook(@PathVariable String id) {
         return ApiResponse.<BookResponse>builder()
@@ -49,7 +46,6 @@ public class BookController {
                 .build();
     }
 
-    // 4. LẤY CHI TIẾT SÁCH THEO SLUG (Dùng cho khách hàng xem sản phẩm)
     @GetMapping("/slug/{slug}")
     public ApiResponse<BookResponse> getBookBySlug(@PathVariable String slug) {
         return ApiResponse.<BookResponse>builder()
@@ -57,7 +53,6 @@ public class BookController {
                 .build();
     }
 
-    // 5. LẤY DANH SÁCH SÁCH (Có phân trang, sắp xếp)
     @GetMapping
     public ApiResponse<Page<BookResponse>> getAllBooks(
             @RequestParam(defaultValue = "0") int page,
@@ -74,7 +69,6 @@ public class BookController {
                 .build();
     }
 
-    // 6. XÓA MỀM SÁCH
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteBook(@PathVariable String id) {
         bookService.deleteBook(id);
@@ -83,7 +77,6 @@ public class BookController {
                 .build();
     }
 
-    // 7. CẬP NHẬT NHANH TRẠNG THÁI
     @PatchMapping("/{id}/status")
     public ApiResponse<BookResponse> updateStatus(
             @PathVariable String id,
@@ -91,6 +84,32 @@ public class BookController {
         return ApiResponse.<BookResponse>builder()
                 .data(bookService.updateStatus(id, status))
                 .message("Cập nhật trạng thái thành công!")
+                .build();
+    }
+
+    @GetMapping("/trash")
+    public ApiResponse<Page<BookResponse>> getBooksInTrash(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("deletedAt").descending());
+        return ApiResponse.<Page<BookResponse>>builder()
+                .data(bookService.getBooksInTrash(pageable))
+                .build();
+    }
+
+    @PatchMapping("/restore/{id}")
+    public ApiResponse<Void> restoreBook(@PathVariable String id) {
+        bookService.restoreBook(id);
+        return ApiResponse.<Void>builder()
+                .message("Khôi phục sách thành công")
+                .build();
+    }
+
+    @DeleteMapping("/hard-delete/{id}")
+    public ApiResponse<Void> hardDeleteBook(@PathVariable String id) {
+        bookService.hardDeleteBook(id);
+        return ApiResponse.<Void>builder()
+                .message("Đã xóa vĩnh viễn sách")
                 .build();
     }
 }
