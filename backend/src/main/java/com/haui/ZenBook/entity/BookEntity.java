@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.List; // Thêm import List
 import java.util.Set;
 
 @Entity
@@ -36,7 +37,7 @@ public class BookEntity extends BaseEntity {
     private Double salePrice;
 
     @Column(name = "stock_quantity", nullable = false)
-    private Integer stockQuantity;
+    private Integer stockQuantity = 0; // Gán mặc định = 0 để an toàn khi cộng kho
 
     @Column(name = "sold_quantity")
     private Integer soldQuantity = 0;
@@ -51,7 +52,11 @@ public class BookEntity extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    // --- Mối quan hệ N-N (Many-To-Many) với Category ---
+    // --- Mối quan hệ với Chi tiết phiếu nhập (Mới thêm) ---
+    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
+    private List<ReceiptDetailEntity> receiptDetails;
+
+    // --- Mối quan hệ N-N với Category ---
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "book_categories",
@@ -60,7 +65,7 @@ public class BookEntity extends BaseEntity {
     )
     private Set<CategoryEntity> categories;
 
-    // --- Mối quan hệ N-N (Many-To-Many) với Author ---
+    // --- Mối quan hệ N-N với Author ---
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "book_authors",
@@ -69,7 +74,7 @@ public class BookEntity extends BaseEntity {
     )
     private Set<AuthorEntity> authors;
 
-    // --- Mối quan hệ N-N (Many-To-Many) với Tag ---
+    // --- Mối quan hệ N-N với Tag ---
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "book_tags",
@@ -78,11 +83,9 @@ public class BookEntity extends BaseEntity {
     )
     private Set<TagEntity> tags;
 
-    // --- Mối quan hệ 1-1 với Specification (Xử lý Cascade để lưu cùng lúc) ---
     @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private BookSpecificationEntity specification;
 
-    // --- Mối quan hệ 1-N với Images ---
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<BookImageEntity> images;
 }

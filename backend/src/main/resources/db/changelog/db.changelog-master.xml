@@ -15,4 +15,5 @@
     <include file="classpath:db/changelog/changes/008-insert-suppliers.xml"/>
     <include file="classpath:db/changelog/changes/009-create-books-module.xml"/>
     <include file="classpath:db/changelog/changes/010-insert-book.xml"/>
+    <include file="classpath:db/changelog/changes/011-create-table-receipt.xml"/>
 </databaseChangeLog>

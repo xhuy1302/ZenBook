@@ -33,6 +33,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/categories/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/suppliers/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/books/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/receipts/**").hasRole("ADMIN")
                         .anyRequest().authenticated() // Các API còn lại bắt buộc có Token
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

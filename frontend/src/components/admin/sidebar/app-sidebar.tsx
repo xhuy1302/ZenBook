@@ -2,10 +2,8 @@
 
 import {
   BookOpen,
-  LayoutGrid,
-  ShoppingBag,
-  UserRoundPen,
-  Users2,
+  ShoppingCart,
+  Users,
   FileText,
   TicketPercent,
   Tags,
@@ -13,7 +11,8 @@ import {
   Settings2,
   AudioWaveform,
   GalleryVerticalEnd,
-  Truck
+  Truck,
+  Package
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -52,31 +51,44 @@ const data = {
       isActive: true,
       items: [
         { title: 'Tất cả sách', url: '/dashboard/books' },
+        { title: 'Danh mục', url: '/dashboard/categories' },
+        { title: 'Tác giả', url: '/dashboard/authors' },
+        { title: 'Nhà xuất bản', url: '/dashboard/publishers' },
         { title: 'Thuộc tính sách', url: '/dashboard/books/specs' }
+      ]
+    },
+    {
+      title: 'Quản lý Kho',
+      url: '#',
+      icon: Package,
+      items: [
+        { title: 'Phiếu nhập kho', url: '/dashboard/receipts' },
+        { title: 'Kiểm kê tồn kho', url: '/dashboard/inventory' }
       ]
     },
     {
       title: 'Đơn hàng',
       url: '#',
-      icon: ShoppingBag,
+      icon: ShoppingCart,
       badge: '24',
       items: [
-        { title: 'Đang xử lý', url: '/dashboard/orders/pending' },
+        { title: 'Tất cả đơn hàng', url: '/dashboard/orders' },
+        { title: 'Tạo đơn hàng (POS)', url: '/dashboard/orders/create' },
+        { title: 'Chờ xử lý', url: '/dashboard/orders/pending' },
+        { title: 'Đang giao hàng', url: '/dashboard/orders/shipping' },
         { title: 'Hoàn thành', url: '/dashboard/orders/completed' },
-        { title: 'Đã hủy', url: '/dashboard/orders/cancelled' }
+        { title: 'Đã hủy / Trả hàng', url: '/dashboard/orders/cancelled' }
       ]
     }
   ],
-  projects: [
-    { name: 'Danh mục', url: '/dashboard/categories', icon: LayoutGrid },
-    { name: 'Tác giả', url: '/dashboard/authors', icon: UserRoundPen },
+  systemMenus: [
+    { name: 'Tài khoản', url: '/dashboard/users', icon: Users },
     { name: 'Nhà cung cấp', url: '/dashboard/suppliers', icon: Truck },
-    { name: 'Bài viết', url: '/dashboard/blog', icon: FileText },
-    { name: 'Người dùng', url: '/dashboard/users', icon: Users2 },
     { name: 'Mã giảm giá', url: '/dashboard/vouchers', icon: TicketPercent },
-    { name: 'Tags', url: '/dashboard/tags', icon: Tags },
-    { name: 'Đánh giá', url: '/dashboard/reviews', icon: Star },
-    { name: 'Cài đặt', url: '/dashboard/settings', icon: Settings2 }
+    { name: 'Bài viết & Blog', url: '/dashboard/blog', icon: FileText },
+    { name: 'Đánh giá / Review', url: '/dashboard/reviews', icon: Star },
+    { name: 'Tags bài viết', url: '/dashboard/tags', icon: Tags },
+    { name: 'Cài đặt hệ thống', url: '/dashboard/settings', icon: Settings2 }
   ]
 }
 
@@ -84,7 +96,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const authContext = useContext(AuthContext)
   const user = authContext?.user
 
-  // Dữ liệu hiển thị ưu tiên từ Database, nếu chưa có thì dùng mặc định
   const currentUser = {
     name: user?.fullName || 'Zenbook Admin',
     email: user?.email || 'admin@zenbook.com',
@@ -98,7 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavProjects projects={data.systemMenus} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={currentUser} />

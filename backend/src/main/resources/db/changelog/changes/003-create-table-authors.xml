@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-<changeSet id="004-create-authors-table" author="xuanhuy">
+<changeSet id="004-create-authors-table" author="zenbook">
     <preConditions onFail="MARK_RAN">
         <not>
             <tableExists tableName="authors"/>

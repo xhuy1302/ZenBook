@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="create-receipt-tables" author="zenbook">
+
+        <createTable tableName="receipts">
+            <column name="id" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="receipt_code" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="supplier_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="creator_id" type="VARCHAR(255)"/>
+
+            <column name="total_amount" type="DOUBLE"/>
+
+            <column name="note" type="TEXT"/>
+
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_at" type="DATETIME"/>
+            <column name="updated_at" type="DATETIME"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="receipts" baseColumnNames="supplier_id"
+                                 constraintName="fk_receipt_supplier"
+                                 referencedTableName="suppliers" referencedColumnNames="id"/>
+
+        <createTable tableName="receipt_details">
+            <column name="id" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="receipt_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="book_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="quantity" type="INT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="import_price" type="DOUBLE">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="sub_total" type="DOUBLE"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="receipt_details" baseColumnNames="receipt_id"
+                                 constraintName="fk_detail_receipt"
+                                 referencedTableName="receipts" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="receipt_details" baseColumnNames="book_id"
+                                 constraintName="fk_detail_book"
+                                 referencedTableName="books" referencedColumnNames="id"/>
+
+    </changeSet>
+
+    <changeSet id="add-attachment-url-to-receipts" author="zenbook">
+        <addColumn tableName="receipts">
+            <column name="attachment_url" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

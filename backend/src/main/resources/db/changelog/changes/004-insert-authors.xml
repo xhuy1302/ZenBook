@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="007-seed-authors-v4-fixed" author="xuanhuy" context="dev,test,prod">
+    <changeSet id="007-seed-authors-v4-fixed" author="zenbook" context="dev,test,prod">
 
         <insert tableName="authors">
             <column name="id" value="00000000-0000-7000-0000-000000000201"/>

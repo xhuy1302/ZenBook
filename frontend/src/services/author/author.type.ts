@@ -1,6 +1,7 @@
 import type { AuthorStatus } from '@/defines/author.enum'
 
 export interface AuthorResponse {
+  bookCount: number
   id: string
   name: string
   biography?: string | null
