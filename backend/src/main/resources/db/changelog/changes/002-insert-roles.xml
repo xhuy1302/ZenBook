@@ -6,7 +6,7 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
 
-    <changeSet id="004-seed-roles" author="xuanhuy" context="dev,test,prod">
+    <changeSet id="004-seed-roles" author="zenbook" context="dev,test,prod">
         <insert tableName="roles">
             <column name="id" value="00000000-0000-7000-0000-000000000001"/>
             <column name="name" value="ADMIN"/>
@@ -26,7 +26,7 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="005-seed-admin-user" author="xuanhuy" context="dev,test">
+    <changeSet id="005-seed-admin-user" author="zenbook" context="dev,test">
         <insert tableName="users">
             <column name="id" value="00000000-0000-7000-0000-000000000100"/>
             <column name="username" value="zbook"/>
@@ -51,7 +51,7 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="006-seed-mock-users" author="xuanhuy" context="dev,test">
+    <changeSet id="006-seed-mock-users" author="zenbook" context="dev,test">
         <insert tableName="users">
             <column name="id" value="00000000-0000-7000-0000-000000000101"/><column name="username" value="user1"/><column name="email" value="user1@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 01"/>
         </insert>

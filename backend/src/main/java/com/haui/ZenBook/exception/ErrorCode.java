@@ -80,11 +80,27 @@ public enum ErrorCode {
     TAG_NOT_FOUND(9100, "tag.not.found", HttpStatus.NOT_FOUND),
     TAG_NAME_EXISTED(9101, "tag.name.exists", HttpStatus.BAD_REQUEST),
 
+
+    // Thêm vào cụm Receipt errors (1000x)
+    RECEIPT_NOT_FOUND(10001, "receipt.not.found", HttpStatus.NOT_FOUND),
+    RECEIPT_NOT_DRAFT(10002, "receipt.not.draft", HttpStatus.BAD_REQUEST),
+    RECEIPT_CANNOT_CANCEL_COMPLETED(10003, "receipt.cannot.cancel.completed", HttpStatus.BAD_REQUEST),
+
+    // MỚI: Lỗi liên quan đến Excel và File đính kèm
+    EXCEL_IMPORT_FAILED(10004, "receipt.excel.import.failed", HttpStatus.BAD_REQUEST),
+    EXCEL_INVALID_FORMAT(10005, "receipt.excel.invalid.format", HttpStatus.BAD_REQUEST),
+    ATTACHMENT_UPLOAD_FAILED(10006, "receipt.attachment.upload.failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    ATTACHMENT_TOO_LARGE(10007, "receipt.attachment.too.large", HttpStatus.BAD_REQUEST),
+
+    SUPPLIER_NOT_ACTIVE(8005, "supplier.not.active", HttpStatus.BAD_REQUEST),
+    BOOK_NOT_ACTIVE(9008, "book.not.active", HttpStatus.BAD_REQUEST),
+
     FILE_TYPE_INVALID(6000, "file.type.invalid", HttpStatus.BAD_REQUEST),
     FILE_TOO_LARGE(6001, "file.too.large", HttpStatus.BAD_REQUEST),
     UPLOAD_IMAGE_FAILED(6002, "upload.image.failed", HttpStatus.INTERNAL_SERVER_ERROR),
     UPLOAD_FAILED(1009, "Upload file to S3 failed!", HttpStatus.INTERNAL_SERVER_ERROR),
     USERNAME_EXISTED(1010, "username.exists", HttpStatus.BAD_REQUEST);
+
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

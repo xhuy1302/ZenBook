@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.List; // Thêm import List
 
 @Entity
 @Table(name = "suppliers")
@@ -49,5 +50,9 @@ public class SupplierEntity extends BaseEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    // --- Mối quan hệ với Phiếu nhập (Mới thêm) ---
+    @OneToMany(mappedBy = "supplier", fetch = FetchType.LAZY)
+    private List<ReceiptEntity> receipts;
 
 }
