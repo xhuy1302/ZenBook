@@ -27,10 +27,12 @@ import {
   SidebarHeader,
   SidebarRail
 } from '@/components/ui/sidebar'
-import { useContext } from 'react'
+import { useContext, useMemo } from 'react'
 import { AuthContext } from '@/context/AuthContext'
+import { useQuery } from '@tanstack/react-query'
+import { orderService } from '@/services/order/order.api'
 
-const data = {
+const staticData = {
   teams: [
     {
       name: 'Zenbook Store.',
@@ -41,44 +43,6 @@ const data = {
       name: 'Zenbook Logistics',
       logo: AudioWaveform,
       plan: 'Startup'
-    }
-  ],
-  navMain: [
-    {
-      title: 'Quản lý Sách',
-      url: '#',
-      icon: BookOpen,
-      isActive: true,
-      items: [
-        { title: 'Tất cả sách', url: '/dashboard/books' },
-        { title: 'Danh mục', url: '/dashboard/categories' },
-        { title: 'Tác giả', url: '/dashboard/authors' },
-        { title: 'Nhà xuất bản', url: '/dashboard/publishers' },
-        { title: 'Thuộc tính sách', url: '/dashboard/books/specs' }
-      ]
-    },
-    {
-      title: 'Quản lý Kho',
-      url: '#',
-      icon: Package,
-      items: [
-        { title: 'Phiếu nhập kho', url: '/dashboard/receipts' },
-        { title: 'Kiểm kê tồn kho', url: '/dashboard/inventory' }
-      ]
-    },
-    {
-      title: 'Đơn hàng',
-      url: '#',
-      icon: ShoppingCart,
-      badge: '24',
-      items: [
-        { title: 'Tất cả đơn hàng', url: '/dashboard/orders' },
-        { title: 'Tạo đơn hàng (POS)', url: '/dashboard/orders/create' },
-        { title: 'Chờ xử lý', url: '/dashboard/orders/pending' },
-        { title: 'Đang giao hàng', url: '/dashboard/orders/shipping' },
-        { title: 'Hoàn thành', url: '/dashboard/orders/completed' },
-        { title: 'Đã hủy / Trả hàng', url: '/dashboard/orders/cancelled' }
-      ]
     }
   ],
   systemMenus: [
@@ -96,6 +60,46 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const authContext = useContext(AuthContext)
   const user = authContext?.user
 
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ['orders', 'sidebar-count'],
+    queryFn: () => orderService.getCountPending(),
+    refetchInterval: 30000, // 30 giây check một lần cho "tươi" dữ liệu
+    enabled: !!user
+  })
+
+  const navMainWithBadge = useMemo(
+    () => [
+      {
+        title: 'Quản lý Sách',
+        url: '#',
+        icon: BookOpen,
+        isActive: true,
+        items: [
+          { title: 'Tất cả sách', url: '/dashboard/books' },
+          { title: 'Danh mục', url: '/dashboard/categories' },
+          { title: 'Tác giả', url: '/dashboard/authors' }
+        ]
+      },
+      {
+        title: 'Quản lý Kho',
+        url: '#',
+        icon: Package,
+        items: [
+          { title: 'Phiếu nhập kho', url: '/dashboard/receipts' },
+          { title: 'Kiểm kê tồn kho', url: '/dashboard/inventory' }
+        ]
+      },
+      {
+        title: 'Đơn hàng',
+        url: '/dashboard/orders',
+        icon: ShoppingCart,
+        // Ép kiểu string để Badge hiện lên chính xác
+        badge: pendingCount > 0 ? String(pendingCount) : undefined
+      }
+    ],
+    [pendingCount]
+  )
+
   const currentUser = {
     name: user?.fullName || 'Zenbook Admin',
     email: user?.email || 'admin@zenbook.com',
@@ -105,11 +109,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar side='left' variant='inset' collapsible='icon' {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={staticData.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.systemMenus} />
+        <NavMain items={navMainWithBadge} />
+        <NavProjects projects={staticData.systemMenus} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={currentUser} />

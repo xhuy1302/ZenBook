@@ -53,11 +53,3 @@ export interface BookRequest {
   thumbnailFile?: File | null
   galleryFiles?: File[]
 }
-
-export interface PageResponse<T> {
-  content: T[]
-  totalElements: number
-  totalPages: number
-  size: number
-  number: number
-}

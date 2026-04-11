@@ -29,7 +29,7 @@ export function TrashBookDialog() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['books-trash'],
-    queryFn: () => getBooksInTrashApi(0, 100),
+    queryFn: getBooksInTrashApi,
     enabled: open
   })
 
@@ -50,7 +50,8 @@ export function TrashBookDialog() {
     }
   })
 
-  const booksInTrash = data?.content || []
+  // SỬA Ở ĐÂY: data giờ đây trả về thẳng mảng dữ liệu, không còn nằm trong 'content' nữa
+  const booksInTrash = data || []
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

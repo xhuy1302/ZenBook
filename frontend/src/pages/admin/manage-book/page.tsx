@@ -7,17 +7,17 @@ import { getAllBooksApi } from '@/services/book/book.api'
 import { useTranslation } from 'react-i18next'
 import { getColumns } from './columns' // Sửa thành import getColumns
 import { DataTable } from './data-table'
-import type { BookResponse, PageResponse } from '@/services/book/book.type'
+import type { BookResponse } from '@/services/book/book.type'
 
 export default function BookPage() {
   const { t } = useTranslation('product')
 
-  const { data, isLoading } = useFetchData<PageResponse<BookResponse>>(
+  const { data, isLoading } = useFetchData<BookResponse[]>(
     'books',
-    () => getAllBooksApi() as Promise<PageResponse<BookResponse>>
+    () => getAllBooksApi() as Promise<BookResponse[]>
   )
 
-  const dataSource = (data as PageResponse<BookResponse>)?.content || []
+  const dataSource = data || []
 
   // Truyền t vào hàm getColumns để tạo ra mảng columns được dịch
   const tableColumns = useMemo(() => getColumns(t), [t])

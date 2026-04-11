@@ -19,12 +19,6 @@ export default function ReceiptPage() {
   const fromStr = date?.from ? format(date.from, 'yyyy-MM-dd') : ''
   const toStr = date?.to ? format(date.to, 'yyyy-MM-dd') : ''
 
-  /**
-   * FIX LỖI ANY TẠI ĐÂY:
-   * Thay vì: ['receipts', fromStr, toStr] as any
-   * Hãy dùng: `receipts-${fromStr}-${toStr}`
-   * (Nó là một string duy nhất, TypeScript sẽ không báo lỗi nữa)
-   */
   const queryKey = `receipts-list-${fromStr || 'all'}-${toStr || 'all'}`
 
   const { data, isLoading } = useFetchData<ReceiptResponse[]>(queryKey, () =>

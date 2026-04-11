@@ -6,61 +6,83 @@ import {
   ChartTooltipContent,
   type ChartConfig
 } from '@/components/ui/chart'
-import { TrendingUp } from 'lucide-react'
 import { useMemo } from 'react'
-import { Label, Pie, PieChart } from 'recharts'
+import { Label, Pie, PieChart, Cell } from 'recharts'
+import type { CategoryChartData } from '@/services/dashboard/db.type'
 
-const chartData = [
-  { browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
-  { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
-  { browser: 'firefox', visitors: 287, fill: 'var(--color-firefox)' },
-  { browser: 'edge', visitors: 173, fill: 'var(--color-edge)' },
-  { browser: 'other', visitors: 190, fill: 'var(--color-other)' }
+// 👉 Sử dụng mã màu HEX trực tiếp để đảm bảo 100% lên màu
+const SOLID_COLORS = [
+  '#3b82f6', // Xanh dương
+  '#10b981', // Xanh lá
+  '#f59e0b', // Vàng cam
+  '#ef4444', // Đỏ
+  '#8b5cf6', // Tím
+  '#ec4899', // Hồng
+  '#06b6d4' // Xanh ngọc
 ]
 
-const chartConfig = {
-  visitors: {
-    label: 'Visitors'
-  },
-  chrome: {
-    label: 'Chrome',
-    color: 'hsl(var(--chart-1))'
-  },
-  safari: {
-    label: 'Safari',
-    color: 'hsl(var(--chart-2))'
-  },
-  firefox: {
-    label: 'Firefox',
-    color: 'hsl(var(--chart-3))'
-  },
-  edge: {
-    label: 'Edge',
-    color: 'hsl(var(--chart-4))'
-  },
-  other: {
-    label: 'Other',
-    color: 'hsl(var(--chart-5))'
-  }
-} satisfies ChartConfig
+export default function AppPieChart({ chartData }: { chartData: CategoryChartData[] }) {
+  // Tính tổng số lượng
+  const totalSales = useMemo(() => {
+    if (!chartData) return 0
+    return chartData.reduce((acc, curr) => acc + curr.sales, 0)
+  }, [chartData])
 
-export default function AppPieChart() {
-  const totalVisitors = useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0)
-  }, [])
+  // Map lại data để ép màu HEX vào từng danh mục
+  const formattedData = useMemo(() => {
+    if (!chartData) return []
+    return chartData.map((item, index) => ({
+      ...item,
+      fill: SOLID_COLORS[index % SOLID_COLORS.length]
+    }))
+  }, [chartData])
+
+  // Cấu hình linh hoạt cho Shadcn Tooltip (Chuẩn TypeScript, KHÔNG DÙNG ANY)
+  const dynamicConfig = useMemo(() => {
+    const config: ChartConfig = {
+      sales: { label: 'Đã bán' }
+    }
+
+    formattedData.forEach((item) => {
+      config[item.category] = {
+        label: item.category,
+        color: item.fill
+      }
+    })
+
+    return config
+  }, [formattedData])
+
+  // Xử lý khi chưa có dữ liệu
+  if (!chartData || chartData.length === 0)
+    return (
+      <div className='flex flex-col h-full min-h-[250px]'>
+        <h1 className='text-lg font-semibold mb-2'>Tỷ trọng danh mục</h1>
+        <div className='flex-1 flex items-center justify-center text-muted-foreground border border-dashed rounded-xl bg-muted/10'>
+          Chưa có dữ liệu danh mục
+        </div>
+      </div>
+    )
+
   return (
-    <>
-      <h1 className='text-lg font-medium mb-6'>Total Revenue</h1>
-      <ChartContainer config={chartConfig} className='mx-auto aspect-square max-h-[250px]'>
+    <div className='flex flex-col'>
+      <h1 className='text-lg font-semibold mb-2'>Tỷ trọng danh mục</h1>
+      <ChartContainer config={dynamicConfig} className='mx-auto aspect-square max-h-[250px]'>
         <PieChart>
           <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
           <Pie
-            data={chartData}
-            dataKey='visitors'
-            nameKey='browser'
-            innerRadius={60}
-            strokeWidth={5}
+            data={formattedData}
+            dataKey='sales'
+            nameKey='category'
+            innerRadius={65}
+            strokeWidth={2}
+            paddingAngle={2} // Thêm 2px khoảng cách giữa các múi cho hiện đại
           >
+            {/* Vòng lặp này bắt buộc phải có để Recharts tô màu bằng thẻ Cell */}
+            {formattedData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.fill} />
+            ))}
+
             <Label
               content={({ viewBox }) => {
                 if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
@@ -76,14 +98,14 @@ export default function AppPieChart() {
                         y={viewBox.cy}
                         className='fill-foreground text-3xl font-bold'
                       >
-                        {totalVisitors.toLocaleString()}
+                        {totalSales.toLocaleString()}
                       </tspan>
                       <tspan
                         x={viewBox.cx}
                         y={(viewBox.cy || 0) + 24}
                         className='fill-muted-foreground'
                       >
-                        Visitors
+                        Quyển
                       </tspan>
                     </text>
                   )
@@ -93,14 +115,6 @@ export default function AppPieChart() {
           </Pie>
         </PieChart>
       </ChartContainer>
-      <div className='mt-4 flex flex-col gap-2 items-center'>
-        <div className='flex gap-2 leading-none font-medium'>
-          Trending up by 5.2% this month <TrendingUp className='h-4 w-4 text-lime-500' />
-        </div>
-        <div className='text-muted-foreground leading-none'>
-          Showing total visitors for the last 6 months
-        </div>
-      </div>
-    </>
+    </div>
   )
 }
