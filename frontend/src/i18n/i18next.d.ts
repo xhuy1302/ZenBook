@@ -10,6 +10,7 @@ import enSupplier from './locales/en/supplier.json'
 import enBreadCrummb from './locales/en/breadcrumb.json'
 import enProduct from './locales/en/product.json'
 import enReceipt from './locales/en/receipt.json'
+import enOrder from './locales/en/order.json'
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -25,6 +26,7 @@ declare module 'i18next' {
       breadcrumb: typeof enBreadCrummb
       product: typeof enProduct
       receipt: typeof enReceipt
+      order: typeof enOrder
     }
   }
 }

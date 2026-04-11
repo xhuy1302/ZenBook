@@ -51,6 +51,7 @@ public class UserServiceImpl implements UserService {
         Set<RoleEntity> roles = new HashSet<>();
         RoleEntity role = roleRepository.findByName(Role.USER.name())
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND, Role.USER.name()));
+        newUser.setStatus(UserStatus.ACTIVE);
         roles.add(role);
         newUser.setRoles(roles);
         newUser.setAvatar("https://ui.shadcn.com/avatars/02.png");
@@ -60,7 +61,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponse> getAllUsers() {
-        return userRepository.findByStatusNot(UserStatus.DELETED).stream().map(userMapper::toUserResponse).toList();
+        return userRepository.findByStatusNotOrderByCreatedAtDesc(UserStatus.DELETED).stream().map(userMapper::toUserResponse).toList();
     }
 
     @Override

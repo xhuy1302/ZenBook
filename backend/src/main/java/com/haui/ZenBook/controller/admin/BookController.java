@@ -7,11 +7,9 @@ import com.haui.ZenBook.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/books")
@@ -54,18 +52,9 @@ public class BookController {
     }
 
     @GetMapping
-    public ApiResponse<Page<BookResponse>> getAllBooks(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction,
-            @RequestParam(required = false) String search
-    ) {
-        Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        return ApiResponse.<Page<BookResponse>>builder()
-                .data(bookService.getAllBooks(pageable, search))
+    public ApiResponse<List<BookResponse>> getAllBooks() {
+        return ApiResponse.<List<BookResponse>>builder()
+                .data(bookService.getAllBooks())
                 .build();
     }
 
@@ -87,13 +76,11 @@ public class BookController {
                 .build();
     }
 
+    // ĐÃ XÓA PHÂN TRANG (page, size)
     @GetMapping("/trash")
-    public ApiResponse<Page<BookResponse>> getBooksInTrash(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("deletedAt").descending());
-        return ApiResponse.<Page<BookResponse>>builder()
-                .data(bookService.getBooksInTrash(pageable))
+    public ApiResponse<List<BookResponse>> getBooksInTrash() {
+        return ApiResponse.<List<BookResponse>>builder()
+                .data(bookService.getBooksInTrash())
                 .build();
     }
 

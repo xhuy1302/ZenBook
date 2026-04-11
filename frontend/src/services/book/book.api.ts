@@ -1,11 +1,11 @@
 import { api } from '@/utils/axiosCustomize'
 import type { ApiResponse } from '@/defines/apiResponse'
-import type { BookRequest, BookResponse, PageResponse } from './book.type'
+import type { BookRequest, BookResponse } from './book.type' // Đã xóa PageResponse
 
 // 1. LẤY DANH SÁCH
-export const getAllBooksApi = async (page = 0, size = 10): Promise<PageResponse<BookResponse>> => {
-  const res = await api.get(`/books?page=${page}&size=${size}`)
-  return res.data.data as PageResponse<BookResponse>
+export const getAllBooksApi = async () => {
+  const res = await api.get<ApiResponse<BookResponse[]>>('/books')
+  return res.data.data
 }
 
 // Hàm hỗ trợ tạo FormData (Dùng chung cho Create và Update)
@@ -59,13 +59,10 @@ export const deleteBookApi = async (id: string) => {
 
 // ================= API CHO THÙNG RÁC =================
 
-// 5. LẤY DANH SÁCH TRONG THÙNG RÁC
-export const getBooksInTrashApi = async (
-  page = 0,
-  size = 10
-): Promise<PageResponse<BookResponse>> => {
-  const res = await api.get(`/books/trash?page=${page}&size=${size}`)
-  return res.data.data as PageResponse<BookResponse>
+// 5. LẤY DANH SÁCH TRONG THÙNG RÁC (Đã bỏ phân trang)
+export const getBooksInTrashApi = async () => {
+  const res = await api.get<ApiResponse<BookResponse[]>>('/books/trash')
+  return res.data.data
 }
 
 // 6. KHÔI PHỤC

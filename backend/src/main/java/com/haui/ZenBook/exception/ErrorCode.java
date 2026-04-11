@@ -86,6 +86,11 @@ public enum ErrorCode {
     RECEIPT_NOT_DRAFT(10002, "receipt.not.draft", HttpStatus.BAD_REQUEST),
     RECEIPT_CANNOT_CANCEL_COMPLETED(10003, "receipt.cannot.cancel.completed", HttpStatus.BAD_REQUEST),
 
+    ORDER_NOT_FOUND(4004, "order.not.found", HttpStatus.NOT_FOUND),
+    ORDER_STATUS_INVALID(4005, "order.status.invalid", HttpStatus.BAD_REQUEST),
+    ORDER_CANNOT_CANCEL(4006, "order.cannot.cancel", HttpStatus.BAD_REQUEST),
+    ORDER_CANNOT_UPDATE(4007, "order.cannot.update", HttpStatus.BAD_REQUEST),
+
     // MỚI: Lỗi liên quan đến Excel và File đính kèm
     EXCEL_IMPORT_FAILED(10004, "receipt.excel.import.failed", HttpStatus.BAD_REQUEST),
     EXCEL_INVALID_FORMAT(10005, "receipt.excel.invalid.format", HttpStatus.BAD_REQUEST),

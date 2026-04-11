@@ -21,9 +21,12 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
 
     List<UserEntity> findByStatus(UserStatus status);
 
-    List<UserEntity> findByStatusNot(UserStatus status);
+    List<UserEntity> findByStatusNotOrderByCreatedAtDesc(UserStatus status);
 
     List<UserEntity> findAllByStatusAndDeletedAtBefore(UserStatus status, LocalDateTime time);
+
+    @Query("SELECT FUNCTION('MONTHNAME', u.createdAt), COUNT(u) FROM UserEntity u GROUP BY FUNCTION('MONTHNAME', u.createdAt), FUNCTION('MONTH', u.createdAt) ORDER BY FUNCTION('MONTH', u.createdAt)")
+    List<Object[]> getNewUsersByMonthRaw();
 
     @Modifying
     @Query("""
@@ -49,4 +52,6 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
     int restore(@Param("id") String id);
 
     List<UserEntity> findAllByStatusAndDeletedAtIsNotNullOrderByDeletedAtDesc(UserStatus status);
+
+
 }

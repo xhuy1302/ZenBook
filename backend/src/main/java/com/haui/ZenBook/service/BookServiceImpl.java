@@ -12,8 +12,6 @@ import com.haui.ZenBook.repository.*;
 import com.haui.ZenBook.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -137,6 +136,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional(readOnly = true) // QUAN TRỌNG: Load dữ liệu an toàn
     public BookResponse getBookById(String id) {
         return bookRepository.findById(id)
                 .map(bookMapper::toResponse)
@@ -144,6 +144,16 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional(readOnly = true) // QUAN TRỌNG: Load dữ liệu an toàn
+    public List<BookResponse> getAllBooks() {
+        return bookRepository.findByDeletedAtIsNullOrderByCreatedAtDesc()
+                .stream()
+                .map(bookMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true) // QUAN TRỌNG: Load dữ liệu an toàn
     public BookResponse getBookBySlug(String slug) {
         return bookRepository.findBySlug(slug)
                 .map(bookMapper::toResponse)
@@ -151,12 +161,12 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Page<BookResponse> getAllBooks(Pageable pageable, String search) {
-        return bookRepository.findByDeletedAtIsNull(pageable).map(bookMapper::toResponse);
-    }
-
-    public Page<BookResponse> getBooksInTrash(Pageable pageable) {
-        return bookRepository.findByDeletedAtIsNotNull(pageable).map(bookMapper::toResponse);
+    @Transactional(readOnly = true) // QUAN TRỌNG: Load dữ liệu an toàn & BỎ PHÂN TRANG
+    public List<BookResponse> getBooksInTrash() {
+        return bookRepository.findByDeletedAtIsNotNullOrderByDeletedAtDesc()
+                .stream()
+                .map(bookMapper::toResponse)
+                .toList();
     }
 
     @Override
@@ -170,6 +180,7 @@ public class BookServiceImpl implements BookService {
         bookRepository.save(book);
     }
 
+    @Override
     @Transactional
     public void restoreBook(String id) {
         BookEntity book = bookRepository.findById(id)
@@ -180,6 +191,7 @@ public class BookServiceImpl implements BookService {
         bookRepository.save(book);
     }
 
+    @Override
     @Transactional
     public void hardDeleteBook(String id) {
         BookEntity book = bookRepository.findById(id)

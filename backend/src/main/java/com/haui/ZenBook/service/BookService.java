@@ -2,42 +2,20 @@ package com.haui.ZenBook.service;
 
 import com.haui.ZenBook.dto.book.BookRequest;
 import com.haui.ZenBook.dto.book.BookResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface BookService {
-
-    // Tạo mới sách
     BookResponse createBook(BookRequest request);
-
-    // Cập nhật sách theo ID
+    List<BookResponse> getAllBooks();
     BookResponse updateBook(String id, BookRequest request);
-
-    // Lấy chi tiết sách theo ID
     BookResponse getBookById(String id);
-
-    // Lấy chi tiết sách theo Slug (Dùng cho trang chi tiết sản phẩm phía khách hàng)
     BookResponse getBookBySlug(String slug);
-
-    // Xóa mềm sách (Cập nhật deleted_at)
     void deleteBook(String id);
-
-    // Lấy danh sách sách có phân trang và tìm kiếm cơ bản
-    Page<BookResponse> getAllBooks(Pageable pageable, String search);
-
-    // Thay đổi trạng thái sách (Ẩn/Hiện/Hết hàng)
     BookResponse updateStatus(String id, String status);
 
-    // ==========================================
-    // CÁC HÀM QUẢN LÝ THÙNG RÁC (MỚI THÊM)
-    // ==========================================
-
-    // Lấy danh sách sách trong thùng rác (đã bị xóa mềm)
-    Page<BookResponse> getBooksInTrash(Pageable pageable);
-
-    // Khôi phục sách từ thùng rác về trạng thái bình thường
+    // ĐÃ SỬA: Bỏ Pageable, trả về List
+    List<BookResponse> getBooksInTrash();
     void restoreBook(String id);
-
-    // Xóa vĩnh viễn sách khỏi database (Hard Delete)
     void hardDeleteBook(String id);
 }

@@ -33,15 +33,13 @@ public class ReceiptController {
             @RequestParam(value = "endDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        // Thêm dòng log này để kiểm tra xem request có vào được đến đây không
+
         System.out.println(">>> Request nhận được: startDate=" + startDate + ", endDate=" + endDate);
 
         return ResponseEntity.ok(receiptService.getAllReceipts(startDate, endDate));
     }
 
-    /**
-     * 2. IMPORT PHIẾU NHẬP TỪ EXCEL
-     */
+
     @PostMapping(value = "/import", consumes = "multipart/form-data")
     public ResponseEntity<Void> importExcel(@RequestParam("file") MultipartFile file) {
         receiptService.importReceiptFromExcel(file);

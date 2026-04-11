@@ -16,7 +16,7 @@ import java.util.Set;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookEntity extends BaseEntity {
+public class    BookEntity extends BaseEntity {
 
     @Column(name = "title", nullable = false)
     private String title;
