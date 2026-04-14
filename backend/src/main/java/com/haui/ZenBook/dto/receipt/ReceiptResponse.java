@@ -14,8 +14,11 @@ import java.util.List;
 public class ReceiptResponse {
     private String id;
     private String receiptCode;
-    private String supplierId;
-    private String supplierName; // Tiện cho Frontend đỡ phải gọi API phụ
+
+    // 👉 Đã đổi biến
+    private String publisherId;
+    private String publisherName; // Tiện cho Frontend đỡ phải gọi API phụ
+
     private String creatorId;
     private String creatorName; // Sẽ map từ UserEntity sang
     private String attachmentUrl;

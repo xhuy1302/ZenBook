@@ -44,16 +44,17 @@ public class CategoryServiceImpl implements CategoryService {
                 : request.getSlug();
 
         if (categoryRepository.existsBySlug(slug)) {
-            // Ném lỗi kèm slug bị trùng
             throw new AppException(ErrorCode.CATEGORY_SLUG_EXISTED, slug);
         }
 
         CategoryEntity category = categoryMapper.toEntity(request);
         category.setSlug(slug);
 
+        // 👉 THÊM LOGIC: Xử lý thứ tự hiển thị tự động
+        category.setDisplayOrder(getNextDisplayOrder(request.getParentId()));
+
         if (request.getParentId() != null && !request.getParentId().isBlank()) {
             CategoryEntity parent = categoryRepository.findById(request.getParentId())
-                    // Ném lỗi kèm ID danh mục cha
                     .orElseThrow(() -> new AppException(ErrorCode.PARENT_CATEGORY_NOT_FOUND, request.getParentId()));
             category.setLevel(parent.getLevel() + 1);
         } else {
@@ -93,13 +94,11 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND, id));
 
         if (id.equals(request.getParentId())) {
-            // Báo rõ lỗi do chọn chính nó làm cha
             throw new AppException(ErrorCode.CATEGORY_PARENT_INVALID, "Danh mục không thể là cha của chính nó");
         }
 
         if (request.getParentId() != null && !request.getParentId().isBlank()) {
             if (isCircularReference(id, request.getParentId())) {
-                // Báo lỗi do tạo vòng lặp
                 throw new AppException(ErrorCode.CATEGORY_PARENT_INVALID, "Gây ra vòng lặp danh mục");
             }
         }
@@ -110,17 +109,28 @@ public class CategoryServiceImpl implements CategoryService {
             }
         }
 
+        // 👉 THÊM LOGIC: Kiểm tra xem có đổi danh mục cha hay không
+        String oldParentId = category.getParentId();
+        String newParentId = request.getParentId();
+        boolean isParentChanged = (oldParentId == null && newParentId != null && !newParentId.isBlank()) ||
+                (oldParentId != null && !oldParentId.equals(newParentId));
+
         categoryMapper.updateCategory(category, request);
 
-        if (request.getParentId() != null && !request.getParentId().isBlank()) {
-            CategoryEntity parent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new AppException(ErrorCode.PARENT_CATEGORY_NOT_FOUND, request.getParentId()));
+        if (newParentId != null && !newParentId.isBlank()) {
+            CategoryEntity parent = categoryRepository.findById(newParentId)
+                    .orElseThrow(() -> new AppException(ErrorCode.PARENT_CATEGORY_NOT_FOUND, newParentId));
 
-            category.setParentId(request.getParentId());
+            category.setParentId(newParentId);
             category.setLevel(parent.getLevel() + 1);
         } else {
             category.setParentId(null);
             category.setLevel(0);
+        }
+
+        // 👉 Nếu đổi danh mục cha, xếp danh mục này xuống cuối danh sách của cha mới
+        if (isParentChanged) {
+            category.setDisplayOrder(getNextDisplayOrder(newParentId));
         }
 
         CategoryEntity updatedCategory = categoryRepository.save(category);
@@ -146,12 +156,10 @@ public class CategoryServiceImpl implements CategoryService {
         CategoryEntity category = categoryRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND, id));
 
-        // 1. KIỂM TRA XEM CÓ DANH MỤC CON KHÔNG (Truyền tên danh mục vào báo lỗi cho trực quan)
         if (!categoryRepository.findAllByParentIdOrderByDisplayOrderAsc(id).isEmpty()) {
             throw new AppException(ErrorCode.CATEGORY_HAS_CHILDREN, category.getCategoryName());
         }
 
-        // 2. KIỂM TRA XEM CÓ SÁCH LIÊN KẾT KHÔNG
         if (category.getBooks() != null && !category.getBooks().isEmpty()) {
             String linkedBookTitles = category.getBooks().stream()
                     .limit(3)
@@ -165,7 +173,6 @@ public class CategoryServiceImpl implements CategoryService {
             throw new AppException(ErrorCode.CATEGORY_HAS_BOOKS, detailInfo);
         }
 
-        // 3. THỰC HIỆN XÓA MỀM
         category.setDeletedAt(LocalDateTime.now());
         category.setStatus(CategoryStatus.INACTIVE);
 
@@ -233,5 +240,16 @@ public class CategoryServiceImpl implements CategoryService {
             }
         }
         return false;
+    }
+
+    // 👉 THÊM HÀM PHỤ: Lấy số thứ tự hiển thị tiếp theo
+    private int getNextDisplayOrder(String parentId) {
+        Integer maxOrder;
+        if (parentId != null && !parentId.isBlank()) {
+            maxOrder = categoryRepository.findMaxDisplayOrderByParentId(parentId);
+        } else {
+            maxOrder = categoryRepository.findMaxDisplayOrderRoot();
+        }
+        return (maxOrder == null) ? 0 : maxOrder + 1;
     }
 }

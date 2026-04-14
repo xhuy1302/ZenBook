@@ -2,7 +2,7 @@ package com.haui.ZenBook.dto.book;
 
 import com.haui.ZenBook.dto.author.AuthorResponse;
 import com.haui.ZenBook.dto.category.CategoryResponse;
-import com.haui.ZenBook.dto.supplier.SupplierResponse;
+import com.haui.ZenBook.dto.publisher.PublisherResponse; // 👉 THÊM MỚI: Import PublisherResponse
 import com.haui.ZenBook.dto.tag.TagResponse;
 import com.haui.ZenBook.enums.BookFormat;
 import com.haui.ZenBook.enums.BookStatus;
@@ -33,6 +33,7 @@ public class BookResponse {
     LocalDateTime updatedAt;
 
     // Thông tin chi tiết các liên kết
+    PublisherResponse publisher; // 👉 THÊM MỚI: Trả về thông tin Nhà xuất bản
     Set<CategoryResponse> categories;
     Set<AuthorResponse> authors;
     Set<TagResponse> tags;

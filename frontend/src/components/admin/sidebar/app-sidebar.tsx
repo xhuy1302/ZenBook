@@ -11,8 +11,8 @@ import {
   Settings2,
   AudioWaveform,
   GalleryVerticalEnd,
-  Truck,
-  Package
+  Package,
+  Gift
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -47,7 +47,8 @@ const staticData = {
   ],
   systemMenus: [
     { name: 'Tài khoản', url: '/dashboard/users', icon: Users },
-    { name: 'Nhà cung cấp', url: '/dashboard/suppliers', icon: Truck },
+    // Đã xóa 'Nhà cung cấp' khỏi đây
+    { name: 'Khuyến mãi', url: '/dashboard/promotions', icon: Gift },
     { name: 'Mã giảm giá', url: '/dashboard/vouchers', icon: TicketPercent },
     { name: 'Bài viết & Blog', url: '/dashboard/blog', icon: FileText },
     { name: 'Đánh giá / Review', url: '/dashboard/reviews', icon: Star },
@@ -63,7 +64,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ['orders', 'sidebar-count'],
     queryFn: () => orderService.getCountPending(),
-    refetchInterval: 30000, // 30 giây check một lần cho "tươi" dữ liệu
+    refetchInterval: 30000,
     enabled: !!user
   })
 
@@ -77,7 +78,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         items: [
           { title: 'Tất cả sách', url: '/dashboard/books' },
           { title: 'Danh mục', url: '/dashboard/categories' },
-          { title: 'Tác giả', url: '/dashboard/authors' }
+          { title: 'Tác giả', url: '/dashboard/authors' },
+          // 👉 Thêm Nhà xuất bản vào đây và cập nhật URL
+          { title: 'Nhà xuất bản', url: '/dashboard/publishers' }
         ]
       },
       {
@@ -93,7 +96,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: 'Đơn hàng',
         url: '/dashboard/orders',
         icon: ShoppingCart,
-        // Ép kiểu string để Badge hiện lên chính xác
         badge: pendingCount > 0 ? String(pendingCount) : undefined
       }
     ],

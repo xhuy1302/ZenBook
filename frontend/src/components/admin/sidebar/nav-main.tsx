@@ -42,7 +42,9 @@ export function NavMain({
         {items.map((item) => {
           // TRƯỜNG HỢP 1: CÓ MENU CON (XỔ XUỐNG)
           if (item.items && item.items.length > 0) {
-            const isChildActive = item.items.some((sub) => pathname.startsWith(sub.url))
+            const isChildActive = item.items.some(
+              (sub) => pathname === sub.url || pathname.startsWith(`${sub.url}/`)
+            )
 
             return (
               <Collapsible
@@ -70,9 +72,11 @@ export function NavMain({
                       <ChevronRight className='ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
+
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items.map((subItem) => {
+                        // Kiểm tra active chính xác cho cả route con (VD: /dashboard/publishers/create)
                         const isActive =
                           pathname === subItem.url || pathname.startsWith(`${subItem.url}/`)
 
@@ -101,7 +105,7 @@ export function NavMain({
             )
           }
 
-          // TRƯỜNG HỢP 2: KHÔNG CÓ MENU CON (LINK TRỰC TIẾP - ĐƠN HÀNG)
+          // TRƯỜNG HỢP 2: KHÔNG CÓ MENU CON (LINK TRỰC TIẾP - VÍ DỤ: ĐƠN HÀNG)
           const isDirectActive = pathname === item.url || pathname.startsWith(`${item.url}/`)
 
           return (
@@ -120,7 +124,7 @@ export function NavMain({
                   {item.icon && <item.icon className='size-4' />}
                   <span className='flex-1'>{item.title}</span>
 
-                  {/* 👉 ĐÃ FIX: Hiển thị badge trực tiếp trong Link để không bị mất */}
+                  {/* Badge hiển thị trực tiếp trong Link */}
                   {item.badge && (
                     <span className='ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-background group-hover:ring-transparent transition-all'>
                       {item.badge}

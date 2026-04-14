@@ -27,6 +27,11 @@ public interface OrderRepository extends JpaRepository<OrderEntity, String> {
 
     List<OrderEntity> findByStatusAndCreatedAtBefore(OrderStatus status, LocalDateTime time);
 
+    // 👉 THÊM 2 HÀM NÀY ĐỂ LỌC THEO NGÀY THÁNG
+    Page<OrderEntity> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end, Pageable pageable);
+
+    Page<OrderEntity> findByStatusAndCreatedAtBetween(OrderStatus status, LocalDateTime start, LocalDateTime end, Pageable pageable);
+
     @Query("SELECT FUNCTION('MONTHNAME', o.createdAt), COUNT(DISTINCT o.userId) FROM OrderEntity o GROUP BY FUNCTION('MONTHNAME', o.createdAt), FUNCTION('MONTH', o.createdAt) ORDER BY FUNCTION('MONTH', o.createdAt)")
     List<Object[]> getActiveCustomersByMonthRaw();
 
@@ -36,12 +41,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, String> {
     @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.status = 'PENDING'")
     long countNewOrders();
 
-
-    // 👉 THAY ĐỔI Ở ĐÂY: Trả về List<Object[]>
     @Query("SELECT FUNCTION('MONTHNAME', o.createdAt), SUM(o.finalTotal), SUM(o.finalTotal) * 0.3 " +
             "FROM OrderEntity o WHERE o.status = 'COMPLETED' " +
             "GROUP BY FUNCTION('MONTHNAME', o.createdAt), FUNCTION('MONTH', o.createdAt) " +
             "ORDER BY FUNCTION('MONTH', o.createdAt)")
     List<Object[]> getMonthlyRevenueRaw();
-
 }

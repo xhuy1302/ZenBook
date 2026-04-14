@@ -3,7 +3,6 @@ package com.haui.ZenBook.service;
 import com.haui.ZenBook.dto.order.OrderCreateRequest;
 import com.haui.ZenBook.dto.order.OrderItemRequest;
 import com.haui.ZenBook.dto.order.OrderResponse;
-
 import com.haui.ZenBook.dto.order.OrderUpdateRequest;
 import com.haui.ZenBook.entity.BookEntity;
 import com.haui.ZenBook.entity.OrderDetailEntity;
@@ -18,15 +17,16 @@ import com.haui.ZenBook.exception.ErrorCode;
 import com.haui.ZenBook.mapper.OrderMapper;
 import com.haui.ZenBook.repository.BookRepository;
 import com.haui.ZenBook.repository.OrderRepository;
-import com.haui.ZenBook.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,21 +74,18 @@ public class OrderServiceImpl implements OrderService {
             throw new AppException(ErrorCode.ORDER_CANNOT_UPDATE);
         }
 
-        // 1. Hoàn trả kho cho các món cũ trước khi xóa
         for (OrderDetailEntity detail : order.getDetails()) {
             BookEntity book = detail.getBook();
             book.setStockQuantity(book.getStockQuantity() + detail.getQuantity());
             bookRepository.save(book);
         }
-        order.getDetails().clear(); // Hibernate orphanRemoval sẽ lo phần này
+        order.getDetails().clear();
 
-        // 2. Cập nhật thông tin cơ bản
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setShippingAddress(request.getShippingAddress());
         order.setNote(request.getNote());
 
-        // 3. Xử lý lại giỏ hàng mới
         processOrderItems(order, request.getItems());
 
         recordHistory(order, OrderStatus.PENDING, OrderStatus.PENDING, actionBy, role, "Chỉnh sửa thông tin và giỏ hàng");
@@ -105,7 +102,6 @@ public class OrderServiceImpl implements OrderService {
             throw new AppException(ErrorCode.ORDER_STATUS_INVALID);
         }
 
-        // State Machine Check
         boolean valid = switch (oldStatus) {
             case PENDING -> newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELLED;
             case CONFIRMED -> newStatus == OrderStatus.PACKING;
@@ -115,7 +111,6 @@ public class OrderServiceImpl implements OrderService {
         };
         if (!valid) throw new AppException(ErrorCode.ORDER_STATUS_INVALID);
 
-        // Hoàn kho nếu Hủy/Trả hàng
         if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.RETURNED) {
             for (OrderDetailEntity detail : order.getDetails()) {
                 BookEntity b = detail.getBook();
@@ -129,7 +124,6 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
-    // Hàm dùng chung để xử lý giỏ hàng và trừ kho
     private void processOrderItems(OrderEntity order, List<OrderItemRequest> items) {
         double totalItemsPrice = 0.0;
         if (order.getDetails() == null) order.setDetails(new ArrayList<>());
@@ -165,8 +159,18 @@ public class OrderServiceImpl implements OrderService {
                 .actionBy(by).role(role).note(note).build());
     }
 
-    @Override public Page<OrderResponse> getAllOrders(OrderStatus s, Pageable p) {
-        return ((s != null) ? orderRepository.findByStatus(s, p) : orderRepository.findAllByOrderByCreatedAtDesc(p)).map(orderMapper::toOrderResponse);
+    // 👉 ĐÃ THAY ĐỔI: Hàm getAllOrders hỗ trợ lọc theo ngày
+    @Override
+    public Page<OrderResponse> getAllOrders(OrderStatus s, String startDate, String endDate, Pageable p) {
+        // Khởi tạo thời gian mặc định (Rất xa trong quá khứ hoặc tương lai)
+        LocalDateTime start = StringUtils.hasText(startDate) ? LocalDate.parse(startDate).atStartOfDay() : LocalDateTime.of(2000, 1, 1, 0, 0);
+        LocalDateTime end = StringUtils.hasText(endDate) ? LocalDate.parse(endDate).atTime(23, 59, 59) : LocalDateTime.now().plusYears(10);
+
+        if (s != null) {
+            return orderRepository.findByStatusAndCreatedAtBetween(s, start, end, p).map(orderMapper::toOrderResponse);
+        } else {
+            return orderRepository.findByCreatedAtBetween(start, end, p).map(orderMapper::toOrderResponse);
+        }
     }
 
     @Override public Page<OrderResponse> getMyOrders(String u, Pageable p) {

@@ -16,7 +16,7 @@
                 <constraints nullable="false" unique="true"/>
             </column>
 
-            <column name="supplier_id" type="VARCHAR(255)">
+            <column name="publisher_id" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
 
@@ -34,9 +34,9 @@
             <column name="updated_at" type="DATETIME"/>
         </createTable>
 
-        <addForeignKeyConstraint baseTableName="receipts" baseColumnNames="supplier_id"
-                                 constraintName="fk_receipt_supplier"
-                                 referencedTableName="suppliers" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="receipts" baseColumnNames="publisher_id"
+                                 constraintName="fk_receipt_publisher"
+                                 referencedTableName="publishers" referencedColumnNames="id"/>
 
         <createTable tableName="receipt_details">
             <column name="id" type="VARCHAR(255)">

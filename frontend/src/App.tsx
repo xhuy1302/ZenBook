@@ -8,10 +8,11 @@ import DashboardHome from './pages/admin/dashboard/content/DashBoardHome'
 import UserPage from './pages/admin/manage-user/page'
 import AuthorPage from './pages/admin/manage-author/page'
 import CategoryPage from './pages/admin/manage-category/page'
-import SupplierPage from './pages/admin/manage-supplier/page'
+import PublisherPage from './pages/admin/manage-publisher/page'
 import BookPage from './pages/admin/manage-book/page'
 import ReceiptPage from './pages/admin/manage-receipt/page'
 import OrderPage from './pages/admin/manage-order/page'
+import PromotionPage from './pages/admin/manage-promotion/page'
 
 function App() {
   return (
@@ -53,10 +54,11 @@ function App() {
               <Route path='users' element={<UserPage />} />
               <Route path='authors' element={<AuthorPage />} />
               <Route path='categories' element={<CategoryPage />} />
-              <Route path='suppliers' element={<SupplierPage />} />
+              <Route path='publishers' element={<PublisherPage />} />
               <Route path='books' element={<BookPage />} />
               <Route path='receipts' element={<ReceiptPage />} />
               <Route path='orders' element={<OrderPage />} />
+              <Route path='promotions' element={<PromotionPage />} />
               {/* <Route path='brands' element={<BrandPage />} /> */}
             </Route>
           </Route>

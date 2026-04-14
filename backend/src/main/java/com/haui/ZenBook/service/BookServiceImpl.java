@@ -35,6 +35,7 @@ public class BookServiceImpl implements BookService {
     private final CategoryRepository categoryRepository;
     private final AuthorRepository authorRepository;
     private final TagRepository tagRepository;
+    private final PublisherRepository publisherRepository; // 👉 THÊM MỚI: Inject PublisherRepository
 
     @Override
     @Transactional
@@ -106,6 +107,9 @@ public class BookServiceImpl implements BookService {
 
         if (request.getThumbnailFile() != null && !request.getThumbnailFile().isEmpty()) {
             try {
+                if (book.getThumbnail() != null && !book.getThumbnail().isBlank()) {
+                    s3Service.deleteFile(book.getThumbnail());
+                }
                 String newUrl = s3Service.uploadFile(request.getThumbnailFile(), "books/thumbnails");
                 book.setThumbnail(newUrl);
             } catch (IOException e) {
@@ -114,7 +118,16 @@ public class BookServiceImpl implements BookService {
         }
 
         if (request.getGalleryFiles() != null && !request.getGalleryFiles().isEmpty()) {
+            if (book.getImages() != null && !book.getImages().isEmpty()) {
+                for (BookImageEntity image : book.getImages()) {
+                    if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
+                        s3Service.deleteFile(image.getImageUrl());
+                    }
+                }
+            }
+
             book.getImages().clear();
+
             for (MultipartFile file : request.getGalleryFiles()) {
                 try {
                     String url = s3Service.uploadFile(file, "books/gallery");
@@ -136,7 +149,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true) // QUAN TRỌNG: Load dữ liệu an toàn
+    @Transactional(readOnly = true)
     public BookResponse getBookById(String id) {
         return bookRepository.findById(id)
                 .map(bookMapper::toResponse)
@@ -144,7 +157,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true) // QUAN TRỌNG: Load dữ liệu an toàn
+    @Transactional(readOnly = true)
     public List<BookResponse> getAllBooks() {
         return bookRepository.findByDeletedAtIsNullOrderByCreatedAtDesc()
                 .stream()
@@ -153,7 +166,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true) // QUAN TRỌNG: Load dữ liệu an toàn
+    @Transactional(readOnly = true)
     public BookResponse getBookBySlug(String slug) {
         return bookRepository.findBySlug(slug)
                 .map(bookMapper::toResponse)
@@ -161,7 +174,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true) // QUAN TRỌNG: Load dữ liệu an toàn & BỎ PHÂN TRANG
+    @Transactional(readOnly = true)
     public List<BookResponse> getBooksInTrash() {
         return bookRepository.findByDeletedAtIsNotNullOrderByDeletedAtDesc()
                 .stream()
@@ -197,6 +210,18 @@ public class BookServiceImpl implements BookService {
         BookEntity book = bookRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
 
+        if (book.getThumbnail() != null && !book.getThumbnail().isBlank()) {
+            s3Service.deleteFile(book.getThumbnail());
+        }
+
+        if (book.getImages() != null && !book.getImages().isEmpty()) {
+            for (BookImageEntity image : book.getImages()) {
+                if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
+                    s3Service.deleteFile(image.getImageUrl());
+                }
+            }
+        }
+
         bookRepository.delete(book);
     }
 
@@ -214,6 +239,15 @@ public class BookServiceImpl implements BookService {
     }
 
     private void mapRelationships(BookEntity book, BookRequest request) {
+        // 👉 THÊM MỚI: Logic xử lý Publisher
+        if (request.getPublisherId() != null && !request.getPublisherId().isBlank()) {
+            PublisherEntity publisher = publisherRepository.findById(request.getPublisherId())
+                    .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND, "ID nhà xuất bản: " + request.getPublisherId()));
+            book.setPublisher(publisher);
+        } else {
+            book.setPublisher(null);
+        }
+
         if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
             Set<CategoryEntity> categories = new HashSet<>(categoryRepository.findAllById(request.getCategoryIds()));
             if (categories.isEmpty()) throw new AppException(ErrorCode.CATEGORY_NOT_FOUND, "những ID danh mục cung cấp");

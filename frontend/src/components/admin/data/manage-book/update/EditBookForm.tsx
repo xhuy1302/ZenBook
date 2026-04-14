@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-// SỬA: Import getBookSchema thay vì bookSchema cũ
+
 import { getBookSchema, type BookFormValues } from '../schema/book.schema'
 import { updateBookApi } from '@/services/book/book.api'
 import { BookStatus, BookFormat } from '@/defines/book.enum'
@@ -28,14 +28,16 @@ import type { BookResponse, BookRequest } from '@/services/book/book.type'
 
 import { getAllCategoriesApi } from '@/services/category/category.api'
 import { getAllAuthorsApi } from '@/services/author/author.api'
+// 👉 THÊM MỚI: Import API Nhà xuất bản
+import { getAllPublishersApi } from '@/services/publisher/publisher.api'
 import type { CategoryResponse } from '@/services/category/category.type'
 import type { AuthorResponse } from '@/services/author/author.type'
+import type { PublisherResponse } from '@/services/publisher/publisher.type'
 
 export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSuccess: () => void }) {
   const { t } = useTranslation('product')
   const queryClient = useQueryClient()
 
-  // STATE HÌNH ẢNH
   const [previewThumb, setPreviewThumb] = useState<string>(book.thumbnail || '')
   const [previewGallery, setPreviewGallery] = useState<string[]>(book.images || [])
 
@@ -44,7 +46,6 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [retainedGalleryUrls, setRetainedGalleryUrls] = useState<string[]>(book.images ?? [])
 
-  // GỌI API LẤY PHÂN LOẠI
   const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: () => getAllCategoriesApi()
@@ -55,10 +56,16 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
     queryFn: () => getAllAuthorsApi()
   })
 
+  // 👉 THÊM MỚI: Lấy danh sách Nhà xuất bản
+  const { data: publishersData, isLoading: isPublishersLoading } = useQuery({
+    queryKey: ['publishers'],
+    queryFn: () => getAllPublishersApi()
+  })
+
   const categories = categoriesData || []
   const authors = authorsData || []
+  const publishers = publishersData || []
 
-  // SỬA: Khởi tạo form với kỹ thuật ép kiểu an toàn đồng nhất với CreateForm
   const form = useForm<BookFormValues>({
     resolver: zodResolver(
       getBookSchema(t as unknown as (key: string) => string)
@@ -77,6 +84,7 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
       dimensions: book.dimensions || '',
       weight: book.weight || 0,
       language: book.language || 'Tiếng Việt',
+      publisherId: book.publisher?.id || '', // 👉 THÊM MỚI: Load ID nhà xuất bản cũ
       categoryIds: book.categories?.map((c) => c.id) || [],
       authorIds: book.authors?.map((a) => a.id) || [],
       tagIds: book.tags?.map((t) => t.id) || []
@@ -134,7 +142,6 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
       onSuccess()
     },
     onError: (error: unknown) => {
-      // SỬA: Lấy message từ Backend Interceptor
       const msg =
         (error as { response?: { data?: { message?: string } } }).response?.data?.message ||
         t('book.messages.updateError')
@@ -247,6 +254,35 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
       <div className='border rounded-lg p-4 space-y-4 bg-card'>
         <h3 className='font-semibold text-lg border-b pb-2'>{t('book.form.section3')}</h3>
         <div className='grid grid-cols-2 gap-6'>
+          {/* 👉 THÊM MỚI: Khối Chọn Nhà xuất bản */}
+          <div className='col-span-2 space-y-3'>
+            <Label>{t('book.form.publisher', 'Nhà xuất bản')}</Label>
+            <Controller
+              control={form.control}
+              name='publisherId'
+              render={({ field }) => (
+                <Select
+                  value={field.value || ''}
+                  onValueChange={field.onChange}
+                  disabled={isPublishersLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={t('book.form.publisherPlaceholder', 'Chọn nhà xuất bản...')}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {publishers.map((p: PublisherResponse) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
           <div className='space-y-3'>
             <Label>{t('book.form.category')}</Label>
             <Controller
@@ -287,7 +323,6 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
               }}
             />
           </div>
-
           <div className='space-y-3'>
             <Label>{t('book.form.author')}</Label>
             <Controller

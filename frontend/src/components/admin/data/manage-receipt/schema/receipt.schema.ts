@@ -26,8 +26,8 @@ export const getReceiptDetailSchema = (t: TValidator) =>
 
 export const getReceiptSchema = (t: TValidator) =>
   z.object({
-    // Bắt buộc chọn nhà cung cấp
-    supplierId: z.string().trim().min(1, t('receipt.validation.supplierRequired')),
+    // Bắt buộc chọn nhà xuất bản
+    publisherId: z.string().trim().min(1, t('receipt.validation.publisherRequired')),
 
     note: z.string().optional(),
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useContext } from 'react' // Thêm useContext
+import { useContext } from 'react'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
@@ -20,50 +20,42 @@ import {
   SelectValue
 } from '@/components/ui/select'
 
-// Import Context để lấy thông tin User
 import { AuthContext } from '@/context/AuthContext'
-
 import { getReceiptSchema, type ReceiptFormValues } from '../schema/receipt.schema'
 import { createReceiptApi } from '@/services/receipt/receipt.api'
 import type { ReceiptRequest } from '@/services/receipt/receipt.type'
-
-import { getAllSuppliersApi } from '@/services/supplier/supplier.api'
+import { getAllPublishersApi } from '@/services/publisher/publisher.api'
 import { getAllBooksApi } from '@/services/book/book.api'
 
-import type { SupplierResponse } from '@/services/supplier/supplier.type'
-import type { BookResponse, PageResponse } from '@/services/book/book.type'
+import type { PublisherResponse } from '@/services/publisher/publisher.type'
+import type { BookResponse } from '@/services/book/book.type'
 
 export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
   const { t } = useTranslation('receipt')
   const queryClient = useQueryClient()
 
-  // LẤY THÔNG TIN NGƯỜI ĐANG ĐĂNG NHẬP
   const authContext = useContext(AuthContext)
   const user = authContext?.user
 
-  // FETCH DATA: Nhà cung cấp & Sách
-  const { data: suppliersData, isLoading: isSuppliersLoading } = useQuery({
-    queryKey: ['suppliers'],
-    queryFn: () => getAllSuppliersApi() as Promise<SupplierResponse[]>
+  const { data: publishersData, isLoading: isPublishersLoading } = useQuery({
+    queryKey: ['publishers'],
+    queryFn: () => getAllPublishersApi() as Promise<PublisherResponse[]>
   })
 
   const { data: booksData, isLoading: isBooksLoading } = useQuery({
     queryKey: ['books'],
-    queryFn: () => getAllBooksApi() as Promise<PageResponse<BookResponse> | BookResponse[]>
+    queryFn: () => getAllBooksApi() as Promise<BookResponse[]>
   })
 
-  const suppliers: SupplierResponse[] = suppliersData || []
-  const books: BookResponse[] = Array.isArray(booksData)
-    ? booksData
-    : (booksData as PageResponse<BookResponse>)?.content || []
+  const publishers: PublisherResponse[] = publishersData || []
+  const books: BookResponse[] = booksData || []
 
-  // INIT FORM (Lưu ý: Không khai báo creatorId ở đây)
   const form = useForm<ReceiptFormValues>({
     resolver: zodResolver(
       getReceiptSchema(t as unknown as (key: string) => string)
     ) as unknown as import('react-hook-form').Resolver<ReceiptFormValues>,
     defaultValues: {
-      supplierId: '',
+      publisherId: '',
       note: '',
       details: [{ bookId: '', quantity: 1, importPrice: 0 }]
     }
@@ -75,13 +67,22 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
     name: 'details'
   })
 
-  // SUBMIT
+  // 👉 ĐÃ SỬA LẠI PHẦN SUBMIT ĐỂ CẬP NHẬT DỮ LIỆU TỨC THÌ
   const mutation = useMutation({
     mutationFn: (values: ReceiptFormValues) =>
       createReceiptApi(values as unknown as ReceiptRequest),
-    onSuccess: () => {
+    onSuccess: async () => {
+      // 1. Hiện thông báo trước
       toast.success(t('receipt.message.createSuccess', 'Tạo phiếu nhập nháp thành công!'))
-      queryClient.invalidateQueries({ queryKey: ['receipts'] })
+
+      // 2. Ép React Query làm mới lại tất cả cache có key bắt đầu bằng ['receipts']
+      // Dùng await để chắc chắn dữ liệu đã được nạp lại từ Server
+      await queryClient.invalidateQueries({
+        queryKey: ['receipts'],
+        exact: false // Giúp làm mới cả các danh sách đang có filter (ngày tháng...)
+      })
+
+      // 3. Cuối cùng mới đóng Dialog
       onSuccess()
     },
     onError: (error: unknown) => {
@@ -94,49 +95,47 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))} className='space-y-6'>
-      {/* SECTION 1: THÔNG TIN CHUNG */}
+      {/* --- PHẦN UI GIỮ NGUYÊN --- */}
       <div className='border rounded-lg p-4 space-y-4 bg-card'>
         <h3 className='font-semibold text-lg border-b pb-2'>
           {t('receipt.form.sectionGeneral', 'Thông tin chung')}
         </h3>
         <div className='grid grid-cols-2 gap-4'>
-          {/* Cột 1: Chọn nhà cung cấp */}
           <div className='space-y-2'>
-            <Label className={errors.supplierId ? 'text-red-500' : ''}>
-              {t('receipt.form.supplier', 'Nhà cung cấp')} <span className='text-red-500'>*</span>
+            <Label className={errors.publisherId ? 'text-red-500' : ''}>
+              {t('receipt.form.publisher', 'Nhà xuất bản')} <span className='text-red-500'>*</span>
             </Label>
             <Controller
               control={form.control}
-              name='supplierId'
+              name='publisherId'
               render={({ field }) => (
                 <Select
                   value={field.value}
                   onValueChange={field.onChange}
-                  disabled={isSuppliersLoading}
+                  disabled={isPublishersLoading}
                 >
                   <SelectTrigger
-                    className={errors.supplierId ? 'border-red-500 focus:ring-red-500' : ''}
+                    className={errors.publisherId ? 'border-red-500 focus:ring-red-500' : ''}
                   >
                     <SelectValue
-                      placeholder={t('receipt.form.supplierPlaceholder', 'Chọn nhà cung cấp...')}
+                      placeholder={t('receipt.form.publisherPlaceholder', 'Chọn nhà xuất bản...')}
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {suppliers.map((s: SupplierResponse) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name || (s as unknown as { supplierName?: string }).supplierName}
+                    {publishers.map((p: PublisherResponse) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name || (p as unknown as { publisherName?: string }).publisherName}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
             />
-            {errors.supplierId && (
-              <p className='text-xs text-red-500 font-medium'>{errors.supplierId.message}</p>
+            {errors.publisherId && (
+              <p className='text-xs text-red-500 font-medium'>{errors.publisherId.message}</p>
             )}
           </div>
 
-          {/* Cột 2: Hiển thị tên người lập phiếu (Readonly) */}
           <div className='space-y-2'>
             <Label className='flex items-center gap-1.5 text-muted-foreground'>
               <User className='w-3.5 h-3.5' />
@@ -150,7 +149,6 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
             />
           </div>
 
-          {/* Cột 3 (Full): Ghi chú */}
           <div className='col-span-2 space-y-2'>
             <Label>{t('receipt.form.note', 'Ghi chú')}</Label>
             <Textarea
@@ -160,7 +158,6 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
             />
           </div>
 
-          {/* Cột 4 (Full): Upload Hóa đơn / Chứng từ */}
           <div className='col-span-2 space-y-2 border-t pt-3 mt-1'>
             <Label className='flex items-center gap-2'>
               <UploadCloud className='w-4 h-4 text-muted-foreground' />
@@ -180,7 +177,6 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
 
-      {/* SECTION 2: DANH SÁCH SẢN PHẨM NHẬP */}
       <div className='border rounded-lg p-4 space-y-4 bg-card'>
         <div className='flex items-center justify-between border-b pb-2'>
           <h3 className='font-semibold text-lg'>
@@ -210,7 +206,6 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
                 key={field.id}
                 className='flex items-start gap-3 p-3 border rounded-md bg-muted/20'
               >
-                {/* Chọn sách */}
                 <div className='flex-1 space-y-2'>
                   <Label className={rowErrors?.bookId ? 'text-red-500' : ''}>
                     {t('receipt.form.book', 'Sách')}
@@ -244,7 +239,6 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
                   )}
                 </div>
 
-                {/* Số lượng */}
                 <div className='w-24 space-y-2 shrink-0'>
                   <Label className={rowErrors?.quantity ? 'text-red-500' : ''}>
                     {t('receipt.form.quantity', 'SL')}
@@ -259,7 +253,6 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
                   )}
                 </div>
 
-                {/* Giá nhập */}
                 <div className='w-32 space-y-2 shrink-0'>
                   <Label className={rowErrors?.importPrice ? 'text-red-500' : ''}>
                     {t('receipt.form.importPrice', 'Giá nhập')}
@@ -274,7 +267,6 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
                   )}
                 </div>
 
-                {/* Nút xóa dòng */}
                 <Button
                   type='button'
                   variant='ghost'
@@ -291,7 +283,6 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
 
-      {/* FOOTER */}
       <div className='flex justify-end gap-3 border-t pt-4 sticky bottom-0 bg-background py-4 z-10'>
         <Button type='button' variant='ghost' onClick={onSuccess}>
           {t('common.cancel', 'Hủy')}

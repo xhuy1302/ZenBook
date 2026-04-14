@@ -14,8 +14,9 @@ import java.util.List;
 @Builder
 public class ReceiptRequest {
 
-    @NotBlank(message = "Nhà cung cấp không được để trống")
-    private String supplierId;
+    // 👉 Đã sửa thông báo lỗi và tên biến
+    @NotBlank(message = "Nhà xuất bản không được để trống")
+    private String publisherId;
 
     private String note;
 
@@ -25,5 +26,4 @@ public class ReceiptRequest {
     @Valid // Kích hoạt validate cho từng item trong danh sách
     private List<ReceiptDetailRequest> details; // Đã đổi từ ReceiptDetailItem sang ReceiptDetailRequest
 
-    // ĐÃ XÓA CLASS CON ReceiptDetailItem Ở ĐÂY ĐỂ DÙNG FILE RIÊNG CHO ĐỒNG BỘ
 }
