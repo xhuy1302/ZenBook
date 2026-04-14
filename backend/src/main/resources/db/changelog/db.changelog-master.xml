@@ -11,10 +11,11 @@
     <include file="classpath:db/changelog/changes/004-insert-authors.xml"/>
     <include file="classpath:db/changelog/changes/005-create-table-categories.xml"/>
     <include file="classpath:db/changelog/changes/006-insert-categories.xml"/>
-    <include file="classpath:db/changelog/changes/007-create-table-suppliers.xml"/>
-    <include file="classpath:db/changelog/changes/008-insert-suppliers.xml"/>
+    <include file="classpath:db/changelog/changes/007-create-table-publishers.xml"/>
+    <include file="classpath:db/changelog/changes/008-insert-publishers.xml"/>
     <include file="classpath:db/changelog/changes/009-create-books-module.xml"/>
     <include file="classpath:db/changelog/changes/010-insert-book.xml"/>
     <include file="classpath:db/changelog/changes/011-create-table-receipt.xml"/>
     <include file="classpath:db/changelog/changes/012-create-table-order.xml"/>
+    <include file="classpath:db/changelog/changes/013-create-table-promotions.xml"/>
 </databaseChangeLog>

@@ -22,7 +22,9 @@ export interface BookResponse {
   updatedAt: string
   deletedAt?: string | null
 
-  // Đã xóa supplier
+  // 👉 THÊM MỚI: Thông tin Nhà xuất bản
+  publisher?: { id: string; name: string }
+
   categories?: { id: string; categoryName: string }[]
   authors?: { id: string; name: string }[]
   tags?: { id: string; name: string }[]
@@ -38,7 +40,9 @@ export interface BookRequest {
   stockQuantity: number
   status: BookStatus
 
-  // Đã xóa supplierId
+  // 👉 THÊM MỚI: ID Nhà xuất bản
+  publisherId?: string
+
   categoryIds?: string[]
   authorIds?: string[]
   tagIds?: string[]

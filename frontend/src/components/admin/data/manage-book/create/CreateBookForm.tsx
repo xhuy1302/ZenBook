@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-// SỬA: Import getBookSchema thay vì bookSchema cũ
+
 import { getBookSchema, type BookFormValues } from '../schema/book.schema'
 import { createBookApi } from '@/services/book/book.api'
 import { BookStatus, BookFormat } from '@/defines/book.enum'
@@ -28,8 +28,11 @@ import type { BookRequest } from '@/services/book/book.type'
 
 import { getAllCategoriesApi } from '@/services/category/category.api'
 import { getAllAuthorsApi } from '@/services/author/author.api'
+// 👉 THÊM MỚI: Import API Nhà xuất bản
+import { getAllPublishersApi } from '@/services/publisher/publisher.api'
 import type { CategoryResponse } from '@/services/category/category.type'
 import type { AuthorResponse } from '@/services/author/author.type'
+import type { PublisherResponse } from '@/services/publisher/publisher.type'
 
 export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
   const { t } = useTranslation('product')
@@ -48,9 +51,15 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
     queryKey: ['authors'],
     queryFn: () => getAllAuthorsApi()
   })
+  // 👉 THÊM MỚI: Lấy danh sách Nhà xuất bản
+  const { data: publishersData, isLoading: isPublishersLoading } = useQuery({
+    queryKey: ['publishers'],
+    queryFn: () => getAllPublishersApi()
+  })
 
   const categories = categoriesData || []
   const authors = authorsData || []
+  const publishers = publishersData || []
 
   const form = useForm<BookFormValues>({
     resolver: zodResolver(
@@ -58,7 +67,6 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
     ) as unknown as import('react-hook-form').Resolver<BookFormValues>,
     defaultValues: {
       title: '',
-      // SỬA: Để undefined hoặc xóa hẳn để Zod bắt lỗi "Required"
       originalPrice: undefined,
       salePrice: undefined,
       pageCount: undefined,
@@ -67,13 +75,13 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
       stockQuantity: 0,
       status: BookStatus.ACTIVE,
       language: 'Tiếng Việt',
+      publisherId: '', // 👉 THÊM MỚI: Khởi tạo rỗng
       categoryIds: [],
       authorIds: [],
       tagIds: []
     }
   })
 
-  // Lấy errors ra để hiển thị thông báo lỗi
   const { errors } = form.formState
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,7 +122,6 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
       onSuccess()
     },
     onError: (error: unknown) => {
-      // SỬA: Lấy message từ Backend Interceptor nếu có
       const msg =
         (error as { response?: { data?: { message?: string } } }).response?.data?.message ||
         t('book.messages.createError')
@@ -225,6 +232,35 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
       <div className='border rounded-lg p-4 space-y-4 bg-card'>
         <h3 className='font-semibold text-lg border-b pb-2'>{t('book.form.section3')}</h3>
         <div className='grid grid-cols-2 gap-6'>
+          {/* 👉 THÊM MỚI: Khối Chọn Nhà xuất bản */}
+          <div className='col-span-2 space-y-3'>
+            <Label>{t('book.form.publisher', 'Nhà xuất bản')}</Label>
+            <Controller
+              control={form.control}
+              name='publisherId'
+              render={({ field }) => (
+                <Select
+                  value={field.value || ''}
+                  onValueChange={field.onChange}
+                  disabled={isPublishersLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={t('book.form.publisherPlaceholder', 'Chọn nhà xuất bản...')}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {publishers.map((p: PublisherResponse) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
           <div className='space-y-3'>
             <Label>{t('book.form.category')}</Label>
             <Controller

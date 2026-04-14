@@ -29,20 +29,19 @@ export const orderService = {
     return responseObj as unknown as Order
   },
 
+  // 3. LẤY TẤT CẢ ĐƠN HÀNG (ADMIN)
   getAll: async (params: {
     page: number
     size: number
     status?: OrderStatus
+    startDate?: string
+    endDate?: string
   }): Promise<Page<Order>> => {
     const res = await api.get<unknown>('/orders', { params })
-
-    // Ép kiểu về Record thay vì any để hết lỗi
     const response = res as unknown as Record<string, unknown>
 
-    // Biến tạm để giữ Page object
     let pageObj: Record<string, unknown> | null = null
 
-    // Dò tìm Page Object (Cấu trúc Spring Boot)
     if (response && typeof response.content !== 'undefined') {
       pageObj = response
     } else if (
@@ -72,19 +71,37 @@ export const orderService = {
     return { content: [], totalElements: 0, totalPages: 0, number: 0, size: 0 }
   },
 
-  // 4. LẤY ĐƠN HÀNG CỦA TÔI
+  // 4. LẤY ĐƠN HÀNG CỦA TÔI (CUSTOMER) - 👉 ĐÃ FIX LỖI ANY
   getMyOrders: async (params: { page: number; size: number }): Promise<Page<Order>> => {
     const res = await api.get<unknown>('/orders/my-orders', { params })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const responseObj = res as any
+    const responseObj = res as unknown as Record<string, unknown>
 
-    let pageData = responseObj
+    let pageObj: Record<string, unknown> | null = null
+
     if (responseObj?.data) {
-      if (responseObj.data?.data?.content !== undefined) pageData = responseObj.data.data
-      else if (responseObj.data?.content !== undefined) pageData = responseObj.data
+      const dataLevel1 = responseObj.data as Record<string, unknown>
+      if (
+        dataLevel1?.data &&
+        typeof (dataLevel1.data as Record<string, unknown>).content !== 'undefined'
+      ) {
+        pageObj = dataLevel1.data as Record<string, unknown>
+      } else if (typeof dataLevel1.content !== 'undefined') {
+        pageObj = dataLevel1
+      }
+    } else if (typeof responseObj.content !== 'undefined') {
+      pageObj = responseObj
     }
 
-    if (pageData?.content !== undefined) return pageData as Page<Order>
+    if (pageObj) {
+      return {
+        content: (pageObj.content as Order[]) || [],
+        totalElements: (pageObj.totalElements as number) || 0,
+        totalPages: (pageObj.totalPages as number) || 0,
+        number: (pageObj.number as number) || 0,
+        size: (pageObj.size as number) || 0
+      }
+    }
+
     return { content: [], totalElements: 0, totalPages: 0, number: 0, size: 0 }
   },
 
@@ -119,16 +136,12 @@ export const orderService = {
     return responseObj as unknown as Order
   },
 
+  // 7. ĐẾM ĐƠN CHỜ XỬ LÝ
   getCountPending: async (): Promise<number> => {
     const res = await api.get<unknown>('/orders/count-pending')
-
-    // Axios bọc kết quả vào res.data
     const responseObj = res as unknown as Record<string, unknown>
 
-    // Nếu bạn có Interceptor trả về thẳng data (kiểu số)
     if (typeof res === 'number') return res
-
-    // Nếu kết quả nằm trong responseObj.data
     if (typeof responseObj.data === 'number') return responseObj.data
 
     return 0

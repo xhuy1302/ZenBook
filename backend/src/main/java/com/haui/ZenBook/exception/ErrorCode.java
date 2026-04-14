@@ -59,12 +59,12 @@ public enum ErrorCode {
     AUTHOR_CANNOT_DELETE(7006, "author.cannot.delete", HttpStatus.BAD_REQUEST),
     AUTHOR_HAS_BOOKS(7007, "author.has.book", HttpStatus.BAD_REQUEST),
 
-    // ================= Thêm mới cho Supplier =================
-    SUPPLIER_NOT_FOUND(8000, "supplier.not.found", HttpStatus.NOT_FOUND),
-    SUPPLIER_NAME_NOTBLANK(8001, "supplier.name.not.blank", HttpStatus.BAD_REQUEST),
-    SUPPLIER_EMAIL_EXISTED(8002, "supplier.email.exists", HttpStatus.BAD_REQUEST),
-    SUPPLIER_TAX_CODE_EXISTED(8003, "supplier.tax.code.exists", HttpStatus.BAD_REQUEST),
-    SUPPLIER_CANNOT_DELETE(8004, "supplier.cannot.delete", HttpStatus.BAD_REQUEST),
+    // ================= Thêm mới cho PUBLISHER =================
+    PUBLISHER_NOT_FOUND(8000, "publisher.not.found", HttpStatus.NOT_FOUND),
+    PUBLISHER_NAME_NOTBLANK(8001, "publisher.name.not.blank", HttpStatus.BAD_REQUEST),
+    PUBLISHER_EMAIL_EXISTED(8002, "publisher.email.exists", HttpStatus.BAD_REQUEST),
+    PUBLISHER_TAX_CODE_EXISTED(8003, "publisher.tax.code.exists", HttpStatus.BAD_REQUEST),
+    PUBLISHER_CANNOT_DELETE(8004, "publisher.cannot.delete", HttpStatus.BAD_REQUEST),
 
     // ================= Thêm mới cho Books =================
     BOOK_NOT_FOUND(9000, "book.not.found", HttpStatus.NOT_FOUND),
@@ -97,15 +97,17 @@ public enum ErrorCode {
     ATTACHMENT_UPLOAD_FAILED(10006, "receipt.attachment.upload.failed", HttpStatus.INTERNAL_SERVER_ERROR),
     ATTACHMENT_TOO_LARGE(10007, "receipt.attachment.too.large", HttpStatus.BAD_REQUEST),
 
-    SUPPLIER_NOT_ACTIVE(8005, "supplier.not.active", HttpStatus.BAD_REQUEST),
+    PUBLISHER_NOT_ACTIVE(8005, "PUBLISHER.not.active", HttpStatus.BAD_REQUEST),
     BOOK_NOT_ACTIVE(9008, "book.not.active", HttpStatus.BAD_REQUEST),
 
     FILE_TYPE_INVALID(6000, "file.type.invalid", HttpStatus.BAD_REQUEST),
     FILE_TOO_LARGE(6001, "file.too.large", HttpStatus.BAD_REQUEST),
     UPLOAD_IMAGE_FAILED(6002, "upload.image.failed", HttpStatus.INTERNAL_SERVER_ERROR),
     UPLOAD_FAILED(1009, "Upload file to S3 failed!", HttpStatus.INTERNAL_SERVER_ERROR),
-    USERNAME_EXISTED(1010, "username.exists", HttpStatus.BAD_REQUEST);
+    USERNAME_EXISTED(1010, "username.exists", HttpStatus.BAD_REQUEST),
 
+    PROMOTION_NOT_FOUND(1100, "promotion.not.found",HttpStatus.BAD_REQUEST) ,
+    PROMOTION_DATE_INVALID(1101, "promotion.date.invalid",HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

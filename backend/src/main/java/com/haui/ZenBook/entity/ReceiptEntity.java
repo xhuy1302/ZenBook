@@ -25,9 +25,10 @@ public class ReceiptEntity {
     @Column(name = "receipt_code", unique = true, nullable = false)
     private String receiptCode;
 
+    // 👉 Đã đổi cột join và tên biến sang publisher
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "supplier_id", nullable = false)
-    private SupplierEntity supplier;
+    @JoinColumn(name = "publisher_id", nullable = false)
+    private PublisherEntity publisher;
 
     @Column(name = "creator_id")
     private String creatorId;

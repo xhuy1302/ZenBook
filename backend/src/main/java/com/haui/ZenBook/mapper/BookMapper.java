@@ -11,20 +11,20 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {CategoryMapper.class, AuthorMapper.class, SupplierMapper.class, TagMapper.class})
+@Mapper(componentModel = "spring", uses = {CategoryMapper.class, AuthorMapper.class, PublisherMapper.class, TagMapper.class})
 public interface BookMapper {
 
     // --- MAPPING TỪ REQUEST SANG ENTITY (Tạo mới) ---
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "slug", ignore = true)
     @Mapping(target = "status", source = "status")
-    // SỬA Ở ĐÂY: Dùng expression để gọi thẳng hàm, tránh lỗi nhầm field
     @Mapping(target = "specification", expression = "java(mapToSpecification(request))")
     @Mapping(target = "images", ignore = true)
     @Mapping(target = "thumbnail", ignore = true)
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "authors", ignore = true)
     @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "publisher", ignore = true) // 👉 THÊM: Bỏ qua publisher để set thủ công trong tầng Service
     BookEntity toEntity(BookRequest request);
 
     // --- MAPPING TỪ ENTITY SANG RESPONSE ---
@@ -35,6 +35,7 @@ public interface BookMapper {
     @Mapping(target = "weight", source = "specification.weight")
     @Mapping(target = "language", source = "specification.language")
     @Mapping(target = "images", source = "images", qualifiedByName = "extractImageUrls")
+    // MapStruct sẽ tự động map `PublisherEntity` sang `PublisherResponse` vì đã có PublisherMapper
     BookResponse toResponse(BookEntity entity);
 
     // --- CÁC HÀM XỬ LÝ PHỤ ---
@@ -67,6 +68,7 @@ public interface BookMapper {
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "authors", ignore = true)
     @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "publisher", ignore = true) // 👉 THÊM: Bỏ qua publisher khi update
     @Mapping(target = "specification", ignore = true)
     void updateEntityFromRequest(BookRequest request, @MappingTarget BookEntity entity);
 

@@ -6,11 +6,12 @@ import enCommon from './locales/en/common.json'
 import enUser from './locales/en/user.json'
 import enCategory from './locales/en/category.json'
 import enAuthor from './locales/en/author.json'
-import enSupplier from './locales/en/supplier.json'
+import enPublisher from './locales/en/publisher.json'
 import enBreadCrummb from './locales/en/breadcrumb.json'
 import enProduct from './locales/en/product.json'
 import enReceipt from './locales/en/receipt.json'
 import enOrder from './locales/en/order.json'
+import enPromotion from './locales/en/promotion.json'
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -22,11 +23,12 @@ declare module 'i18next' {
       user: typeof enUser
       category: typeof enCategory
       author: typeof enAuthor
-      supplier: typeof enSupplier
+      publisher: typeof enPublisher
       breadcrumb: typeof enBreadCrummb
       product: typeof enProduct
       receipt: typeof enReceipt
       order: typeof enOrder
+      promotion: typeof enPromotion
     }
   }
 }

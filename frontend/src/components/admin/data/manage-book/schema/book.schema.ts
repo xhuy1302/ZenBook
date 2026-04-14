@@ -33,6 +33,7 @@ export const getBookSchema = (t: TValidator) =>
       z
         .number({ message: t('book.validation.priceInvalid') })
         .min(1, t('book.validation.pageCountInvalid'))
+        .optional()
     ),
 
     publicationYear: z.preprocess(
@@ -40,6 +41,7 @@ export const getBookSchema = (t: TValidator) =>
       z
         .number({ message: t('book.validation.priceInvalid') })
         .min(1000, t('book.validation.publicationYearInvalid'))
+        .optional()
     ),
 
     weight: z.preprocess(
@@ -47,10 +49,15 @@ export const getBookSchema = (t: TValidator) =>
       z
         .number({ message: t('book.validation.priceInvalid') })
         .min(1, t('book.validation.weightInvalid'))
+        .optional()
     ),
 
     // Giữ nguyên các trường khác
     status: z.nativeEnum(BookStatus),
+
+    // 👉 THÊM MỚI: ID Nhà xuất bản
+    publisherId: z.string().optional(),
+
     categoryIds: z.array(z.string()).default([]),
     authorIds: z.array(z.string()).default([]),
     tagIds: z.array(z.string()).default([]),

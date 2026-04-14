@@ -1,7 +1,7 @@
 import type { ReceiptStatus } from '@/defines/receipt.enum'
 
-// Khớp với ReceiptDetailRequest của Backend
-export interface ReceiptDetailItem {
+// ĐÃ ĐỔI TÊN: Khớp với ReceiptDetailRequest của Backend
+export interface ReceiptDetailRequest {
   bookId: string
   quantity: number
   importPrice: number
@@ -9,13 +9,13 @@ export interface ReceiptDetailItem {
 
 // Khớp với ReceiptRequest của Backend
 export interface ReceiptRequest {
-  supplierId: string
+  publisherId: string // 👉 Đổi từ supplierId
   note?: string
   attachmentUrl?: string
-  details: ReceiptDetailItem[]
+  details: ReceiptDetailRequest[] // 👉 Đổi kiểu dữ liệu
 }
 
-// MỚI: Thêm interface này khớp với ReceiptDetailResponse của Backend
+// Khớp với ReceiptDetailResponse của Backend
 export interface ReceiptDetailResponse {
   id: string
   bookId: string
@@ -25,12 +25,12 @@ export interface ReceiptDetailResponse {
   subTotal: number
 }
 
-// ĐÃ SỬA: Khớp 100% với ReceiptResponse của Backend
+// Khớp 100% với ReceiptResponse của Backend
 export interface ReceiptResponse {
   id: string
   receiptCode: string
-  supplierId: string
-  supplierName: string
+  publisherId: string // 👉 Đổi từ supplierId
+  publisherName: string // 👉 Đổi từ supplierName
   creatorId: string
   creatorName?: string
   attachmentUrl?: string
@@ -39,5 +39,5 @@ export interface ReceiptResponse {
   status: ReceiptStatus
   createdAt: string
   updatedAt: string
-  details: ReceiptDetailResponse[] // Lúc nãy cưng thiếu cái này
+  details: ReceiptDetailResponse[]
 }

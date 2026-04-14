@@ -73,10 +73,12 @@ export function ViewReceiptDialog({ open, onOpenChange, receipt }: ViewReceiptDi
                 <div className='flex items-center gap-2 text-muted-foreground w-32 shrink-0'>
                   <Store className='w-4 h-4' />
                   <span className='text-xs font-bold uppercase'>
-                    {t('receipt.table.supplier', 'NCC')}
+                    {/* 👉 Đã sửa thành NXB và key publisher */}
+                    {t('receipt.table.publisher', 'NXB')}
                   </span>
                 </div>
-                <span className='text-sm font-bold text-foreground'>: {receipt.supplierName}</span>
+                {/* 👉 Đã sửa thành publisherName */}
+                <span className='text-sm font-bold text-foreground'>: {receipt.publisherName}</span>
               </div>
 
               <div className='flex items-center gap-3'>

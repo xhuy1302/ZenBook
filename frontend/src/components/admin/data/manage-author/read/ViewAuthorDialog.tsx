@@ -7,12 +7,28 @@ import { useTranslation } from 'react-i18next'
 import { AuthorStatusBadge } from '@/components/admin/data/manage-author/AuthorStatusBadges'
 import { Calendar, Clock, BookOpen, Globe, User } from 'lucide-react'
 import { useState } from 'react'
-import { format } from 'date-fns'
+import { format, isValid } from 'date-fns'
 
 interface ViewAuthorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   author: AuthorResponse
+}
+
+// Hàm bọc an toàn tuyệt đối cho mọi loại định dạng ngày tháng từ Backend
+const safeFormatDate = (dateString?: string | null) => {
+  if (!dateString) return '—'
+
+  // Trường hợp 1: Backend Spring Boot đã format sẵn thành chuỗi "dd-MM-yyyy HH:mm:ss"
+  // Dấu hiệu nhận biết: có chứa dấu gạch ngang '-' nhưng KHÔNG chứa chữ 'T' của chuẩn ISO
+  if (dateString.includes('-') && !dateString.includes('T')) {
+    return dateString // Trả về hiển thị luôn, không cần format lại bằng date-fns
+  }
+
+  // Trường hợp 2: Backend trả về chuẩn ISO gốc (VD: 2024-04-14T10:30:00.000Z)
+  const date = new Date(dateString)
+  if (!isValid(date)) return '—'
+  return format(date, 'dd/MM/yyyy HH:mm')
 }
 
 export function ViewAuthorDialog({ open, onOpenChange, author }: ViewAuthorDialogProps) {
@@ -79,7 +95,8 @@ export function ViewAuthorDialog({ open, onOpenChange, author }: ViewAuthorDialo
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 <InfoCardField
                   label={t('table.columns.dateOfBirth', 'Ngày sinh')}
-                  value={author.dateOfBirth ? author.dateOfBirth.split(' ')[0] : '—'}
+                  // Áp dụng safeFormatDate luôn cho ngày sinh để chống lỗi an toàn
+                  value={safeFormatDate(author.dateOfBirth).split(' ')[0]}
                   icon={<Calendar className='w-4 h-4 text-blue-500' />}
                 />
                 <InfoCardField
@@ -120,16 +137,12 @@ export function ViewAuthorDialog({ open, onOpenChange, author }: ViewAuthorDialo
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 <InfoCardField
                   label={t('table.columns.createdAt', 'Thời điểm tạo')}
-                  value={
-                    author.createdAt ? format(new Date(author.createdAt), 'dd/MM/yyyy HH:mm') : '—'
-                  }
+                  value={safeFormatDate(author.createdAt)}
                   className='bg-orange-50/50 border-orange-100'
                 />
                 <InfoCardField
                   label={t('table.columns.updatedAt', 'Cập nhật cuối')}
-                  value={
-                    author.updatedAt ? format(new Date(author.updatedAt), 'dd/MM/yyyy HH:mm') : '—'
-                  }
+                  value={safeFormatDate(author.updatedAt)}
                   className='bg-blue-50/50 border-blue-100'
                 />
               </div>

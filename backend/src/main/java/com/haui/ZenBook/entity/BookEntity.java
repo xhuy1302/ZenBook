@@ -6,7 +6,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.List; // Thêm import List
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -16,7 +16,7 @@ import java.util.Set;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class    BookEntity extends BaseEntity {
+public class BookEntity extends BaseEntity {
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -52,7 +52,12 @@ public class    BookEntity extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    // --- Mối quan hệ với Chi tiết phiếu nhập (Mới thêm) ---
+    // 👉 THÊM MỚI: Mối quan hệ N-1 với Nhà xuất bản (Publisher)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "publisher_id")
+    private PublisherEntity publisher;
+
+    // --- Mối quan hệ với Chi tiết phiếu nhập ---
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private List<ReceiptDetailEntity> receiptDetails;
 
@@ -88,4 +93,7 @@ public class    BookEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<BookImageEntity> images;
+
+    @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
+    private List<PromotionEntity> promotions;
 }

@@ -1,0 +1,122 @@
+{
+  "list": "Quản lý nhà xuất bản",
+  "dialogTitle": {
+    "create": "Thêm mới nhà xuất bản",
+    "view": "Chi tiết nhà xuất bản",
+    "delete": "Xác nhận xóa nhà xuất bản",
+    "update": "Cập nhật nhà xuất bản",
+    "permanentDelete": "Xóa vĩnh viễn nhà xuất bản",
+    "restore": "Xác nhận khôi phục"
+  },
+  "filters": {
+    "search": "Tìm kiếm tên nhà xuất bản...",
+    "reset": "Đặt lại",
+    "status": {
+      "label": "Trạng thái",
+      "all": "Tất cả trạng thái",
+      "ACTIVE": "Đang hợp tác",
+      "INACTIVE": "Ngừng hợp tác",
+      "DELETED": "Đã xóa"
+    }
+  },
+  "table": {
+    "noResults": "Không tìm thấy kết quả nào.",
+    "columns": {
+      "name": "Tên nhà xuất bản",
+      "contactName": "Người liên hệ",
+      "phone": "Số điện thoại",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    }
+  },
+  "create": {
+    "sections": {
+      "info": "Thông tin chung",
+      "contact": "Thông tin liên hệ"
+    }
+  },
+  "fields": {
+    "name": {
+      "label": "Tên nhà xuất bản"
+    },
+    "taxCode": {
+      "label": "Mã số thuế"
+    },
+    "contactName": {
+      "label": "Người liên hệ"
+    },
+    "phone": {
+      "label": "Số điện thoại"
+    },
+    "email": {
+      "label": "Email"
+    },
+    "address": {
+      "label": "Địa chỉ"
+    },
+    "website": {
+      "label": "Website"
+    },
+    "description": {
+      "label": "Ghi chú"
+    },
+    "status": {
+      "label": "Trạng thái",
+      "options": {
+        "ACTIVE": "Đang hợp tác",
+        "INACTIVE": "Ngừng hợp tác",
+        "DELETED": "Đã xóa"
+      }
+    },
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Cập nhật cuối",
+    "deletedAt": "Ngày xóa"
+  },
+  "message": {
+    "success": {
+      "create": "Thêm nhà xuất bản thành công!",
+      "update": "Cập nhật thông tin thành công!",
+      "delete": "Đã chuyển nhà xuất bản vào thùng rác!",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa nhà xuất bản {{name}}? Dữ liệu sẽ được chuyển vào thùng rác.",
+      "permanentDelete": "Đã xóa vĩnh viễn nhà xuất bản khỏi hệ thống!",
+      "restore": "Đã khôi phục nhà xuất bản thành công!"
+    },
+    "error": {
+      "create": "Có lỗi xảy ra khi thêm mới. Vui lòng thử lại!",
+      "update": "Có lỗi xảy ra khi cập nhật. Vui lòng thử lại!",
+      "delete": "Có lỗi xảy ra khi xóa. Vui lòng thử lại!",
+      "restore": "Có lỗi xảy ra khi khôi phục. Vui lòng thử lại!",
+      "email_existed": "Email này đã tồn tại trong hệ thống!",
+      "taxCode_existed": "Mã số thuế này đã tồn tại!",
+      "deleteLink": "Không thể xóa! Nhà xuất bản đang có dữ liệu liên kết.",
+      "permanentDelete": "Xóa vĩnh viễn thất bại!"
+    },
+    "warning": {
+      "permanentDeleteConfirm": "Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa vĩnh viễn nhà xuất bản {{name}} không?",
+      "restoreConfirm": "Bạn có chắc chắn muốn khôi phục nhà xuất bản {{name}} không?"
+    }
+  },
+  "actions": {
+    "create": "Thêm nhà xuất bản",
+    "confirm": "Xác nhận xóa",
+    "close": "Đóng",
+    "edit": "Lưu thay đổi",
+    "cancel": "Hủy bỏ",
+    "deleteForever": "Xóa vĩnh viễn",
+    "restore": "Khôi phục"
+  },
+  "trash": {
+    "openButton": "Thùng rác",
+    "title": "Thùng rác nhà xuất bản",
+    "remainingDays": "Số ngày còn lại: {{days}}",
+    "trashEmpty": "Thùng rác trống."
+  },
+  "errors": {
+    "name": {
+      "required": "Tên nhà xuất bản không được để trống"
+    },
+    "email": {
+      "invalid": "Email không đúng định dạng"
+    }
+  }
+}

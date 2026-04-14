@@ -24,6 +24,11 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, String
     @Query("SELECT c FROM CategoryEntity c WHERE c.isFeatured = true AND c.status = 'ACTIVE' ORDER BY c.displayOrder ASC")
     List<CategoryEntity> findFeaturedCategories();
 
+    @Query("SELECT MAX(c.displayOrder) FROM CategoryEntity c WHERE c.parentId = :parentId")
+    Integer findMaxDisplayOrderByParentId(String parentId);
+
+    @Query("SELECT MAX(c.displayOrder) FROM CategoryEntity c WHERE c.parentId IS NULL")
+    Integer findMaxDisplayOrderRoot();
 
     @Query("SELECT c.categoryName, SUM(od.quantity) " +
             "FROM OrderDetailEntity od " +

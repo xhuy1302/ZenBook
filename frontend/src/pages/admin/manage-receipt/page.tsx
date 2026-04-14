@@ -19,7 +19,8 @@ export default function ReceiptPage() {
   const fromStr = date?.from ? format(date.from, 'yyyy-MM-dd') : ''
   const toStr = date?.to ? format(date.to, 'yyyy-MM-dd') : ''
 
-  const queryKey = `receipts-list-${fromStr || 'all'}-${toStr || 'all'}`
+  // 👉 QUAN TRỌNG: Dùng Array Key để React Query quản lý phân cấp
+  const queryKey = ['receipts', 'list', { from: fromStr, to: toStr }]
 
   const { data, isLoading } = useFetchData<ReceiptResponse[]>(queryKey, () =>
     getAllReceiptsApi(fromStr, toStr)

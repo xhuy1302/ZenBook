@@ -8,11 +8,9 @@ import com.haui.ZenBook.enums.ActionRole;
 import com.haui.ZenBook.enums.OrderStatus;
 import com.haui.ZenBook.exception.AppException;
 import com.haui.ZenBook.exception.ErrorCode;
-import com.haui.ZenBook.repository.OrderRepository;
 import com.haui.ZenBook.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,9 +40,17 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, request.getNewStatus(), request.getNote(), getUsername(), getRole()));
     }
 
+    // 👉 ĐÃ THÊM: startDate và endDate
     @GetMapping
-    public ResponseEntity<Page<OrderResponse>> getAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(required = false) OrderStatus status) {
-        return ResponseEntity.ok(orderService.getAllOrders(status, PageRequest.of(page, size, Sort.by("createdAt").descending())));
+    public ResponseEntity<Page<OrderResponse>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return ResponseEntity.ok(orderService.getAllOrders(status, startDate, endDate, pageable));
     }
 
     @GetMapping("/my-orders")

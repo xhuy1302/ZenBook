@@ -18,9 +18,17 @@ export function ViewBookDialog({
 }) {
   const { t } = useTranslation('product')
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return t('common.na')
-    return new Date(dateString).toLocaleString('vi-VN', {
+
+    if (dateString.includes('-') && !dateString.includes('T')) {
+      return dateString
+    }
+
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return t('common.na')
+
+    return date.toLocaleString('vi-VN', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -34,7 +42,7 @@ export function ViewBookDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-[800px] max-h-[90vh] flex flex-col'>
         <DialogHeader>
-          <DialogTitle>{t('book.dialog.viewTitle')}</DialogTitle>
+          <DialogTitle>{t('book.dialog.viewTitle', 'Chi tiết sách')}</DialogTitle>
         </DialogHeader>
 
         <div className='flex-1 overflow-y-auto pr-2 space-y-6 pb-4 custom-scrollbar'>
@@ -53,7 +61,9 @@ export function ViewBookDialog({
             </div>
             <div className='flex-1 space-y-4 w-full'>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.title')}</Label>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.title', 'Tên sách')}
+                </Label>
                 <Input
                   value={book.title}
                   readOnly
@@ -66,12 +76,14 @@ export function ViewBookDialog({
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-1.5'>
-                  <Label className='text-xs text-muted-foreground'>{t('book.form.isbn')}</Label>
+                  <Label className='text-xs text-muted-foreground'>
+                    {t('book.form.isbn', 'Mã ISBN')}
+                  </Label>
                   <Input value={book.isbn || t('common.na')} readOnly className='bg-muted/50' />
                 </div>
                 <div className='space-y-1.5'>
                   <Label className='text-xs text-muted-foreground'>
-                    {t('book.form.stockQuantity')}
+                    {t('book.form.stockQuantity', 'Tồn kho')}
                   </Label>
                   <Input value={book.stockQuantity} readOnly className='bg-muted/50 font-bold' />
                 </div>
@@ -79,11 +91,11 @@ export function ViewBookDialog({
             </div>
           </div>
 
-          {/* KHU VỰC THÊM: BỘ SƯU TẬP ẢNH (GALLERY) */}
+          {/* KHU VỰC: BỘ SƯU TẬP ẢNH (GALLERY) */}
           {book.images && book.images.length > 0 && (
             <div className='border rounded-lg p-4 space-y-3 bg-card'>
               <h3 className='font-semibold text-sm border-b pb-2 text-muted-foreground'>
-                {t('book.form.gallery')}
+                {t('book.form.gallery', 'Ảnh phụ')}
               </h3>
               <div className='grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3'>
                 {book.images.map((img, index) => (
@@ -102,14 +114,16 @@ export function ViewBookDialog({
             </div>
           )}
 
-          {/* KHU VỰC 2: GIÁ CẢ & PHÂN LOẠI */}
+          {/* KHU VỰC 2: GIÁ CẢ */}
           <div className='border rounded-lg p-4 space-y-4 bg-card'>
             <h3 className='font-semibold text-sm border-b pb-2 text-muted-foreground'>
-              {t('book.form.section2')}
+              {t('book.form.section2', '2. Giá cả')}
             </h3>
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.salePrice')}</Label>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.salePrice', 'Giá bán')}
+                </Label>
                 <Input
                   value={new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
@@ -121,7 +135,7 @@ export function ViewBookDialog({
               </div>
               <div className='space-y-1.5'>
                 <Label className='text-xs text-muted-foreground'>
-                  {t('book.form.originalPrice')}
+                  {t('book.form.originalPrice', 'Giá gốc')}
                 </Label>
                 <Input
                   value={new Intl.NumberFormat('vi-VN', {
@@ -132,12 +146,47 @@ export function ViewBookDialog({
                   className='bg-muted/50 line-through text-muted-foreground'
                 />
               </div>
-              <div className='space-y-1.5 col-span-2'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.author')}</Label>
-                <div className='flex flex-wrap gap-2 p-2 border rounded-md bg-muted/50 min-h-10 items-center'>
+            </div>
+          </div>
+
+          {/* KHU VỰC 3: PHÂN LOẠI (ĐÃ ĐƯỢC SỬA LAYOUT ĐỂ KHÔNG BỊ TRÀN CHỮ) */}
+          <div className='border rounded-lg p-4 space-y-4 bg-card'>
+            <h3 className='font-semibold text-sm border-b pb-2 text-muted-foreground'>
+              {t('book.form.section3', '3. Phân loại')}
+            </h3>
+
+            {/* Đã chuyển grid-cols-3 thành flex-col để các ô rải dọc xuống rộng rãi */}
+            <div className='flex flex-col gap-4'>
+              {/* Nhà xuất bản */}
+              <div className='space-y-1.5'>
+                <Label className='text-xs text-muted-foreground'>Nhà xuất bản</Label>
+                <div className='flex flex-wrap gap-2 p-3 border rounded-md bg-muted/50 min-h-[44px] items-center'>
+                  {book.publisher ? (
+                    <Badge
+                      variant='outline'
+                      className='bg-blue-50 text-blue-700 border-blue-200 whitespace-normal text-left leading-relaxed'
+                    >
+                      {book.publisher.name}
+                    </Badge>
+                  ) : (
+                    <span className='text-xs italic text-muted-foreground'>{t('common.na')}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Tác giả */}
+              <div className='space-y-1.5'>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.author', 'Tác giả')}
+                </Label>
+                <div className='flex flex-wrap gap-2 p-3 border rounded-md bg-muted/50 min-h-[44px] items-center'>
                   {book.authors && book.authors.length > 0 ? (
                     book.authors.map((a) => (
-                      <Badge key={a.id} variant='secondary'>
+                      <Badge
+                        key={a.id}
+                        variant='secondary'
+                        className='whitespace-normal text-left leading-relaxed'
+                      >
                         {a.name}
                       </Badge>
                     ))
@@ -146,12 +195,20 @@ export function ViewBookDialog({
                   )}
                 </div>
               </div>
-              <div className='space-y-1.5 col-span-2'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.category')}</Label>
-                <div className='flex flex-wrap gap-2 p-2 border rounded-md bg-muted/50 min-h-10 items-center'>
+
+              {/* Danh mục */}
+              <div className='space-y-1.5'>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.category', 'Danh mục')}
+                </Label>
+                <div className='flex flex-wrap gap-2 p-3 border rounded-md bg-muted/50 min-h-[44px] items-center'>
                   {book.categories && book.categories.length > 0 ? (
                     book.categories.map((c) => (
-                      <Badge key={c.id} variant='outline'>
+                      <Badge
+                        key={c.id}
+                        variant='outline'
+                        className='whitespace-normal text-left leading-relaxed'
+                      >
                         {c.categoryName}
                       </Badge>
                     ))
@@ -163,27 +220,33 @@ export function ViewBookDialog({
             </div>
           </div>
 
-          {/* KHU VỰC 3: THÔNG SỐ KỸ THUẬT & MÔ TẢ */}
+          {/* KHU VỰC 4: THÔNG SỐ KỸ THUẬT & MÔ TẢ */}
           <div className='border rounded-lg p-4 space-y-4 bg-card'>
             <h3 className='font-semibold text-sm border-b pb-2 text-muted-foreground'>
-              {t('book.form.section4')}
+              {t('book.form.section4', '4. Thông số kỹ thuật')}
             </h3>
             <div className='grid grid-cols-3 gap-4'>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.format')}</Label>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.format', 'Định dạng')}
+                </Label>
                 <Input value={book.format || t('common.na')} readOnly className='bg-muted/50' />
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.language')}</Label>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.language', 'Ngôn ngữ')}
+                </Label>
                 <Input value={book.language || t('common.na')} readOnly className='bg-muted/50' />
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.pageCount')}</Label>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.pageCount', 'Số trang')}
+                </Label>
                 <Input value={book.pageCount || t('common.na')} readOnly className='bg-muted/50' />
               </div>
               <div className='space-y-1.5'>
                 <Label className='text-xs text-muted-foreground'>
-                  {t('book.form.publicationYear')}
+                  {t('book.form.publicationYear', 'Năm xuất bản')}
                 </Label>
                 <Input
                   value={book.publicationYear || t('common.na')}
@@ -192,16 +255,20 @@ export function ViewBookDialog({
                 />
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.dimensions')}</Label>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.dimensions', 'Kích thước')}
+                </Label>
                 <Input value={book.dimensions || t('common.na')} readOnly className='bg-muted/50' />
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.weight')}</Label>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.weight', 'Trọng lượng')}
+                </Label>
                 <Input value={book.weight || t('common.na')} readOnly className='bg-muted/50' />
               </div>
               <div className='space-y-1.5 col-span-3'>
                 <Label className='text-xs text-muted-foreground'>
-                  {t('book.form.description')}
+                  {t('book.form.description', 'Mô tả chi tiết')}
                 </Label>
                 <Textarea
                   value={book.description || t('book.form.noDescription')}
@@ -213,14 +280,16 @@ export function ViewBookDialog({
             </div>
           </div>
 
-          {/* KHU VỰC 4: LOG HỆ THỐNG */}
+          {/* KHU VỰC 5: LOG HỆ THỐNG */}
           <div className='border rounded-lg p-4 space-y-4 bg-card bg-muted/20'>
             <h3 className='font-semibold text-sm border-b pb-2 text-muted-foreground'>
-              {t('book.form.systemLog')}
+              {t('book.form.systemLog', 'Nhật ký hệ thống')}
             </h3>
             <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.createdAt')}</Label>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.createdAt', 'Thời gian tạo')}
+                </Label>
                 <Input
                   value={formatDate(book.createdAt)}
                   readOnly
@@ -228,7 +297,9 @@ export function ViewBookDialog({
                 />
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>{t('book.form.updatedAt')}</Label>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.updatedAt', 'Cập nhật lần cuối')}
+                </Label>
                 <Input
                   value={formatDate(book.updatedAt)}
                   readOnly
