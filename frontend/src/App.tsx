@@ -13,6 +13,7 @@ import BookPage from './pages/admin/manage-book/page'
 import ReceiptPage from './pages/admin/manage-receipt/page'
 import OrderPage from './pages/admin/manage-order/page'
 import PromotionPage from './pages/admin/manage-promotion/page'
+import TagPage from './pages/admin/manage-tag/page'
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
               <Route path='receipts' element={<ReceiptPage />} />
               <Route path='orders' element={<OrderPage />} />
               <Route path='promotions' element={<PromotionPage />} />
+              <Route path='tags' element={<TagPage />} />
               {/* <Route path='brands' element={<BrandPage />} /> */}
             </Route>
           </Route>

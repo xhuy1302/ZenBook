@@ -8,6 +8,7 @@
     "reset": "Reset",
     "action": "Action",
     "status": "Status",
+    "format": "Format",
     "na": "N/A"
   },
   "fields": {
@@ -17,6 +18,13 @@
         "INACTIVE": "Inactive",
         "OUT_OF_STOCK": "Out of Stock",
         "DELETED": "Deleted"
+      }
+    },
+    "format": {
+      "options": {
+        "PAPERBACK": "Paperback",
+        "HARDCOVER": "Hardcover",
+        "EBOOK": "Ebook"
       }
     }
   },

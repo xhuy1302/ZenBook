@@ -52,7 +52,7 @@ const staticData = {
     { name: 'Mã giảm giá', url: '/dashboard/vouchers', icon: TicketPercent },
     { name: 'Bài viết & Blog', url: '/dashboard/blog', icon: FileText },
     { name: 'Đánh giá / Review', url: '/dashboard/reviews', icon: Star },
-    { name: 'Tags bài viết', url: '/dashboard/tags', icon: Tags },
+    { name: 'Tags sách', url: '/dashboard/tags', icon: Tags },
     { name: 'Cài đặt hệ thống', url: '/dashboard/settings', icon: Settings2 }
   ]
 }
@@ -79,8 +79,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           { title: 'Tất cả sách', url: '/dashboard/books' },
           { title: 'Danh mục', url: '/dashboard/categories' },
           { title: 'Tác giả', url: '/dashboard/authors' },
-          // 👉 Thêm Nhà xuất bản vào đây và cập nhật URL
-          { title: 'Nhà xuất bản', url: '/dashboard/publishers' }
+          { title: 'Nhà xuất bản', url: '/dashboard/publishers' },
+          { title: 'Thông số kỹ thuật', url: '/dashboard/specifications' }
         ]
       },
       {

@@ -28,11 +28,15 @@ import type { BookRequest } from '@/services/book/book.type'
 
 import { getAllCategoriesApi } from '@/services/category/category.api'
 import { getAllAuthorsApi } from '@/services/author/author.api'
-// 👉 THÊM MỚI: Import API Nhà xuất bản
 import { getAllPublishersApi } from '@/services/publisher/publisher.api'
+// 👉 THÊM MỚI: Import API Tag
+import { getAllTagsApi } from '@/services/tag/tag.api'
+
 import type { CategoryResponse } from '@/services/category/category.type'
 import type { AuthorResponse } from '@/services/author/author.type'
 import type { PublisherResponse } from '@/services/publisher/publisher.type'
+// 👉 THÊM MỚI: Import Type Tag
+import type { TagResponse } from '@/services/tag/tag.type'
 
 export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
   const { t } = useTranslation('product')
@@ -51,15 +55,20 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
     queryKey: ['authors'],
     queryFn: () => getAllAuthorsApi()
   })
-  // 👉 THÊM MỚI: Lấy danh sách Nhà xuất bản
   const { data: publishersData, isLoading: isPublishersLoading } = useQuery({
     queryKey: ['publishers'],
     queryFn: () => getAllPublishersApi()
+  })
+  // 👉 THÊM MỚI: Lấy danh sách Tag
+  const { data: tagsData, isLoading: isTagsLoading } = useQuery({
+    queryKey: ['tags'],
+    queryFn: () => getAllTagsApi()
   })
 
   const categories = categoriesData || []
   const authors = authorsData || []
   const publishers = publishersData || []
+  const tags = tagsData || [] // 👉 Khởi tạo mảng tags
 
   const form = useForm<BookFormValues>({
     resolver: zodResolver(
@@ -75,7 +84,7 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
       stockQuantity: 0,
       status: BookStatus.ACTIVE,
       language: 'Tiếng Việt',
-      publisherId: '', // 👉 THÊM MỚI: Khởi tạo rỗng
+      publisherId: '',
       categoryIds: [],
       authorIds: [],
       tagIds: []
@@ -232,7 +241,6 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
       <div className='border rounded-lg p-4 space-y-4 bg-card'>
         <h3 className='font-semibold text-lg border-b pb-2'>{t('book.form.section3')}</h3>
         <div className='grid grid-cols-2 gap-6'>
-          {/* 👉 THÊM MỚI: Khối Chọn Nhà xuất bản */}
           <div className='col-span-2 space-y-3'>
             <Label>{t('book.form.publisher', 'Nhà xuất bản')}</Label>
             <Controller
@@ -301,6 +309,7 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
               }}
             />
           </div>
+
           <div className='space-y-3'>
             <Label>{t('book.form.author')}</Label>
             <Controller
@@ -341,6 +350,62 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
               }}
             />
           </div>
+
+          {/* 👉 THÊM MỚI: Khối Chọn Nhãn (Tags) */}
+          <div className='col-span-2 space-y-3'>
+            <Label>{t('book.form.tag', 'Nhãn hiển thị')}</Label>
+            <Controller
+              control={form.control}
+              name='tagIds'
+              render={({ field }) => {
+                const currentValues = (field.value as string[]) || []
+                return (
+                  <div className='flex flex-wrap gap-2 p-3 border rounded-md min-h-[60px] bg-muted/20'>
+                    {isTagsLoading ? (
+                      <Loader2 className='h-4 w-4 animate-spin text-muted-foreground m-auto' />
+                    ) : tags.length === 0 ? (
+                      <span className='text-xs text-muted-foreground m-auto'>
+                        {t('book.form.noTag', 'Chưa có nhãn nào')}
+                      </span>
+                    ) : (
+                      tags.map((tItem: TagResponse) => {
+                        const isSelected = currentValues.includes(tItem.id)
+                        // Lấy màu nền khi được chọn, hoặc màu viền/chữ khi chưa chọn
+                        const badgeStyle = isSelected
+                          ? {
+                              backgroundColor: tItem.color || 'var(--primary)',
+                              color: '#fff',
+                              borderColor: tItem.color || 'var(--primary)'
+                            }
+                          : {
+                              borderColor: tItem.color || 'var(--primary)',
+                              color: tItem.color || 'var(--primary)',
+                              backgroundColor: 'transparent'
+                            }
+
+                        return (
+                          <Badge
+                            key={tItem.id}
+                            variant={isSelected ? 'default' : 'outline'}
+                            style={badgeStyle}
+                            className={`cursor-pointer hover:opacity-80 transition-all ${isSelected ? 'shadow-sm' : ''}`}
+                            onClick={() => {
+                              const newValue = isSelected
+                                ? currentValues.filter((id: string) => id !== tItem.id)
+                                : [...currentValues, tItem.id]
+                              field.onChange(newValue)
+                            }}
+                          >
+                            {tItem.name}
+                          </Badge>
+                        )
+                      })
+                    )}
+                  </div>
+                )
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -360,7 +425,7 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
                   <SelectContent>
                     {Object.values(BookFormat).map((f) => (
                       <SelectItem key={f} value={f}>
-                        {f}
+                        {t(`fields.format.options.${f}`, f)}
                       </SelectItem>
                     ))}
                   </SelectContent>

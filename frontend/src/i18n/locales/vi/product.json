@@ -8,6 +8,7 @@
     "reset": "Làm mới",
     "action": "Thao tác",
     "status": "Trạng thái",
+    "format": "Định dạng",
     "na": "N/A"
   },
   "fields": {
@@ -17,6 +18,13 @@
         "INACTIVE": "Ngừng bán",
         "OUT_OF_STOCK": "Hết hàng",
         "DELETED": "Đã xóa"
+      }
+    },
+    "format": {
+      "options": {
+        "PAPERBACK": "Bìa mềm",
+        "HARDCOVER": "Bìa cứng",
+        "EBOOK": "Sách điện tử"
       }
     }
   },

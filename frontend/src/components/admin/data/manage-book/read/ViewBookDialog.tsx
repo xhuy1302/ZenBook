@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import type { BookResponse } from '@/services/book/book.type'
+import type { BookResponse, TagResponse } from '@/services/book/book.type'
 import { BookStatusBadge } from '../BookStatusBadge'
 import { useTranslation } from 'react-i18next'
 
@@ -38,6 +38,10 @@ export function ViewBookDialog({
     })
   }
 
+  // 👉 Class dùng chung để tắt viền đỏ khi focus vào ô Input/Textarea ở chế độ Xem
+  const readOnlyInputClass =
+    'bg-muted/50 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-border cursor-default'
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-[800px] max-h-[90vh] flex flex-col'>
@@ -67,25 +71,37 @@ export function ViewBookDialog({
                 <Input
                   value={book.title}
                   readOnly
-                  className='bg-muted/50 font-semibold text-lg h-auto py-2'
+                  className={`${readOnlyInputClass} font-semibold text-lg h-auto py-2`}
                 />
               </div>
               <div className='space-y-1.5'>
                 <Label className='text-xs text-muted-foreground'>Slug</Label>
-                <Input value={book.slug} readOnly className='bg-muted/50 text-blue-600' />
+                <Input
+                  value={book.slug}
+                  readOnly
+                  className={`${readOnlyInputClass} text-blue-600`}
+                />
               </div>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-1.5'>
                   <Label className='text-xs text-muted-foreground'>
                     {t('book.form.isbn', 'Mã ISBN')}
                   </Label>
-                  <Input value={book.isbn || t('common.na')} readOnly className='bg-muted/50' />
+                  <Input
+                    value={book.isbn || t('common.na')}
+                    readOnly
+                    className={readOnlyInputClass}
+                  />
                 </div>
                 <div className='space-y-1.5'>
                   <Label className='text-xs text-muted-foreground'>
                     {t('book.form.stockQuantity', 'Tồn kho')}
                   </Label>
-                  <Input value={book.stockQuantity} readOnly className='bg-muted/50 font-bold' />
+                  <Input
+                    value={book.stockQuantity}
+                    readOnly
+                    className={`${readOnlyInputClass} font-bold`}
+                  />
                 </div>
               </div>
             </div>
@@ -130,7 +146,7 @@ export function ViewBookDialog({
                     currency: 'VND'
                   }).format(book.salePrice)}
                   readOnly
-                  className='bg-muted/50 font-bold text-orange-600'
+                  className={`${readOnlyInputClass} font-bold text-orange-600`}
                 />
               </div>
               <div className='space-y-1.5'>
@@ -143,19 +159,18 @@ export function ViewBookDialog({
                     currency: 'VND'
                   }).format(book.originalPrice)}
                   readOnly
-                  className='bg-muted/50 line-through text-muted-foreground'
+                  className={`${readOnlyInputClass} line-through text-muted-foreground`}
                 />
               </div>
             </div>
           </div>
 
-          {/* KHU VỰC 3: PHÂN LOẠI (ĐÃ ĐƯỢC SỬA LAYOUT ĐỂ KHÔNG BỊ TRÀN CHỮ) */}
+          {/* KHU VỰC 3: PHÂN LOẠI */}
           <div className='border rounded-lg p-4 space-y-4 bg-card'>
             <h3 className='font-semibold text-sm border-b pb-2 text-muted-foreground'>
               {t('book.form.section3', '3. Phân loại')}
             </h3>
 
-            {/* Đã chuyển grid-cols-3 thành flex-col để các ô rải dọc xuống rộng rãi */}
             <div className='flex flex-col gap-4'>
               {/* Nhà xuất bản */}
               <div className='space-y-1.5'>
@@ -217,6 +232,33 @@ export function ViewBookDialog({
                   )}
                 </div>
               </div>
+
+              {/* 👉 THÊM MỚI: Nhãn (Tags) */}
+              <div className='space-y-1.5'>
+                <Label className='text-xs text-muted-foreground'>
+                  {t('book.form.tag', 'Nhãn hiển thị')}
+                </Label>
+                <div className='flex flex-wrap gap-2 p-3 border rounded-md bg-muted/50 min-h-[44px] items-center'>
+                  {book.tags && book.tags.length > 0 ? (
+                    book.tags.map((tag: TagResponse) => (
+                      <Badge
+                        key={tag.id}
+                        variant='outline'
+                        className='whitespace-normal text-left leading-relaxed shadow-sm'
+                        style={{
+                          borderColor: tag.color ?? 'var(--primary)',
+                          color: tag.color ?? 'var(--primary)',
+                          backgroundColor: 'transparent'
+                        }}
+                      >
+                        {tag.name}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className='text-xs italic text-muted-foreground'>{t('common.na')}</span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -226,23 +268,36 @@ export function ViewBookDialog({
               {t('book.form.section4', '4. Thông số kỹ thuật')}
             </h3>
             <div className='grid grid-cols-3 gap-4'>
+              {/* 👉 SỬA Ở ĐÂY: Dịch chữ Định dạng */}
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>
-                  {t('book.form.format', 'Định dạng')}
-                </Label>
-                <Input value={book.format || t('common.na')} readOnly className='bg-muted/50' />
+                <Label className='text-xs text-muted-foreground'>{t('book.form.format')}</Label>
+                <Input
+                  value={
+                    book.format
+                      ? t(`fields.format.options.${book.format}`, book.format)
+                      : t('common.na')
+                  }
+                  readOnly
+                  className={readOnlyInputClass}
+                />
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-muted-foreground'>
-                  {t('book.form.language', 'Ngôn ngữ')}
-                </Label>
-                <Input value={book.language || t('common.na')} readOnly className='bg-muted/50' />
+                <Label className='text-xs text-muted-foreground'>{t('book.form.language')}</Label>
+                <Input
+                  value={book.language || t('common.na')}
+                  readOnly
+                  className={readOnlyInputClass}
+                />
               </div>
               <div className='space-y-1.5'>
                 <Label className='text-xs text-muted-foreground'>
                   {t('book.form.pageCount', 'Số trang')}
                 </Label>
-                <Input value={book.pageCount || t('common.na')} readOnly className='bg-muted/50' />
+                <Input
+                  value={book.pageCount || t('common.na')}
+                  readOnly
+                  className={readOnlyInputClass}
+                />
               </div>
               <div className='space-y-1.5'>
                 <Label className='text-xs text-muted-foreground'>
@@ -251,20 +306,28 @@ export function ViewBookDialog({
                 <Input
                   value={book.publicationYear || t('common.na')}
                   readOnly
-                  className='bg-muted/50'
+                  className={readOnlyInputClass}
                 />
               </div>
               <div className='space-y-1.5'>
                 <Label className='text-xs text-muted-foreground'>
                   {t('book.form.dimensions', 'Kích thước')}
                 </Label>
-                <Input value={book.dimensions || t('common.na')} readOnly className='bg-muted/50' />
+                <Input
+                  value={book.dimensions || t('common.na')}
+                  readOnly
+                  className={readOnlyInputClass}
+                />
               </div>
               <div className='space-y-1.5'>
                 <Label className='text-xs text-muted-foreground'>
                   {t('book.form.weight', 'Trọng lượng')}
                 </Label>
-                <Input value={book.weight || t('common.na')} readOnly className='bg-muted/50' />
+                <Input
+                  value={book.weight || t('common.na')}
+                  readOnly
+                  className={readOnlyInputClass}
+                />
               </div>
               <div className='space-y-1.5 col-span-3'>
                 <Label className='text-xs text-muted-foreground'>
@@ -274,7 +337,7 @@ export function ViewBookDialog({
                   value={book.description || t('book.form.noDescription')}
                   readOnly
                   rows={4}
-                  className='bg-muted/50 resize-none'
+                  className={`${readOnlyInputClass} resize-none`}
                 />
               </div>
             </div>
@@ -293,7 +356,7 @@ export function ViewBookDialog({
                 <Input
                   value={formatDate(book.createdAt)}
                   readOnly
-                  className='bg-muted/50 text-xs font-mono'
+                  className={`${readOnlyInputClass} text-xs font-mono`}
                 />
               </div>
               <div className='space-y-1.5'>
@@ -303,7 +366,7 @@ export function ViewBookDialog({
                 <Input
                   value={formatDate(book.updatedAt)}
                   readOnly
-                  className='bg-muted/50 text-xs font-mono'
+                  className={`${readOnlyInputClass} text-xs font-mono`}
                 />
               </div>
             </div>
