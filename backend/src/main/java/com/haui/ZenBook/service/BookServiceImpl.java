@@ -35,7 +35,7 @@ public class BookServiceImpl implements BookService {
     private final CategoryRepository categoryRepository;
     private final AuthorRepository authorRepository;
     private final TagRepository tagRepository;
-    private final PublisherRepository publisherRepository; // 👉 THÊM MỚI: Inject PublisherRepository
+    private final PublisherRepository publisherRepository;
 
     @Override
     @Transactional
@@ -239,7 +239,7 @@ public class BookServiceImpl implements BookService {
     }
 
     private void mapRelationships(BookEntity book, BookRequest request) {
-        // 👉 THÊM MỚI: Logic xử lý Publisher
+
         if (request.getPublisherId() != null && !request.getPublisherId().isBlank()) {
             PublisherEntity publisher = publisherRepository.findById(request.getPublisherId())
                     .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND, "ID nhà xuất bản: " + request.getPublisherId()));
@@ -264,6 +264,7 @@ public class BookServiceImpl implements BookService {
             if(book.getAuthors() != null) book.getAuthors().clear();
         }
 
+        // Processing Tag relationships based on your setup
         if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
             Set<TagEntity> tags = new HashSet<>(tagRepository.findAllById(request.getTagIds()));
             book.setTags(tags);

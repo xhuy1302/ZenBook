@@ -12,6 +12,7 @@ import enProduct from './locales/en/product.json'
 import enReceipt from './locales/en/receipt.json'
 import enOrder from './locales/en/order.json'
 import enPromotion from './locales/en/promotion.json'
+import enTag from './locales/en/tag.json'
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -29,6 +30,7 @@ declare module 'i18next' {
       receipt: typeof enReceipt
       order: typeof enOrder
       promotion: typeof enPromotion
+      tag: typeof enTag
     }
   }
 }

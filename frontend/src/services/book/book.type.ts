@@ -1,4 +1,5 @@
 import { BookFormat, BookStatus } from '@/defines/book.enum'
+import { type TagResponse } from '@/services/tag/tag.type'
 
 export interface BookResponse {
   id: string
@@ -27,7 +28,7 @@ export interface BookResponse {
 
   categories?: { id: string; categoryName: string }[]
   authors?: { id: string; name: string }[]
-  tags?: { id: string; name: string }[]
+  tags?: TagResponse[]
   images?: string[]
 }
 
@@ -57,3 +58,4 @@ export interface BookRequest {
   thumbnailFile?: File | null
   galleryFiles?: File[]
 }
+export type { TagResponse }

@@ -1,0 +1,81 @@
+{
+  "page": {
+    "title": "Quản lý Nhãn",
+    "add_new": "Thêm mới",
+    "trash": "Thùng rác",
+    "back_to_list": "Quay lại danh sách"
+  },
+  "table": {
+    "columns": {
+      "name": "Tên nhãn",
+      "description": "Mô tả",
+      "color": "Màu sắc",
+      "createdAt": "Ngày tạo",
+      "actions": "Thao tác"
+    },
+    "noResults": "Không có dữ liệu."
+  },
+  "filters": {
+    "search": "Tìm kiếm nhãn...",
+    "reset": "Bỏ lọc"
+  },
+  "form": {
+    "create_title": "Thêm nhãn mới",
+    "edit_title": "Cập nhật nhãn",
+    "name_label": "Tên nhãn",
+    "name_placeholder": "Nhập tên nhãn (VD: Sách bán chạy...)",
+    "desc_label": "Mô tả",
+    "desc_placeholder": "Nhập mô tả ngắn gọn...",
+    "color_label": "Màu sắc hiển thị",
+    "cancel": "Hủy",
+    "save": "Lưu thay đổi"
+  },
+  "message": {
+    "success": {
+      "create": "Thêm mới nhãn thành công!",
+      "update": "Cập nhật nhãn thành công!",
+      "delete": "Đã chuyển nhãn vào thùng rác!",
+      "restore": "Khôi phục nhãn thành công!",
+      "permanentDelete": "Đã xóa vĩnh viễn nhãn!"
+    },
+    "error": {
+      "create": "Thêm mới thất bại!",
+      "update": "Cập nhật thất bại!",
+      "delete": "Xóa thất bại!",
+      "restore": "Khôi phục thất bại!",
+      "name_existed": "Tên nhãn này đã tồn tại!"
+    },
+    "warning": {
+      "deleteConfirm": "Bạn có chắc chắn muốn chuyển nhãn \"{{name}}\" vào thùng rác không?",
+      "restoreConfirm": "Bạn có muốn khôi phục nhãn \"{{name}}\" về danh sách hoạt động không?",
+      "permanentDeleteConfirm": "Bạn có chắc chắn muốn xóa vĩnh viễn nhãn \"{{name}}\"? Hành động này không thể hoàn tác."
+    }
+  },
+  "dialogTitle": {
+    "view": "Chi tiết Nhãn",
+    "update": "Cập nhật Nhãn",
+    "delete": "Chuyển vào thùng rác?",
+    "restore": "Khôi phục nhãn?",
+    "permanentDelete": "Xóa vĩnh viễn?"
+  },
+  "sections": {
+    "general": "Thông tin chung",
+    "system": "Thông tin hệ thống"
+  },
+  "trash": {
+    "title": "Thùng rác Nhãn (Tags)",
+    "openButton": "Thùng rác",
+    "trashEmpty": "Thùng rác đang trống.",
+    "remainingDays": "Xóa vĩnh viễn sau {{days}} ngày"
+  },
+  "actions": {
+    "create": "Tạo mới",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa (Thùng rác)",
+    "hard_delete": "Xóa vĩnh viễn",
+    "restore": "Khôi phục",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "close": "Đóng"
+  }
+}
