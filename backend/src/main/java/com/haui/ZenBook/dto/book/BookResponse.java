@@ -10,6 +10,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -47,5 +48,5 @@ public class BookResponse {
     String language;
 
     // Danh sách ảnh phụ
-    Set<String> images;
+    private List<BookImageResponse> images;
 }

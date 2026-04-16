@@ -7,6 +7,9 @@ import type { BookResponse, TagResponse } from '@/services/book/book.type'
 import { BookStatusBadge } from '../BookStatusBadge'
 import { useTranslation } from 'react-i18next'
 
+// 👉 ĐỊNH NGHĨA TYPE RÕ RÀNG ĐỂ TRÁNH LỖI 'ANY'
+type BookImageDTO = { id?: string; imageUrl?: string } | string
+
 export function ViewBookDialog({
   open,
   onOpenChange,
@@ -38,7 +41,6 @@ export function ViewBookDialog({
     })
   }
 
-  // 👉 Class dùng chung để tắt viền đỏ khi focus vào ô Input/Textarea ở chế độ Xem
   const readOnlyInputClass =
     'bg-muted/50 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-border cursor-default'
 
@@ -114,18 +116,24 @@ export function ViewBookDialog({
                 {t('book.form.gallery', 'Ảnh phụ')}
               </h3>
               <div className='grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3'>
-                {book.images.map((img, index) => (
-                  <div
-                    key={index}
-                    className='aspect-[3/4] rounded-md border overflow-hidden shadow-sm'
-                  >
-                    <img
-                      src={img}
-                      alt={`gallery-${index}`}
-                      className='w-full h-full object-cover hover:scale-105 transition-transform'
-                    />
-                  </div>
-                ))}
+                {/* 👉 SỬA Ở ĐÂY: Dùng BookImageDTO thay vì any */}
+                {book.images.map((img: BookImageDTO, index) => {
+                  const imgUrl = typeof img === 'string' ? img : img?.imageUrl || ''
+                  if (!imgUrl) return null
+
+                  return (
+                    <div
+                      key={index}
+                      className='aspect-[3/4] rounded-md border overflow-hidden shadow-sm'
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`gallery-${index}`}
+                        className='w-full h-full object-cover hover:scale-105 transition-transform'
+                      />
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -233,7 +241,7 @@ export function ViewBookDialog({
                 </div>
               </div>
 
-              {/* 👉 THÊM MỚI: Nhãn (Tags) */}
+              {/* Nhãn (Tags) */}
               <div className='space-y-1.5'>
                 <Label className='text-xs text-muted-foreground'>
                   {t('book.form.tag', 'Nhãn hiển thị')}
@@ -268,7 +276,6 @@ export function ViewBookDialog({
               {t('book.form.section4', '4. Thông số kỹ thuật')}
             </h3>
             <div className='grid grid-cols-3 gap-4'>
-              {/* 👉 SỬA Ở ĐÂY: Dịch chữ Định dạng */}
               <div className='space-y-1.5'>
                 <Label className='text-xs text-muted-foreground'>{t('book.form.format')}</Label>
                 <Input

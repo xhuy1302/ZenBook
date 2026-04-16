@@ -19,7 +19,7 @@ export function EditCategoryDialog({ open, onOpenChange, category }: EditCategor
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-[800px] w-[95vw] max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2 text-primary'>
+          <DialogTitle className='flex items-center gap-2 '>
             <Edit className='h-5 w-5' />
             {t('dialogTitle.edit', 'Chỉnh sửa danh mục')}
           </DialogTitle>

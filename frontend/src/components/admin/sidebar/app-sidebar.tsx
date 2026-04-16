@@ -79,8 +79,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           { title: 'Tất cả sách', url: '/dashboard/books' },
           { title: 'Danh mục', url: '/dashboard/categories' },
           { title: 'Tác giả', url: '/dashboard/authors' },
-          { title: 'Nhà xuất bản', url: '/dashboard/publishers' },
-          { title: 'Thông số kỹ thuật', url: '/dashboard/specifications' }
+          { title: 'Nhà xuất bản', url: '/dashboard/publishers' }
         ]
       },
       {

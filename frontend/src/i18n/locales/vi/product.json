@@ -31,12 +31,15 @@
   "book": {
     "validation": {
       "titleRequired": "Tên sách không được để trống",
+      "priceRequired": "Vui lòng nhập giá tiền",
       "priceInvalid": "Vui lòng nhập số hợp lệ",
-      "priceNegative": "Giá bán phải lớn hơn 0",
+      "priceNegative": "Giá tiền phải lớn hơn 0",
+      "salePriceTooHigh": "Giá bán KHÔNG ĐƯỢC lớn hơn Giá gốc!",
       "stockInvalid": "Vui lòng nhập số lượng hợp lệ",
       "stockNegative": "Số lượng không được âm",
       "pageCountInvalid": "Số trang phải lớn hơn 0",
       "publicationYearInvalid": "Năm xuất bản không hợp lệ",
+      "yearFuture": "Năm xuất bản không được lớn hơn năm hiện tại",
       "weightInvalid": "Trọng lượng phải lớn hơn 0"
     },
     "page": {

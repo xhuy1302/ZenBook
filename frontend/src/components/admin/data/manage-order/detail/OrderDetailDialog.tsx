@@ -9,7 +9,10 @@ import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
 import type { OrderDetail } from '@/services/order/order.type'
-import { User, MapPin, FileText, CreditCard } from 'lucide-react'
+// 👉 ĐÃ THÊM: Import Icon X
+import { User, MapPin, FileText, CreditCard, X } from 'lucide-react'
+// 👉 ĐÃ THÊM: Import Button
+import { Button } from '@/components/ui/button'
 
 interface OrderDetailDialogProps {
   open: boolean
@@ -46,7 +49,6 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
     }
   }
 
-  // 👉 THÊM Ở ĐÂY: Thuật toán sắp xếp lịch sử từ MỚI NHẤT -> CŨ NHẤT
   const sortedHistories = order?.histories
     ? [...order.histories].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -56,9 +58,9 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='!w-[95vw] lg:!w-[90vw] !max-w-5xl h-[90vh] flex flex-col p-0 overflow-hidden bg-background border-0 shadow-2xl'>
-        {/* HEADER */}
-        <DialogHeader className='px-6 py-4 pr-14 bg-background border-b shadow-sm z-10 shrink-0'>
-          <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
+        {/* 👉 ĐÃ SỬA: Thêm flex flex-row items-start md:items-center justify-between cho Header */}
+        <DialogHeader className='px-6 py-4 bg-background border-b shadow-sm z-10 shrink-0 flex flex-row items-start md:items-center justify-between space-y-0'>
+          <div className='flex flex-col md:flex-row md:items-center gap-4 flex-1'>
             <DialogTitle className='text-2xl font-bold tracking-tight flex items-center gap-2'>
               {t('detail.title')} <span className='text-primary'>#{order?.orderCode}</span>
             </DialogTitle>
@@ -76,6 +78,17 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
               </div>
             )}
           </div>
+
+          {/* 👉 ĐÃ THÊM: Nút X đóng cửa sổ */}
+          <Button
+            type='button'
+            variant='ghost'
+            size='icon'
+            className='h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 ml-4'
+            onClick={() => onOpenChange(false)}
+          >
+            <X className='h-5 w-5' />
+          </Button>
         </DialogHeader>
 
         {isLoading ? (
@@ -230,7 +243,6 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
                     {t('detail.history')}
                   </div>
                   <div className='p-5 space-y-5'>
-                    {/* 👉 ĐÃ SỬA: Map qua biến sortedHistories thay vì order?.histories */}
                     {sortedHistories.length > 0 ? (
                       sortedHistories.map((h, index) => (
                         <div key={h.id} className='relative pl-6'>

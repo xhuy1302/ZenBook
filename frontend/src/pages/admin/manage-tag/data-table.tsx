@@ -94,8 +94,8 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
 
         <div className='flex items-center gap-2'>
           <DataTableViewOptions table={table} />
-          <CreateTagDialog />
           <TrashTagDialog />
+          <CreateTagDialog />
         </div>
       </div>
 

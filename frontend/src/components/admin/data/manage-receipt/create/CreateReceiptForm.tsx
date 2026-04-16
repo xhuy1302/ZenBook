@@ -1,11 +1,11 @@
 'use client'
 
-import { useContext } from 'react'
-import { useForm, Controller, useFieldArray } from 'react-hook-form'
+import { useContext, useMemo } from 'react' // 👉 THÊM: useMemo
+import { useForm, Controller, useFieldArray, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Loader2, Plus, Trash2, UploadCloud, User } from 'lucide-react'
+import { Loader2, Plus, Trash2, UploadCloud, User, Info, BookX } from 'lucide-react' // 👉 THÊM: icon BookX
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -48,12 +48,12 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
   })
 
   const publishers: PublisherResponse[] = publishersData || []
-  const books: BookResponse[] = booksData || []
+  const allBooks: BookResponse[] = booksData || [] // 👉 ĐỔI TÊN THÀNH allBooks
 
   const form = useForm<ReceiptFormValues>({
     resolver: zodResolver(
-      getReceiptSchema(t as unknown as (key: string) => string)
-    ) as unknown as import('react-hook-form').Resolver<ReceiptFormValues>,
+      getReceiptSchema(t as unknown as (key: string, fallback?: string) => string, allBooks)
+    ) as unknown as Resolver<ReceiptFormValues>,
     defaultValues: {
       publisherId: '',
       note: '',
@@ -67,22 +67,15 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
     name: 'details'
   })
 
-  // 👉 ĐÃ SỬA LẠI PHẦN SUBMIT ĐỂ CẬP NHẬT DỮ LIỆU TỨC THÌ
   const mutation = useMutation({
     mutationFn: (values: ReceiptFormValues) =>
       createReceiptApi(values as unknown as ReceiptRequest),
     onSuccess: async () => {
-      // 1. Hiện thông báo trước
       toast.success(t('receipt.message.createSuccess', 'Tạo phiếu nhập nháp thành công!'))
-
-      // 2. Ép React Query làm mới lại tất cả cache có key bắt đầu bằng ['receipts']
-      // Dùng await để chắc chắn dữ liệu đã được nạp lại từ Server
       await queryClient.invalidateQueries({
         queryKey: ['receipts'],
-        exact: false // Giúp làm mới cả các danh sách đang có filter (ngày tháng...)
+        exact: false
       })
-
-      // 3. Cuối cùng mới đóng Dialog
       onSuccess()
     },
     onError: (error: unknown) => {
@@ -93,9 +86,24 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
     }
   })
 
+  // 👉 LẤY VÀ LỌC DỮ LIỆU
+  const watchedPublisherId = form.watch('publisherId') // Lấy NXB đang được chọn
+  const watchedDetails = form.watch('details') as ReceiptFormValues['details']
+
+  // 👉 TẠO DANH SÁCH SÁCH ĐÃ LỌC: Chỉ lấy sách thuộc NXB đang chọn
+  const filteredBooks = useMemo(() => {
+    if (!watchedPublisherId) return [] // Nếu chưa chọn NXB thì mảng sách trống
+
+    return allBooks.filter((book) => {
+      const bookPubId =
+        book.publisher?.id || (book as unknown as { publisherId?: string }).publisherId
+
+      return bookPubId === watchedPublisherId
+    })
+  }, [allBooks, watchedPublisherId])
+
   return (
     <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))} className='space-y-6'>
-      {/* --- PHẦN UI GIỮ NGUYÊN --- */}
       <div className='border rounded-lg p-4 space-y-4 bg-card'>
         <h3 className='font-semibold text-lg border-b pb-2'>
           {t('receipt.form.sectionGeneral', 'Thông tin chung')}
@@ -111,7 +119,11 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
               render={({ field }) => (
                 <Select
                   value={field.value}
-                  onValueChange={field.onChange}
+                  // 👉 Khi NXB thay đổi, tự động XÓA danh sách sách cũ ở lưới dưới để tránh dính sách của NXB khác
+                  onValueChange={(val) => {
+                    field.onChange(val)
+                    form.setValue('details', [{ bookId: '', quantity: 1, importPrice: 0 }])
+                  }}
                   disabled={isPublishersLoading}
                 >
                   <SelectTrigger
@@ -136,6 +148,7 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
             )}
           </div>
 
+          {/* ... (Các thẻ Input User, Note, Upload giữ nguyên) ... */}
           <div className='space-y-2'>
             <Label className='flex items-center gap-1.5 text-muted-foreground'>
               <User className='w-3.5 h-3.5' />
@@ -193,101 +206,138 @@ export function CreateReceiptForm({ onSuccess }: { onSuccess: () => void }) {
             size='sm'
             onClick={() => append({ bookId: '', quantity: 1, importPrice: 0 })}
             className='h-8 px-2 flex items-center gap-1'
+            disabled={!watchedPublisherId} // 👉 KHÓA NÚT THÊM SÁCH NẾU CHƯA CHỌN NXB
           >
             <Plus className='h-4 w-4' /> {t('receipt.action.addBook', 'Thêm sách')}
           </Button>
         </div>
 
-        <div className='space-y-4'>
-          {fields.map((field, index) => {
-            const rowErrors = errors.details?.[index]
-            return (
-              <div
-                key={field.id}
-                className='flex items-start gap-3 p-3 border rounded-md bg-muted/20'
-              >
-                <div className='flex-1 space-y-2'>
-                  <Label className={rowErrors?.bookId ? 'text-red-500' : ''}>
-                    {t('receipt.form.book', 'Sách')}
-                  </Label>
-                  <Controller
-                    control={form.control}
-                    name={`details.${index}.bookId`}
-                    render={({ field: selectField }) => (
-                      <Select
-                        value={selectField.value}
-                        onValueChange={selectField.onChange}
-                        disabled={isBooksLoading}
-                      >
-                        <SelectTrigger className={rowErrors?.bookId ? 'border-red-500' : ''}>
-                          <SelectValue
-                            placeholder={t('receipt.form.bookPlaceholder', 'Chọn sách...')}
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {books.map((b: BookResponse) => (
-                            <SelectItem key={b.id} value={b.id}>
-                              {b.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {rowErrors?.bookId && (
-                    <p className='text-[10px] text-red-500'>{rowErrors.bookId.message}</p>
-                  )}
-                </div>
+        {/* 👉 NẾU CHƯA CHỌN NXB -> Hiện thông báo yêu cầu chọn trước */}
+        {!watchedPublisherId ? (
+          <div className='py-8 text-center text-muted-foreground flex flex-col items-center justify-center bg-muted/20 border border-dashed rounded-lg'>
+            <BookX className='w-8 h-8 mb-2 opacity-50' />
+            <p className='text-sm'>
+              Vui lòng chọn <strong>Nhà xuất bản</strong> ở trên trước khi chọn sách nhập.
+            </p>
+          </div>
+        ) : filteredBooks.length === 0 ? (
+          <div className='py-8 text-center text-muted-foreground flex flex-col items-center justify-center bg-muted/20 border border-dashed rounded-lg'>
+            <BookX className='w-8 h-8 mb-2 opacity-50' />
+            <p className='text-sm'>Không tìm thấy sách nào thuộc Nhà xuất bản này.</p>
+          </div>
+        ) : (
+          <div className='space-y-4'>
+            {fields.map((field, index) => {
+              const rowErrors = errors.details?.[index]
+              const selectedBookId = watchedDetails[index]?.bookId
+              // 👉 Tìm sách tham chiếu từ danh sách TẤT CẢ (vì Zod vẫn cần)
+              const selectedBook = allBooks.find((b) => b.id === selectedBookId)
 
-                <div className='w-24 space-y-2 shrink-0'>
-                  <Label className={rowErrors?.quantity ? 'text-red-500' : ''}>
-                    {t('receipt.form.quantity', 'SL')}
-                  </Label>
-                  <Input
-                    type='number'
-                    {...form.register(`details.${index}.quantity`, { valueAsNumber: true })}
-                    className={rowErrors?.quantity ? 'border-red-500' : ''}
-                  />
-                  {rowErrors?.quantity && (
-                    <p className='text-[10px] text-red-500'>{rowErrors.quantity.message}</p>
-                  )}
-                </div>
-
-                <div className='w-32 space-y-2 shrink-0'>
-                  <Label className={rowErrors?.importPrice ? 'text-red-500' : ''}>
-                    {t('receipt.form.importPrice', 'Giá nhập')}
-                  </Label>
-                  <Input
-                    type='number'
-                    {...form.register(`details.${index}.importPrice`, { valueAsNumber: true })}
-                    className={rowErrors?.importPrice ? 'border-red-500' : ''}
-                  />
-                  {rowErrors?.importPrice && (
-                    <p className='text-[10px] text-red-500'>{rowErrors.importPrice.message}</p>
-                  )}
-                </div>
-
-                <Button
-                  type='button'
-                  variant='ghost'
-                  size='icon'
-                  className='mt-7 text-red-500 hover:bg-red-50 hover:text-red-600'
-                  onClick={() => remove(index)}
-                  disabled={fields.length === 1}
+              return (
+                <div
+                  key={field.id}
+                  className='flex items-start gap-3 p-3 border rounded-md bg-muted/20'
                 >
-                  <Trash2 className='h-4 w-4' />
-                </Button>
-              </div>
-            )
-          })}
-        </div>
+                  <div className='flex-1 space-y-2'>
+                    <Label className={rowErrors?.bookId ? 'text-red-500' : ''}>
+                      {t('receipt.form.book', 'Sách')}
+                    </Label>
+                    <Controller
+                      control={form.control}
+                      name={`details.${index}.bookId`}
+                      render={({ field: selectField }) => (
+                        <Select
+                          value={selectField.value}
+                          onValueChange={selectField.onChange}
+                          disabled={isBooksLoading}
+                        >
+                          <SelectTrigger className={rowErrors?.bookId ? 'border-red-500' : ''}>
+                            <SelectValue
+                              placeholder={t('receipt.form.bookPlaceholder', 'Chọn sách...')}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {/* 👉 RENDER DANH SÁCH SÁCH ĐÃ LỌC */}
+                            {filteredBooks.map((b: BookResponse) => (
+                              <SelectItem key={b.id} value={b.id}>
+                                {b.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {rowErrors?.bookId && (
+                      <p className='text-[10px] text-red-500'>{rowErrors.bookId.message}</p>
+                    )}
+
+                    {selectedBook && (
+                      <div className='flex items-center gap-1.5 mt-1.5 text-[11px] text-muted-foreground bg-background p-1.5 rounded border'>
+                        <Info className='w-3 h-3 text-blue-500' />
+                        <span>
+                          Bìa:{' '}
+                          <strong className='text-foreground'>
+                            {new Intl.NumberFormat('vi-VN').format(selectedBook.originalPrice)}đ
+                          </strong>{' '}
+                          | Bán:{' '}
+                          <strong className='text-orange-600'>
+                            {new Intl.NumberFormat('vi-VN').format(selectedBook.salePrice)}đ
+                          </strong>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className='w-24 space-y-2 shrink-0'>
+                    <Label className={rowErrors?.quantity ? 'text-red-500' : ''}>
+                      {t('receipt.form.quantity', 'SL')}
+                    </Label>
+                    <Input
+                      type='number'
+                      {...form.register(`details.${index}.quantity`, { valueAsNumber: true })}
+                      className={rowErrors?.quantity ? 'border-red-500' : ''}
+                    />
+                    {rowErrors?.quantity && (
+                      <p className='text-[10px] text-red-500'>{rowErrors.quantity.message}</p>
+                    )}
+                  </div>
+
+                  <div className='w-32 space-y-2 shrink-0'>
+                    <Label className={rowErrors?.importPrice ? 'text-red-500' : ''}>
+                      {t('receipt.form.importPrice', 'Giá nhập')}
+                    </Label>
+                    <Input
+                      type='number'
+                      {...form.register(`details.${index}.importPrice`, { valueAsNumber: true })}
+                      className={rowErrors?.importPrice ? 'border-red-500' : ''}
+                    />
+                    {rowErrors?.importPrice && (
+                      <p className='text-[10px] text-red-500'>{rowErrors.importPrice.message}</p>
+                    )}
+                  </div>
+
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    className='mt-7 text-red-500 hover:bg-red-50 hover:text-red-600'
+                    onClick={() => remove(index)}
+                    disabled={fields.length === 1}
+                  >
+                    <Trash2 className='h-4 w-4' />
+                  </Button>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div className='flex justify-end gap-3 border-t pt-4 sticky bottom-0 bg-background py-4 z-10'>
         <Button type='button' variant='ghost' onClick={onSuccess}>
           {t('common.cancel', 'Hủy')}
         </Button>
-        <Button type='submit' disabled={mutation.isPending}>
+        <Button type='submit' disabled={mutation.isPending || !watchedPublisherId}>
           {mutation.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
           {t('receipt.form.btnCreate', 'Lưu bản nháp')}
         </Button>
