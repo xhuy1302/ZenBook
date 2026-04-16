@@ -24,7 +24,10 @@ export function TrashAuthorDialog() {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant='outline' className='gap-2'>
+          <Button
+            variant='outline'
+            className='gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20'
+          >
             <Trash2 className='h-4 w-4' />
             {t('trash.openButton', 'Thùng rác')}
           </Button>

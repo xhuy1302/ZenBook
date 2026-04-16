@@ -43,8 +43,20 @@ export const createBookApi = async (payload: BookRequest) => {
 }
 
 // 3. CẬP NHẬT
-export const updateBookApi = async (id: string, payload: BookRequest) => {
+export const updateBookApi = async (
+  id: string,
+  payload: BookRequest & { deleteImageIds?: string[] }
+) => {
+  // Chuyển đổi payload cơ bản thành FormData
   const formData = createFormData(payload)
+
+  // 👉 THÊM MỚI: Append từng deleteImageId riêng lẻ vào FormData
+  if (payload.deleteImageIds && payload.deleteImageIds.length > 0) {
+    payload.deleteImageIds.forEach((imgId) => {
+      formData.append('deleteImageIds', imgId)
+    })
+  }
+
   const res = await api.put<ApiResponse<BookResponse>>(`/books/${id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })

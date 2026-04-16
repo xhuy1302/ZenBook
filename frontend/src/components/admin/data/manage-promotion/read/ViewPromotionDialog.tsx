@@ -5,7 +5,6 @@ import { PromotionStatusBadge } from '@/components/admin/data/manage-promotion/P
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 import type { PromotionResponse } from '@/services/promotion/promotion.type'
 import { format } from 'date-fns'
@@ -23,9 +22,10 @@ export function ViewPromotionDialog({ open, onOpenChange, promotion }: ViewPromo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[700px] p-0 gap-0 bg-background overflow-hidden border-none shadow-2xl'>
-        {/* Header Section */}
-        <DialogHeader className='px-6 py-5 bg-primary/5 border-b'>
+      {/* 👉 ĐÃ SỬA: Thêm flex flex-col và max-h-[90vh] để giới hạn chiều cao modal */}
+      <DialogContent className='sm:max-w-[700px] max-h-[90vh] flex flex-col p-0 gap-0 bg-background overflow-hidden border-none shadow-2xl'>
+        {/* Header Section (Ghim cố định - shrink-0) */}
+        <DialogHeader className='pl-6 pr-14 py-5 bg-primary/5 border-b shrink-0'>
           <div className='flex items-center justify-between'>
             <div className='space-y-1'>
               <DialogTitle className='text-2xl font-bold tracking-tight flex items-center gap-2'>
@@ -41,7 +41,8 @@ export function ViewPromotionDialog({ open, onOpenChange, promotion }: ViewPromo
           </div>
         </DialogHeader>
 
-        <ScrollArea className='max-h-[80vh] px-6 py-6'>
+        {/* 👉 ĐÃ SỬA: Dùng div flex-1 overflow-y-auto để cuộn mượt mà phần nội dung */}
+        <div className='flex-1 overflow-y-auto px-6 py-6 custom-scrollbar'>
           <div className='space-y-8'>
             {/* 1. Tên và Mô tả */}
             <section className='space-y-3'>
@@ -96,17 +97,21 @@ export function ViewPromotionDialog({ open, onOpenChange, promotion }: ViewPromo
 
             {/* 3. Danh sách Sách */}
             <section className='space-y-4'>
-              <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
                 <div className='flex items-center gap-2 font-bold text-sm uppercase tracking-wider text-muted-foreground'>
-                  <BookOpen className='w-4 h-4' />
-                  {t('fields.books', 'Sách áp dụng')}
+                  <BookOpen className='w-4 h-4 text-primary' />
+                  {t('fields.appliedBooks', 'Danh sách sản phẩm áp dụng')}
                 </div>
-                <Badge variant='secondary' className='rounded-full px-3'>
-                  {promotion.books?.length || 0} {t('common.items', 'sản phẩm')}
+                <Badge
+                  variant='secondary'
+                  className='rounded-full px-3 font-semibold text-primary bg-primary/10 border-primary/20'
+                >
+                  {t('fields.total', 'Tổng:')} {promotion.books?.length || 0}{' '}
+                  {t('common.books', 'cuốn')}
                 </Badge>
               </div>
 
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2'>
                 {promotion.books && promotion.books.length > 0 ? (
                   promotion.books.map((book) => (
                     <div
@@ -177,10 +182,10 @@ export function ViewPromotionDialog({ open, onOpenChange, promotion }: ViewPromo
               />
             </footer>
           </div>
-        </ScrollArea>
+        </div>
 
-        {/* Action Footer */}
-        <div className='px-6 py-4 bg-muted/30 border-t flex justify-end gap-3'>
+        {/* Action Footer (Ghim cố định - shrink-0) */}
+        <div className='px-6 py-4 bg-muted/30 border-t flex justify-end gap-3 shrink-0'>
           <Button onClick={() => onOpenChange(false)} className='min-w-[100px] font-semibold'>
             {t('actions.close', 'Đóng')}
           </Button>

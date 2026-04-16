@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Loader2, User, FileText, CreditCard } from 'lucide-react'
+import { Loader2, User, FileText, CreditCard, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -73,7 +73,6 @@ export function OrderForm({ order, mode, onSuccess }: OrderFormProps) {
 
   return (
     <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))} className='space-y-6'>
-      {/* 👉 ĐÃ SỬA: Layout chia 3 cột y như trang Chi Tiết */}
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         {/* ================= CỘT TRÁI (CHIẾM 2/3): GIỎ HÀNG & GHI CHÚ ================= */}
         <div className='col-span-2 space-y-6'>
@@ -83,13 +82,29 @@ export function OrderForm({ order, mode, onSuccess }: OrderFormProps) {
               <FileText className='w-4 h-4 text-primary' /> {t('fields.items')} *
             </div>
             <div className='p-5'>
-              <Controller
-                control={form.control}
-                name='items'
-                render={({ field }) => (
-                  <BookSelector value={field.value} onChange={field.onChange} />
-                )}
-              />
+              {/* 👉 ĐÃ THÊM: Cảnh báo và khóa Component khi ở chế độ Edit */}
+              {mode === 'edit' && (
+                <div className='mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-md flex items-start gap-2 text-sm'>
+                  <AlertCircle className='w-4 h-4 mt-0.5 shrink-0' />
+                  <p>
+                    Hệ thống chỉ cho phép cập nhật thông tin giao hàng và ghi chú. Không thể thay
+                    đổi sản phẩm hoặc số lượng đối với đơn hàng đã được tạo.
+                  </p>
+                </div>
+              )}
+
+              <div
+                className={mode === 'edit' ? 'pointer-events-none opacity-60 grayscale-[30%]' : ''}
+              >
+                <Controller
+                  control={form.control}
+                  name='items'
+                  render={({ field }) => (
+                    <BookSelector value={field.value} onChange={field.onChange} />
+                  )}
+                />
+              </div>
+
               {form.formState.errors.items && (
                 <p className='text-sm text-destructive mt-2'>
                   {form.formState.errors.items.message}

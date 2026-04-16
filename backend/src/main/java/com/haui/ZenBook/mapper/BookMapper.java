@@ -1,5 +1,6 @@
 package com.haui.ZenBook.mapper;
 
+import com.haui.ZenBook.dto.book.BookImageResponse;
 import com.haui.ZenBook.dto.book.BookRequest;
 import com.haui.ZenBook.dto.book.BookResponse;
 import com.haui.ZenBook.entity.BookEntity;
@@ -8,6 +9,7 @@ import com.haui.ZenBook.entity.BookSpecificationEntity;
 import org.mapstruct.*;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,7 +26,7 @@ public interface BookMapper {
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "authors", ignore = true)
     @Mapping(target = "tags", ignore = true)
-    @Mapping(target = "publisher", ignore = true) // 👉 THÊM: Bỏ qua publisher để set thủ công trong tầng Service
+    @Mapping(target = "publisher", ignore = true)
     BookEntity toEntity(BookRequest request);
 
     // --- MAPPING TỪ ENTITY SANG RESPONSE ---
@@ -34,8 +36,8 @@ public interface BookMapper {
     @Mapping(target = "dimensions", source = "specification.dimensions")
     @Mapping(target = "weight", source = "specification.weight")
     @Mapping(target = "language", source = "specification.language")
-    @Mapping(target = "images", source = "images", qualifiedByName = "extractImageUrls")
-    // MapStruct sẽ tự động map `PublisherEntity` sang `PublisherResponse` vì đã có PublisherMapper
+    // ✅ Đổi sang extractImageResponses để trả về cả id + imageUrl
+    @Mapping(target = "images", source = "images", qualifiedByName = "extractImageResponses")
     BookResponse toResponse(BookEntity entity);
 
     // --- CÁC HÀM XỬ LÝ PHỤ ---
@@ -52,12 +54,16 @@ public interface BookMapper {
                 .build();
     }
 
-    @Named("extractImageUrls")
-    default Set<String> extractImageUrls(Set<BookImageEntity> images) {
-        if (images == null) return Collections.emptySet();
+    // ✅ Đổi từ extractImageUrls sang extractImageResponses — trả List<BookImageResponse>
+    @Named("extractImageResponses")
+    default List<BookImageResponse> extractImageResponses(Set<BookImageEntity> images) {
+        if (images == null) return Collections.emptyList();
         return images.stream()
-                .map(BookImageEntity::getImageUrl)
-                .collect(Collectors.toSet());
+                .map(img -> BookImageResponse.builder()
+                        .id(img.getId())
+                        .imageUrl(img.getImageUrl())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     // --- HÀM CẬP NHẬT (UPDATE) ---
@@ -68,7 +74,7 @@ public interface BookMapper {
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "authors", ignore = true)
     @Mapping(target = "tags", ignore = true)
-    @Mapping(target = "publisher", ignore = true) // 👉 THÊM: Bỏ qua publisher khi update
+    @Mapping(target = "publisher", ignore = true)
     @Mapping(target = "specification", ignore = true)
     void updateEntityFromRequest(BookRequest request, @MappingTarget BookEntity entity);
 

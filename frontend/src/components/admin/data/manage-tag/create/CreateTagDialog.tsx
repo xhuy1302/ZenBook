@@ -19,7 +19,7 @@ export function CreateTagDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       {/* Nút Trigger mở hộp thoại được tích hợp sẵn */}
       <DialogTrigger asChild>
-        <Button size='sm' className='h-8 flex items-center gap-2'>
+        <Button className='gap-2'>
           <Plus className='w-4 h-4' />
           <span className='hidden sm:inline'>{t('page.add_new', 'Thêm mới')}</span>
         </Button>

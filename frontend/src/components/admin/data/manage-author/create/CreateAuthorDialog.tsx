@@ -1,9 +1,11 @@
+'use client'
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription, // Thêm cái này
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger
@@ -19,19 +21,21 @@ export function CreateAuthorDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {/* Thêm title để hỗ trợ trải nghiệm người dùng */}
-        <Button variant='outline' className='gap-2'>
+        <Button className='gap-2'>
           <Plus className='h-4 w-4' />
           {t('actions.add', 'Thêm tác giả')}
         </Button>
       </DialogTrigger>
 
-      <DialogContent className='sm:max-w-[600px] p-0 overflow-hidden shadow-2xl'>
-        <DialogHeader className='px-6 pt-6 space-y-1'>
-          <DialogTitle className='text-2xl font-bold tracking-tight'>
+      {/* 1. sm:max-w-[600px]: Thu nhỏ chiều rộng lại cho vừa vặn.
+        2. ĐÃ XÓA p-0: Để Shadcn UI tự động canh lề và hiện nút "X" ở góc trên bên phải cực chuẩn.
+      */}
+      <DialogContent className='sm:max-w-[600px] w-[95vw] shadow-lg'>
+        {/* Đã xóa các class padding thủ công (px-6, pt-6...) vì DialogContent đã lo việc đó */}
+        <DialogHeader>
+          <DialogTitle className='text-xl font-bold'>
             {t('dialogTitle.create', 'Tạo tác giả mới')}
           </DialogTitle>
-          {/* Thêm mô tả ngắn cho chuyên nghiệp */}
           <DialogDescription>
             {t(
               'dialogDescription.create',
@@ -40,7 +44,8 @@ export function CreateAuthorDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className='px-6 pb-6 mt-4'>
+        {/* Bọc form với một chút margin top để cách ly khỏi Header */}
+        <div className='mt-2'>
           <CreateAuthorForm onSuccess={() => setOpen(false)} />
         </div>
       </DialogContent>

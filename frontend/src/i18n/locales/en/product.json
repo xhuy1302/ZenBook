@@ -2,7 +2,7 @@
   "common": {
     "cancel": "Cancel",
     "save": "Save",
-    "saveChanges": "Save Changes",
+    "saveChanges": "Save changes",
     "delete": "Delete",
     "restore": "Restore",
     "reset": "Reset",
@@ -16,7 +16,7 @@
       "options": {
         "ACTIVE": "Active",
         "INACTIVE": "Inactive",
-        "OUT_OF_STOCK": "Out of Stock",
+        "OUT_OF_STOCK": "Out of stock",
         "DELETED": "Deleted"
       }
     },
@@ -24,19 +24,22 @@
       "options": {
         "PAPERBACK": "Paperback",
         "HARDCOVER": "Hardcover",
-        "EBOOK": "Ebook"
+        "EBOOK": "E-book"
       }
     }
   },
   "book": {
     "validation": {
-      "titleRequired": "Book title is required",
+      "titleRequired": "Book title cannot be empty",
+      "priceRequired": "Please enter the price",
       "priceInvalid": "Please enter a valid number",
-      "priceNegative": "Sale price must be greater than 0",
+      "priceNegative": "Price must be greater than 0",
+      "salePriceTooHigh": "Sale price CANNOT be greater than original price!",
       "stockInvalid": "Please enter a valid quantity",
-      "stockNegative": "Stock quantity cannot be negative",
+      "stockNegative": "Quantity cannot be negative",
       "pageCountInvalid": "Page count must be greater than 0",
-      "publicationYearInvalid": "Publication year is not valid",
+      "publicationYearInvalid": "Invalid publication year",
+      "yearFuture": "Publication year cannot be in the future",
       "weightInvalid": "Weight must be greater than 0"
     },
     "page": {
@@ -49,18 +52,18 @@
       "status": "Status",
       "action": "Action",
       "searchPlaceholder": "Search book title...",
-      "allStatus": "All Statuses",
+      "allStatus": "All statuses",
       "btnAdd": "Add Book",
       "noResults": "No results found."
     },
     "dialog": {
-      "createTitle": "Add New Book to Inventory",
-      "editTitle": "Update Book Information",
-      "viewTitle": "Book Details",
-      "deleteTitle": "Confirm Deletion",
+      "createTitle": "Add new book to inventory",
+      "editTitle": "Update book information",
+      "viewTitle": "Book details",
+      "deleteTitle": "Confirm book deletion",
       "deleteConfirm1": "Are you sure you want to delete the book ",
-      "deleteConfirm2": "? The data will be moved to the trash and can be restored later.",
-      "btnSoftDelete": "Move to Trash"
+      "deleteConfirm2": "? Data will be moved to trash and can be restored later.",
+      "btnSoftDelete": "Move to trash"
     },
     "form": {
       "section1": "1. Basic Information",
@@ -70,18 +73,18 @@
       "section5": "5. Images",
       "title": "Book Title",
       "titlePlaceholder": "Enter book title...",
-      "isbn": "ISBN Code",
-      "isbnPlaceholder": "E.g., 978-604-1-12345-6",
+      "isbn": "ISBN",
+      "isbnPlaceholder": "Example: 978-604-1-12345-6",
       "description": "Description",
-      "descPlaceholder": "Enter book introduction...",
+      "descPlaceholder": "Enter book description...",
       "noDescription": "No description available...",
       "salePrice": "Sale Price (VND)",
       "originalPrice": "Original Price (VND)",
       "stockQuantity": "Stock Quantity",
-      "stockNote": "Stock is adjusted automatically via Goods Receipts.",
-      "category": "Categories",
+      "stockNote": "Stock increases/decreases automatically via Receipts.",
+      "category": "Category",
       "noCategory": "No categories available.",
-      "author": "Authors",
+      "author": "Author",
       "noAuthor": "No authors available.",
       "format": "Cover Format",
       "formatPlaceholder": "Select format",
@@ -91,16 +94,16 @@
       "dimensions": "Dimensions (cm)",
       "weight": "Weight (grams)",
       "mainImage": "Main Cover Image",
-      "uploadCover": "Upload Cover",
-      "gallery": "Preview / Additional Images (Gallery)",
-      "addGallery": "Add Image",
-      "btnCreate": "Save New Book",
-      "btnUpdate": "Save Changes",
+      "uploadCover": "Upload cover",
+      "gallery": "Preview / Gallery Images",
+      "addGallery": "Add image",
+      "btnCreate": "Save new book",
+      "btnUpdate": "Save changes",
       "systemLog": "System Log",
       "createdAt": "Created At",
       "updatedAt": "Last Updated",
-      "newImage": "New Image",
-      "oldImage": "Old Image"
+      "newImage": "Newly added",
+      "oldImage": "Existing image"
     },
     "messages": {
       "createSuccess": "Book added successfully!",
@@ -108,10 +111,10 @@
       "updateSuccess": "Book updated successfully!",
       "updateError": "Update failed!",
       "softDeleteSuccess": "Book \"{{title}}\" moved to trash!",
-      "softDeleteError": "Failed to delete the book. Please try again!",
+      "softDeleteError": "Failed to delete book. Please try again!",
       "restoreSuccess": "Book restored successfully!",
       "hardDeleteSuccess": "Book permanently deleted from the system!",
-      "confirmHardDelete": "Are you sure you want to PERMANENTLY delete the book \"{{title}}\"?"
+      "confirmHardDelete": "Are you sure you want to PERMANENTLY DELETE the book \"{{title}}\"?"
     },
     "trash": {
       "title": "Book Trash",

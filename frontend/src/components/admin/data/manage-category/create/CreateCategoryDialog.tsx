@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,15 +21,18 @@ export function CreateCategoryDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant='outline' className='gap-2'>
+        <Button className='gap-2'>
           <Plus className='h-4 w-4' />
           {t('actions.add', 'Thêm danh mục')}
         </Button>
       </DialogTrigger>
 
-      <DialogContent className='sm:max-w-[550px] p-0 overflow-hidden shadow-2xl'>
-        <DialogHeader className='px-6 pt-6 space-y-1'>
-          <DialogTitle className='text-2xl font-bold tracking-tight'>
+      {/* 👉 ĐÃ XÓA: p-0, overflow-hidden để trả lại padding chuẩn và hiện nút X.
+          Vẫn giữ width 550px vì form danh mục thường ngắn và ít trường.
+      */}
+      <DialogContent className='sm:max-w-[550px] w-[95vw] shadow-lg'>
+        <DialogHeader>
+          <DialogTitle className='text-xl font-bold'>
             {t('dialogTitle.create', 'Tạo danh mục mới')}
           </DialogTitle>
           <DialogDescription>
@@ -35,7 +40,8 @@ export function CreateCategoryDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className='px-6 pb-6 mt-4'>
+        {/* Bọc form với margin-top nhẹ để cách ly khỏi Header */}
+        <div className='mt-2'>
           <CreateCategoryForm onSuccess={() => setOpen(false)} />
         </div>
       </DialogContent>

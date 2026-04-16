@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -40,4 +41,7 @@ public class BookRequest {
     String dimensions;
     Integer weight;
     String language;
+
+    @Builder.Default
+    List<String> deleteImageIds = new ArrayList<>(); // ID ảnh cần xóa
 }

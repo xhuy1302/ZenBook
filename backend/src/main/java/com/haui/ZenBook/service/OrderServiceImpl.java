@@ -70,25 +70,21 @@ public class OrderServiceImpl implements OrderService {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
+        // CHỈ CHO PHÉP CẬP NHẬT KHI ĐƠN HÀNG ĐANG Ở TRẠNG THÁI PENDING
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new AppException(ErrorCode.ORDER_CANNOT_UPDATE);
         }
 
-        for (OrderDetailEntity detail : order.getDetails()) {
-            BookEntity book = detail.getBook();
-            book.setStockQuantity(book.getStockQuantity() + detail.getQuantity());
-            bookRepository.save(book);
-        }
-        order.getDetails().clear();
-
+        // 👉 ĐÃ THAY ĐỔI: Bỏ logic hoàn trả số lượng sách và clear giỏ hàng
+        // Chỉ cập nhật thông tin giao hàng
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setShippingAddress(request.getShippingAddress());
         order.setNote(request.getNote());
 
-        processOrderItems(order, request.getItems());
+        // 👉 ĐÃ THAY ĐỔI: Không gọi hàm processOrderItems nữa để giữ nguyên giỏ hàng cũ
 
-        recordHistory(order, OrderStatus.PENDING, OrderStatus.PENDING, actionBy, role, "Chỉnh sửa thông tin và giỏ hàng");
+        recordHistory(order, OrderStatus.PENDING, OrderStatus.PENDING, actionBy, role, "Chỉnh sửa thông tin giao hàng");
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
@@ -159,10 +155,8 @@ public class OrderServiceImpl implements OrderService {
                 .actionBy(by).role(role).note(note).build());
     }
 
-    // 👉 ĐÃ THAY ĐỔI: Hàm getAllOrders hỗ trợ lọc theo ngày
     @Override
     public Page<OrderResponse> getAllOrders(OrderStatus s, String startDate, String endDate, Pageable p) {
-        // Khởi tạo thời gian mặc định (Rất xa trong quá khứ hoặc tương lai)
         LocalDateTime start = StringUtils.hasText(startDate) ? LocalDate.parse(startDate).atStartOfDay() : LocalDateTime.of(2000, 1, 1, 0, 0);
         LocalDateTime end = StringUtils.hasText(endDate) ? LocalDate.parse(endDate).atTime(23, 59, 59) : LocalDateTime.now().plusYears(10);
 

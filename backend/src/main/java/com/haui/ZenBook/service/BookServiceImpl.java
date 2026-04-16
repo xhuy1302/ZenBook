@@ -36,6 +36,7 @@ public class BookServiceImpl implements BookService {
     private final AuthorRepository authorRepository;
     private final TagRepository tagRepository;
     private final PublisherRepository publisherRepository;
+    private final BookImageRepository bookImageRepository;
 
     @Override
     @Transactional
@@ -96,6 +97,7 @@ public class BookServiceImpl implements BookService {
         BookEntity book = bookRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
 
+        // Kiểm tra ISBN trùng (bỏ qua nếu ISBN không đổi)
         if (request.getIsbn() != null && !request.getIsbn().isBlank() && !request.getIsbn().equals(book.getIsbn())) {
             if (bookRepository.existsByIsbn(request.getIsbn())) {
                 throw new AppException(ErrorCode.BOOK_ISBN_EXISTED, request.getIsbn());
@@ -105,6 +107,7 @@ public class BookServiceImpl implements BookService {
         bookMapper.updateEntityFromRequest(request, book);
         book.setSlug(SlugUtils.makeSlug(request.getTitle()));
 
+        // ✅ Cập nhật thumbnail nếu có file mới
         if (request.getThumbnailFile() != null && !request.getThumbnailFile().isEmpty()) {
             try {
                 if (book.getThumbnail() != null && !book.getThumbnail().isBlank()) {
@@ -113,26 +116,66 @@ public class BookServiceImpl implements BookService {
                 String newUrl = s3Service.uploadFile(request.getThumbnailFile(), "books/thumbnails");
                 book.setThumbnail(newUrl);
             } catch (IOException e) {
+                log.error("Lỗi upload thumbnail: {}", e.getMessage());
                 throw new AppException(ErrorCode.UPLOAD_FAILED);
             }
         }
 
-        if (request.getGalleryFiles() != null && !request.getGalleryFiles().isEmpty()) {
-            if (book.getImages() != null && !book.getImages().isEmpty()) {
-                for (BookImageEntity image : book.getImages()) {
-                    if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
-                        s3Service.deleteFile(image.getImageUrl());
-                    }
+        // ✅ Xóa từng ảnh gallery được chỉ định theo ID
+        if (request.getDeleteImageIds() != null && !request.getDeleteImageIds().isEmpty()) {
+            List<BookImageEntity> imagesToDelete = bookImageRepository.findAllById(request.getDeleteImageIds());
+
+            for (BookImageEntity image : imagesToDelete) {
+                // Kiểm tra ảnh có thuộc sách này không
+                if (!image.getBook().getId().equals(id)) {
+                    log.warn("Ảnh {} không thuộc sách {}, bỏ qua", image.getId(), id);
+                    continue;
                 }
+                if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
+                    s3Service.deleteFile(image.getImageUrl());
+                }
+                book.getImages().remove(image);
+                bookImageRepository.delete(image);
             }
+        }
 
-            book.getImages().clear();
+        // ✅ Thêm ảnh gallery mới, KHÔNG xóa ảnh cũ
+        if (request.getDeleteImageIds() != null && !request.getDeleteImageIds().isEmpty()) {
+            List<BookImageEntity> imagesToDelete = bookImageRepository.findAllById(request.getDeleteImageIds());
 
+            for (BookImageEntity image : imagesToDelete) {
+                if (!image.getBook().getId().equals(id)) {
+                    log.warn("Ảnh {} không thuộc sách {}, bỏ qua", image.getId(), id);
+                    continue;
+                }
+                if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
+                    s3Service.deleteFile(image.getImageUrl());
+                }
+                // ✅ Fix 1+2: Null-safe + dùng removeIf theo ID thay vì remove(object)
+                if (book.getImages() != null) {
+                    book.getImages().removeIf(img -> img.getId().equals(image.getId()));
+                }
+                bookImageRepository.delete(image);
+            }
+        }
+
+// ✅ Thêm ảnh gallery mới, KHÔNG xóa ảnh cũ
+        if (request.getGalleryFiles() != null && !request.getGalleryFiles().isEmpty()) {
+            // ✅ Fix 3: Khởi tạo Set nếu null
+            if (book.getImages() == null) {
+                book.setImages(new HashSet<>());
+            }
             for (MultipartFile file : request.getGalleryFiles()) {
+                if (file == null || file.isEmpty()) continue;
                 try {
                     String url = s3Service.uploadFile(file, "books/gallery");
-                    book.getImages().add(BookImageEntity.builder().imageUrl(url).book(book).build());
+                    BookImageEntity newImage = BookImageEntity.builder()
+                            .imageUrl(url)
+                            .book(book)
+                            .build();
+                    book.getImages().add(newImage);
                 } catch (IOException e) {
+                    log.error("Lỗi upload gallery image: {}", e.getMessage());
                     throw new AppException(ErrorCode.UPLOAD_FAILED);
                 }
             }

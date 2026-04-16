@@ -56,7 +56,10 @@ export function TrashBookDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant='outline' className='h-9'>
+        <Button
+          variant='outline'
+          className='gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20'
+        >
           <Trash2 className='mr-2 h-4 w-4' />
           {t('book.trash.btnTrash')}
         </Button>

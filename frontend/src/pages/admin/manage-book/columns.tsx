@@ -1,11 +1,12 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { BookStatusBadge } from '@/components/admin/data/manage-book/BookStatusBadge'
+// 👉 THÊM MỚI: Import thêm component badge cho Format
+import { BookFormatBadge } from '@/components/admin/data/manage-book/BookFormatBadge'
 import { BookActionsCell } from '@/components/admin/action/BookAction'
 import type { BookResponse } from '@/services/book/book.type'
 import { DataTableColumnHeader } from '@/components/admin/datatable/DataTableColumnHeader'
 import type { TFunction } from 'i18next'
 
-// Khai báo chuẩn type TFunction với namespace "product"
 export const getColumns = (t: TFunction<'product'>): ColumnDef<BookResponse>[] => [
   {
     accessorKey: 'title',
@@ -64,6 +65,17 @@ export const getColumns = (t: TFunction<'product'>): ColumnDef<BookResponse>[] =
     header: () => <div className='text-center'>{t('book.table.stock')}</div>,
     cell: ({ row }) => <div className='text-center font-medium'>{row.original.stockQuantity}</div>
   },
+
+  {
+    accessorKey: 'format',
+    header: () => <div className='text-center'>{t('book.form.format', 'Định dạng')}</div>,
+    cell: ({ row }) => (
+      <div className='flex justify-center'>
+        <BookFormatBadge format={row.original.format} />
+      </div>
+    )
+  },
+
   {
     accessorKey: 'status',
     header: () => <div className='text-center'>{t('book.table.status')}</div>,

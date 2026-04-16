@@ -29,43 +29,50 @@ import type { BookResponse, BookRequest } from '@/services/book/book.type'
 import { getAllCategoriesApi } from '@/services/category/category.api'
 import { getAllAuthorsApi } from '@/services/author/author.api'
 import { getAllPublishersApi } from '@/services/publisher/publisher.api'
-// 👉 THÊM MỚI: Import API Tag
 import { getAllTagsApi } from '@/services/tag/tag.api'
 
 import type { CategoryResponse } from '@/services/category/category.type'
 import type { AuthorResponse } from '@/services/author/author.type'
 import type { PublisherResponse } from '@/services/publisher/publisher.type'
-// 👉 THÊM MỚI: Import Type Tag
 import type { TagResponse } from '@/services/tag/tag.type'
+
+type BookImageDTO = { id: string; imageUrl?: string } | string
 
 export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSuccess: () => void }) {
   const { t } = useTranslation('product')
   const queryClient = useQueryClient()
 
+  // --- THUMBNAIL STATE ---
   const [previewThumb, setPreviewThumb] = useState<string>(book.thumbnail || '')
-  const [previewGallery, setPreviewGallery] = useState<string[]>(book.images || [])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_newGalleryFiles, setNewGalleryFiles] = useState<File[]>([])
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [retainedGalleryUrls, setRetainedGalleryUrls] = useState<string[]>(book.images ?? [])
+  // --- GALLERY STATE ---
+  // 1. Ảnh cũ từ DB (Đã fix lỗi any)
+  const [existingImages, setExistingImages] = useState<{ id: string; url: string }[]>(
+    book.images?.map((img: BookImageDTO) => {
+      if (typeof img === 'string') return { id: img, url: img }
+      return { id: img.id, url: img.imageUrl || '' }
+    }) ?? []
+  )
 
+  // 2. Preview cho ảnh mới thêm (Đã xóa state newGalleryFiles bị thừa)
+  const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([])
+
+  // 3. ID các ảnh cũ cần xóa
+  const [deleteImageIds, setDeleteImageIds] = useState<string[]>([])
+
+  // --- QUERIES ---
   const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: () => getAllCategoriesApi()
   })
-
   const { data: authorsData, isLoading: isAuthorsLoading } = useQuery({
     queryKey: ['authors'],
     queryFn: () => getAllAuthorsApi()
   })
-
   const { data: publishersData, isLoading: isPublishersLoading } = useQuery({
     queryKey: ['publishers'],
     queryFn: () => getAllPublishersApi()
   })
-
-  // 👉 THÊM MỚI: Lấy danh sách Tag
   const { data: tagsData, isLoading: isTagsLoading } = useQuery({
     queryKey: ['tags'],
     queryFn: () => getAllTagsApi()
@@ -74,8 +81,9 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
   const categories = categoriesData || []
   const authors = authorsData || []
   const publishers = publishersData || []
-  const tags = tagsData || [] // 👉 Khởi tạo mảng tags
+  const tags = tagsData || []
 
+  // --- FORM CONFIG ---
   const form = useForm<BookFormValues>({
     resolver: zodResolver(
       getBookSchema(t as unknown as (key: string) => string)
@@ -97,12 +105,14 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
       publisherId: book.publisher?.id || '',
       categoryIds: book.categories?.map((c) => c.id) || [],
       authorIds: book.authors?.map((a) => a.id) || [],
-      tagIds: book.tags?.map((tItem) => tItem.id) || [] // 👉 Lấy ID các tag đã có
+      tagIds: book.tags?.map((tItem) => tItem.id) || [],
+      galleryFiles: [] // Khởi tạo rỗng để dễ quản lý
     }
   })
 
   const { errors } = form.formState
 
+  // --- HANDLERS ---
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -111,40 +121,46 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
     }
   }
 
+  // 👉 Đã fix: Lưu trực tiếp vào form, không cần state thừa
   const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files)
-      const newPreviews = files.map((f) => URL.createObjectURL(f))
+      const previews = files.map((f) => URL.createObjectURL(f))
 
-      setNewGalleryFiles((prev) => {
-        const updated = [...prev, ...files]
-        form.setValue('galleryFiles', updated)
-        return updated
-      })
-      setPreviewGallery((prev) => [...prev, ...newPreviews])
+      const currentFiles = (form.getValues('galleryFiles') as File[]) || []
+      form.setValue('galleryFiles', [...currentFiles, ...files])
+
+      setNewGalleryPreviews((prev) => [...prev, ...previews])
     }
   }
 
-  const removeGalleryItem = (indexToRemove: number) => {
-    const urlToRemove = previewGallery[indexToRemove]
-    setPreviewGallery((prev) => prev.filter((_, idx) => idx !== indexToRemove))
-
-    if (urlToRemove.startsWith('blob:')) {
-      setNewGalleryFiles((prevFiles) => {
-        const justNewUrls = previewGallery.filter((url) => url.startsWith('blob:'))
-        const localIdx = justNewUrls.indexOf(urlToRemove)
-        const updatedFiles = prevFiles.filter((_, idx) => idx !== localIdx)
-        form.setValue('galleryFiles', updatedFiles)
-        return updatedFiles
-      })
-    } else {
-      setRetainedGalleryUrls((prev) => prev.filter((url) => url !== urlToRemove))
-    }
+  // Xóa ảnh cũ
+  const removeExistingImage = (id: string) => {
+    if (!id) return
+    setExistingImages((prev) => prev.filter((img) => img.id !== id))
+    setDeleteImageIds((prev) => [...prev, id])
   }
 
+  // 👉 Đã fix: Xóa ảnh mới trực tiếp khỏi form
+  const removeNewImage = (index: number) => {
+    const currentFiles = (form.getValues('galleryFiles') as File[]) || []
+    const updatedFiles = currentFiles.filter((_, i) => i !== index)
+    form.setValue('galleryFiles', updatedFiles)
+
+    setNewGalleryPreviews((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  // --- MUTATION ---
   const mutation = useMutation({
     mutationFn: (values: BookFormValues) => {
-      return updateBookApi(book.id, values as unknown as BookRequest)
+      const requestData = {
+        ...values,
+        deleteImageIds: deleteImageIds
+      }
+      return updateBookApi(
+        book.id,
+        requestData as unknown as BookRequest & { deleteImageIds?: string[] }
+      )
     },
     onSuccess: () => {
       toast.success(t('book.messages.updateSuccess'))
@@ -374,7 +390,6 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
             />
           </div>
 
-          {/* 👉 THÊM MỚI: Khối Chọn Nhãn (Tags) */}
           <div className='col-span-2 space-y-3'>
             <Label>{t('book.form.tag', 'Nhãn hiển thị')}</Label>
             <Controller
@@ -393,7 +408,6 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
                     ) : (
                       tags.map((tItem: TagResponse) => {
                         const isSelected = currentValues.includes(tItem.id)
-                        // Lấy màu nền khi được chọn, hoặc màu viền/chữ khi chưa chọn
                         const badgeStyle = isSelected
                           ? {
                               backgroundColor: tItem.color || 'var(--primary)',
@@ -533,6 +547,7 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
 
           <div className='space-y-3 flex-1'>
             <Label className='font-semibold'>{t('book.form.gallery')}</Label>
+
             <div className='flex flex-wrap gap-4 items-start'>
               <div
                 className='h-24 w-24 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-accent/50 transition-colors shrink-0'
@@ -552,25 +567,43 @@ export function EditBookForm({ book, onSuccess }: { book: BookResponse; onSucces
                 onChange={handleGalleryChange}
               />
 
-              {previewGallery.map((src, idx) => {
-                const isNew = src.startsWith('blob:')
-                return (
-                  <div
-                    key={idx}
-                    className={`relative h-24 w-24 border-2 rounded-md overflow-hidden group shadow-sm shrink-0 ${isNew ? 'border-blue-400/50' : 'border-border'}`}
-                    title={isNew ? t('book.form.newImage') : t('book.form.oldImage')}
+              {existingImages.map((img) => (
+                <div
+                  key={img.id}
+                  className='relative h-24 w-24 border-2 border-border rounded-md overflow-hidden group shadow-sm shrink-0'
+                  title={t('book.form.oldImage', 'Ảnh hiện tại')}
+                >
+                  <img src={img.url} alt='gallery-old' className='w-full h-full object-cover' />
+                  <button
+                    type='button'
+                    onClick={() => removeExistingImage(img.id)}
+                    className='absolute top-1 right-1 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity'
                   >
-                    <img src={src} alt={`gallery-${idx}`} className='w-full h-full object-cover' />
-                    <button
-                      type='button'
-                      onClick={() => removeGalleryItem(idx)}
-                      className='absolute top-1 right-1 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity'
-                    >
-                      <X className='h-3 w-3' />
-                    </button>
-                  </div>
-                )
-              })}
+                    <X className='h-3 w-3' />
+                  </button>
+                </div>
+              ))}
+
+              {newGalleryPreviews.map((src, idx) => (
+                <div
+                  key={idx}
+                  className='relative h-24 w-24 border-2 border-blue-400/50 rounded-md overflow-hidden group shadow-sm shrink-0'
+                  title={t('book.form.newImage', 'Ảnh mới thêm')}
+                >
+                  <img
+                    src={src}
+                    alt={`gallery-new-${idx}`}
+                    className='w-full h-full object-cover'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => removeNewImage(idx)}
+                    className='absolute top-1 right-1 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity'
+                  >
+                    <X className='h-3 w-3' />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
