@@ -75,6 +75,7 @@ public enum ErrorCode {
     BOOK_STOCK_INVALID(9005, "book.stock.invalid", HttpStatus.BAD_REQUEST),
     BOOK_UPDATE_FAILED(9006, "book.update.failed", HttpStatus.INTERNAL_SERVER_ERROR),
     BOOK_DELETE_FAILED(9007, "book.delete.failed", HttpStatus.BAD_REQUEST),
+    BOOK_TITLE_EXISTED(9008, "book.title.existed", HttpStatus.BAD_REQUEST),
 
     // Tag errors
     TAG_NOT_FOUND(9100, "tag.not.found", HttpStatus.NOT_FOUND),
@@ -107,7 +108,19 @@ public enum ErrorCode {
     USERNAME_EXISTED(1010, "username.exists", HttpStatus.BAD_REQUEST),
 
     PROMOTION_NOT_FOUND(1100, "promotion.not.found",HttpStatus.BAD_REQUEST) ,
-    PROMOTION_DATE_INVALID(1101, "promotion.date.invalid",HttpStatus.BAD_REQUEST);
+    PROMOTION_DATE_INVALID(1101, "promotion.date.invalid",HttpStatus.BAD_REQUEST),
+
+    // ================= LỖI COUPON (1200x) =================
+    COUPON_NOT_FOUND(12000, "coupon.not.found", HttpStatus.NOT_FOUND),
+    COUPON_CODE_EXISTED(12001, "coupon.code.exists", HttpStatus.BAD_REQUEST),
+    COUPON_DATE_INVALID(12002, "coupon.date.invalid", HttpStatus.BAD_REQUEST),
+    COUPON_EXPIRED_OR_INACTIVE(12003, "coupon.expired.inactive", HttpStatus.BAD_REQUEST),
+    COUPON_OUT_OF_USAGE(12004, "coupon.out.of.usage", HttpStatus.BAD_REQUEST),
+    COUPON_MIN_ORDER_NOT_MET(12005, "coupon.min.order.not.met", HttpStatus.BAD_REQUEST),
+    COUPON_USER_MISMATCH(12006, "coupon.user.mismatch", HttpStatus.FORBIDDEN),
+    COUPON_CATEGORY_MISMATCH(12007, "coupon.category.mismatch", HttpStatus.BAD_REQUEST),
+    COUPON_USER_LIMIT_EXCEEDED(12008, "coupon.user.limit.exceeded", HttpStatus.BAD_REQUEST),
+    COUPON_RESTORE_FAILED_CODE_EXISTED(12009, "coupon.restore.failed.code.exists", HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

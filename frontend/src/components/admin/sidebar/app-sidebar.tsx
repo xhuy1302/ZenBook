@@ -49,7 +49,7 @@ const staticData = {
     { name: 'Tài khoản', url: '/dashboard/users', icon: Users },
     // Đã xóa 'Nhà cung cấp' khỏi đây
     { name: 'Khuyến mãi', url: '/dashboard/promotions', icon: Gift },
-    { name: 'Mã giảm giá', url: '/dashboard/vouchers', icon: TicketPercent },
+    { name: 'Mã giảm giá', url: '/dashboard/coupons', icon: TicketPercent },
     { name: 'Bài viết & Blog', url: '/dashboard/blog', icon: FileText },
     { name: 'Đánh giá / Review', url: '/dashboard/reviews', icon: Star },
     { name: 'Tags sách', url: '/dashboard/tags', icon: Tags },
