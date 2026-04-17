@@ -1,0 +1,118 @@
+{
+  "list": "User Management",
+  "dialogTitle": {
+    "view": "User Details",
+    "delete": "Confirm Delete User",
+    "update": "Update User",
+    "permanentDelete": "Permanently Delete User",
+    "restore": "Confirm Restore User"
+  },
+  "filters": {
+    "search": "Search email or username...",
+    "reset": "Reset Filters",
+    "role": {
+      "label": "Role",
+      "all": "All Roles",
+      "ADMIN": "Admin",
+      "USER": "User",
+      "STAFF": "Staff"
+    },
+    "status": {
+      "label": "Status",
+      "all": "All Status",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "BLOCKED": "Blocked",
+      "DELETED": "Deleted"
+    }
+  },
+  "table": {
+    "noResults": "No results found.",
+    "columns": {
+      "user": "User",
+      "fullName": "Full Name",
+      "phone": "Phone Number",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    }
+  },
+  "create": {
+    "sections": {
+      "personal": "Personal Information",
+      "account": "Account Information"
+    }
+  },
+  "fields": {
+    "username": {
+      "label": "Username"
+    },
+    "fullName": {
+      "label": "Full Name"
+    },
+    "phone": {
+      "label": "Phone Number"
+    },
+    "avatar": {
+      "label": "Avatar URL"
+    },
+    "role": {
+      "label": "Role",
+      "placeholder": "Select a role",
+      "options": {
+        "ADMIN": "Admin",
+        "USER": "User",
+        "STAFF": "Staff"
+      }
+    },
+    "status": {
+      "label": "Status",
+      "options": {
+        "ACTIVE": "Active",
+        "INACTIVE": "Inactive",
+        "BLOCKED": "Blocked",
+        "DELETED": "Deleted"
+      }
+    },
+    "createdAt": "Created At",
+    "updatedAt": "Last Updated",
+    "deletedAt": "Deleted At"
+  },
+  "message": {
+    "success": {
+      "update": "User updated successfully!",
+      "delete": "User deleted successfully!",
+      "deleteConfirm": "Are you sure you want to delete the user with email: {{email}}? This action can be undone later.",
+      "permanentDelete": "User permanently deleted from the system!",
+      "restore": "User restored successfully!",
+      "upload_avatar": "Avatar updated successfully!"
+    },
+    "warning": {
+      "permanentDeleteConfirm": "This action cannot be undone. Are you sure you want to permanently delete the account with email: {{email}}?",
+      "restoreConfirm": "Are you sure you want to restore the user with email: {{email}}?"
+    },
+    "error": {
+      "update": "An error occurred while updating the user. Please try again.",
+      "delete": "An error occurred while deleting the user. Please try again.",
+      "roleRequired": "At least one role must be assigned to the user",
+      "restore": "An error occurred while restoring the user. Please try again.",
+      "upload_avatar": "An error occurred while updating the avatar. Please try again.",
+      "username_existed": "This username is already taken by another user!"
+    }
+  },
+  "actions": {
+    "confirm": "Confirm Delete",
+    "close": "Close",
+    "edit": "Save Changes",
+    "cancel": "Cancel",
+    "deleteForever": "Delete Permanently",
+    "restore": "Restore",
+    "uploading": "Uploading...",
+    "change_avatar": "Change Avatar"
+  },
+  "trash": {
+    "title": "User Trash Bin",
+    "remainingDays": "Remaining days: {{days}}",
+    "trashEmpty": "Trash bin is empty."
+  }
+}

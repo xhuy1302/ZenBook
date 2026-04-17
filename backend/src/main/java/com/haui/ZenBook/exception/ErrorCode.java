@@ -1,6 +1,5 @@
 package com.haui.ZenBook.exception;
 
-
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -39,16 +38,89 @@ public enum ErrorCode {
     CATEGORY_PARENT_NOT_FOUND(5004, "category.parent.not.found", HttpStatus.BAD_REQUEST),
     CATEGORY_PARENT_INVALID(5005, "category.parent.invalid", HttpStatus.BAD_REQUEST),
     CATEGORY_HAS_CHILD(5006, "category.has.child", HttpStatus.BAD_REQUEST),
+    CATEGORY_NAME_INVALID_SIZE(5011, "category.name.invalid.size", HttpStatus.BAD_REQUEST),
+    CATEGORY_CANNOT_PARENT_ITSELF(5012, "category.cannot.parent.itself", HttpStatus.BAD_REQUEST),
+    CATEGORY_LEVEL_TOO_DEEP(5013, "category.level.too.deep", HttpStatus.BAD_REQUEST),
+    PARENT_CATEGORY_NOT_FOUND(5004, "category.parent.not.found", HttpStatus.BAD_REQUEST), // Note: Duplicate key in original, kept to avoid breaking changes if used
+    CATEGORY_HAS_CHILDREN(5006, "category.has.child", HttpStatus.BAD_REQUEST), // Note: Duplicate key in original, kept to avoid breaking changes if used
+    CATEGORY_HAS_BOOKS(5014, "category.has.books", HttpStatus.BAD_REQUEST),
 
     BRAND_NOT_FOUND(5007, "brand.not.found", HttpStatus.NOT_FOUND),
     BRAND_NAME_NOTBLANK(5008, "brand.name.not.blank", HttpStatus.BAD_REQUEST),
     BRAND_SLUG_NOTBLANK(5009, "brand.slug.not.blank", HttpStatus.BAD_REQUEST),
     BRAND_SLUG_EXISTED(5010, "brand.slug.exists", HttpStatus.BAD_REQUEST),
 
+    AUTHOR_NOT_FOUND(7000, "author.not.found", HttpStatus.NOT_FOUND),
+    AUTHOR_NAME_NOTBLANK(7001, "author.name.not.blank", HttpStatus.BAD_REQUEST),
+    AUTHOR_NAME_EXISTED(7002, "author.name.exists", HttpStatus.BAD_REQUEST),
+    AUTHOR_EMAIL_NOTBLANK(7003, "author.email.not.blank", HttpStatus.BAD_REQUEST),
+    AUTHOR_EMAIL_VALID(7004, "author.email.valid", HttpStatus.BAD_REQUEST),
+    AUTHOR_EMAIL_EXISTED(7005, "author.email.exists", HttpStatus.BAD_REQUEST),
+    AUTHOR_CANNOT_DELETE(7006, "author.cannot.delete", HttpStatus.BAD_REQUEST),
+    AUTHOR_HAS_BOOKS(7007, "author.has.book", HttpStatus.BAD_REQUEST),
+
+    // ================= Thêm mới cho PUBLISHER =================
+    PUBLISHER_NOT_FOUND(8000, "publisher.not.found", HttpStatus.NOT_FOUND),
+    PUBLISHER_NAME_NOTBLANK(8001, "publisher.name.not.blank", HttpStatus.BAD_REQUEST),
+    PUBLISHER_EMAIL_EXISTED(8002, "publisher.email.exists", HttpStatus.BAD_REQUEST),
+    PUBLISHER_TAX_CODE_EXISTED(8003, "publisher.tax.code.exists", HttpStatus.BAD_REQUEST),
+    PUBLISHER_CANNOT_DELETE(8004, "publisher.cannot.delete", HttpStatus.BAD_REQUEST),
+
+    // ================= Thêm mới cho Books =================
+    BOOK_NOT_FOUND(9000, "book.not.found", HttpStatus.NOT_FOUND),
+    BOOK_TITLE_NOTBLANK(9001, "book.title.not.blank", HttpStatus.BAD_REQUEST),
+    BOOK_SLUG_EXISTED(9002, "book.slug.exists", HttpStatus.BAD_REQUEST),
+    BOOK_ISBN_EXISTED(9003, "book.isbn.exists", HttpStatus.BAD_REQUEST),
+    BOOK_PRICE_INVALID(9004, "book.price.invalid", HttpStatus.BAD_REQUEST),
+    BOOK_STOCK_INVALID(9005, "book.stock.invalid", HttpStatus.BAD_REQUEST),
+    BOOK_UPDATE_FAILED(9006, "book.update.failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    BOOK_DELETE_FAILED(9007, "book.delete.failed", HttpStatus.BAD_REQUEST),
+    BOOK_TITLE_EXISTED(9008, "book.title.existed", HttpStatus.BAD_REQUEST),
+
+    // Tag errors
+    TAG_NOT_FOUND(9100, "tag.not.found", HttpStatus.NOT_FOUND),
+    TAG_NAME_EXISTED(9101, "tag.name.exists", HttpStatus.BAD_REQUEST),
+
+
+    // Thêm vào cụm Receipt errors (1000x)
+    RECEIPT_NOT_FOUND(10001, "receipt.not.found", HttpStatus.NOT_FOUND),
+    RECEIPT_NOT_DRAFT(10002, "receipt.not.draft", HttpStatus.BAD_REQUEST),
+    RECEIPT_CANNOT_CANCEL_COMPLETED(10003, "receipt.cannot.cancel.completed", HttpStatus.BAD_REQUEST),
+
+    ORDER_NOT_FOUND(4004, "order.not.found", HttpStatus.NOT_FOUND),
+    ORDER_STATUS_INVALID(4005, "order.status.invalid", HttpStatus.BAD_REQUEST),
+    ORDER_CANNOT_CANCEL(4006, "order.cannot.cancel", HttpStatus.BAD_REQUEST),
+    ORDER_CANNOT_UPDATE(4007, "order.cannot.update", HttpStatus.BAD_REQUEST),
+
+    // MỚI: Lỗi liên quan đến Excel và File đính kèm
+    EXCEL_IMPORT_FAILED(10004, "receipt.excel.import.failed", HttpStatus.BAD_REQUEST),
+    EXCEL_INVALID_FORMAT(10005, "receipt.excel.invalid.format", HttpStatus.BAD_REQUEST),
+    ATTACHMENT_UPLOAD_FAILED(10006, "receipt.attachment.upload.failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    ATTACHMENT_TOO_LARGE(10007, "receipt.attachment.too.large", HttpStatus.BAD_REQUEST),
+
+    PUBLISHER_NOT_ACTIVE(8005, "PUBLISHER.not.active", HttpStatus.BAD_REQUEST),
+    BOOK_NOT_ACTIVE(9008, "book.not.active", HttpStatus.BAD_REQUEST),
+
     FILE_TYPE_INVALID(6000, "file.type.invalid", HttpStatus.BAD_REQUEST),
     FILE_TOO_LARGE(6001, "file.too.large", HttpStatus.BAD_REQUEST),
-    UPLOAD_IMAGE_FAILED(6002, "upload.image.failed", HttpStatus.INTERNAL_SERVER_ERROR)
-    ;
+    UPLOAD_IMAGE_FAILED(6002, "upload.image.failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    UPLOAD_FAILED(1009, "Upload file to S3 failed!", HttpStatus.INTERNAL_SERVER_ERROR),
+    USERNAME_EXISTED(1010, "username.exists", HttpStatus.BAD_REQUEST),
+
+    PROMOTION_NOT_FOUND(1100, "promotion.not.found",HttpStatus.BAD_REQUEST) ,
+    PROMOTION_DATE_INVALID(1101, "promotion.date.invalid",HttpStatus.BAD_REQUEST),
+
+    // ================= LỖI COUPON (1200x) =================
+    COUPON_NOT_FOUND(12000, "coupon.not.found", HttpStatus.NOT_FOUND),
+    COUPON_CODE_EXISTED(12001, "coupon.code.exists", HttpStatus.BAD_REQUEST),
+    COUPON_DATE_INVALID(12002, "coupon.date.invalid", HttpStatus.BAD_REQUEST),
+    COUPON_EXPIRED_OR_INACTIVE(12003, "coupon.expired.inactive", HttpStatus.BAD_REQUEST),
+    COUPON_OUT_OF_USAGE(12004, "coupon.out.of.usage", HttpStatus.BAD_REQUEST),
+    COUPON_MIN_ORDER_NOT_MET(12005, "coupon.min.order.not.met", HttpStatus.BAD_REQUEST),
+    COUPON_USER_MISMATCH(12006, "coupon.user.mismatch", HttpStatus.FORBIDDEN),
+    COUPON_CATEGORY_MISMATCH(12007, "coupon.category.mismatch", HttpStatus.BAD_REQUEST),
+    COUPON_USER_LIMIT_EXCEEDED(12008, "coupon.user.limit.exceeded", HttpStatus.BAD_REQUEST),
+    COUPON_RESTORE_FAILED_CODE_EXISTED(12009, "coupon.restore.failed.code.exists", HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

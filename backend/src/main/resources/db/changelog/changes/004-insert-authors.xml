@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="007-seed-authors-v4-fixed" author="zenbook" context="dev,test,prod">
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000201"/>
+            <column name="name" value="Nguyễn Nhật Ánh"/>
+            <column name="date_of_birth" value="1955-05-07"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Nhà văn chuyên viết cho thanh thiếu niên với các tác phẩm kinh điển: 'Kính vạn hoa', 'Cho tôi xin một vé đi tuổi thơ'."/>
+            <column name="avatar" value="https://vcdn1-giaitri.vnecdn.net/2024/12/05/nguyen-nhat-anh-1-1733390016-8059-1733390289.jpg?w=680&amp;h=0&amp;q=100&amp;dpr=2&amp;fit=crop&amp;s=nwxu0GqM0vr_sMSKn1mhwg"/>
+            <column name="email" value="nguyennhatanh@zenbook.com"/>
+        </insert>
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000202"/>
+            <column name="name" value="Tô Hoài"/>
+            <column name="date_of_birth" value="1920-09-27"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Cây đại thụ văn học hiện đại, nổi tiếng nhất với tác phẩm 'Dế Mèn phiêu lưu ký' được dịch ra nhiều thứ tiếng."/>
+            <column name="avatar" value="https://thanhnien.mediacdn.vn/uploaded/trandong/2015_07_18/to-hoai-d_ZAUJ.jpg?width=500"/>
+            <column name="email" value="tohoai@zenbook.com"/>
+        </insert>
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000203"/>
+            <column name="name" value="Nam Cao"/>
+            <column name="date_of_birth" value="1915-10-29"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Nhà văn hiện thực xuất sắc, tác giả của 'Chí Phèo', 'Lão Hạc', chuyên viết về người nông dân và trí thức nghèo."/>
+            <column name="avatar" value="https://images2.thanhnien.vn/528068263637045248/2025/6/14/chan-trang-1-online-17499033454992119013198.jpg"/>
+            <column name="email" value="namcao@zenbook.com"/>
+        </insert>
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000204"/>
+            <column name="name" value="Ngô Tất Tố"/>
+            <column name="date_of_birth" value="1893-04-20"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Nhà văn, nhà báo lỗi lạc, tác giả tiểu thuyết 'Tắt đèn' - bức tranh chân thực về nông thôn VN trước Cách mạng."/>
+            <column name="avatar" value="https://baovannghe.vn/stores/news_dataimages/2024/082024/01/13/z5688307457293-3f72d29ddfb5741f208a43c36073d86c20240801134748.jpg?rt=20240801134750"/>
+            <column name="email" value="ngotatto@zenbook.com"/>
+        </insert>
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000205"/>
+            <column name="name" value="Xuân Diệu"/>
+            <column name="date_of_birth" value="1916-02-02"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Ông hoàng thơ tình Việt Nam, mang đến làn gió mới mẻ, nồng cháy cho phong trào Thơ mới."/>
+            <column name="avatar" value="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSP7feFO8JIawRYv3q6ye9-RnIaj_2_vxurwV9I4mGZdnjkwBNGJ-L_CVOTGTI7V0p5t0jJ&amp;s"/>
+            <column name="email" value="xuandieu@zenbook.com"/>
+        </insert>
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000206"/>
+            <column name="name" value="Hàn Mặc Tử"/>
+            <column name="date_of_birth" value="1912-09-22"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Nhà thơ kỳ bí nhất trong phong trào Thơ mới với phong cách 'Thơ Điên' đầy ám ảnh và tài hoa."/>
+            <column name="avatar" value="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMdgWEptZdhemvGZkmwBeENDpdka0lU9z1WJ6E8M0PVlbBXHogD2IOtiF7gbbd4-Cr4v7Pq3-ENEZe1ONMZAgPoL-C14SVq-vdzIEeKz0R&amp;s=10"/>
+            <column name="email" value="hanmactu@zenbook.com"/>
+        </insert>
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000208"/>
+            <column name="name" value="Nguyễn Du"/>
+            <column name="date_of_birth" value="1766-01-03"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Đại thi hào dân tộc, tác giả của 'Truyện Kiều' - đỉnh cao của văn học trung đại Việt Nam."/>
+            <column name="avatar" value="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrqqgHNc0SxjnmTVltajTK7B2Di1DdU79o1UCgxnAnwZiTg9hsQ62FKk8SjX_YqrwAmOqqHH22p1CC4Bbc-qMshLqPu_HhEHTe6gx8mb8&amp;s=10"/>
+            <column name="email" value="nguyendu@zenbook.com"/>
+        </insert>
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000213"/>
+            <column name="name" value="Thạch Lam"/>
+            <column name="date_of_birth" value="1910-07-07"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Thành viên Tự Lực Văn Đoàn, nổi tiếng với những trang văn nhẹ nhàng, tinh tế và đầy lòng nhân ái."/>
+            <column name="avatar" value="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXnNpGK-uNZZ-bEh5bW6XHel96_Bo6cnTmEeawjeQLNcI0gO0pUuTWc4Wu-qJSdxPQT0ksDU_SGYAlIecnQ547JuIqD6-boYdfoKqC_bfYuQ&amp;s=10"/>
+            <column name="email" value="thachlam@zenbook.com"/>
+        </insert>
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000214"/>
+            <column name="name" value="Vũ Trọng Phụng"/>
+            <column name="date_of_birth" value="1912-10-20"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Bậc thầy văn chương trào phúng, 'Ông vua phóng sự đất Bắc' với kiệt tác 'Số đỏ'."/>
+            <column name="avatar" value="https://images2.thanhnien.vn/528068263637045248/2025/6/12/photo-1749752519906-17497525206072098735893.jpeg"/>
+            <column name="email" value="vutrongphung@zenbook.com"/>
+        </insert>
+
+        <insert tableName="authors">
+            <column name="id" value="00000000-0000-7000-0000-000000000211"/>
+            <column name="name" value="Tố Hữu"/>
+            <column name="date_of_birth" value="1920-10-04"/>
+            <column name="nationality" value="Việt Nam"/>
+            <column name="biography" value="Lá cờ đầu của thơ ca cách mạng Việt Nam, nổi tiếng với 'Từ ấy', 'Việt Bắc'."/>
+            <column name="avatar" value="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSeqJ7K_sWwyhjG5TwjdQCJ3NvcW5CAJptiqgG5G73Xe0HymKxlcYFehmhLAsbVPwL09-WG5Gb1VKw1sxb3LjrQ9115-CTuns-NWhDSw&amp;s=10"/>
+            <column name="email" value="tohuu@zenbook.com"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="authors">
+                <where>email LIKE '%@zenbook.com'</where>
+            </delete>
+        </rollback>
+
+    </changeSet>
+</databaseChangeLog>

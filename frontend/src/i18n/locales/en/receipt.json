@@ -1,0 +1,69 @@
+{
+  "common": {
+    "search": "Search",
+    "all": "All",
+    "ststus": "Status",
+    "reset": "Reset"
+  },
+  "page": {
+    "title": "Receipt Management"
+  },
+  "table": {
+    "code": "Receipt Code",
+    "supplier": "Supplier",
+    "date": "Created Date",
+    "totalAmount": "Total Amount",
+    "status": "Status",
+    "action": "Actions",
+    "searchPlaceholder": "Search receipt code...",
+    "allStatus": "All statuses",
+    "btnAdd": "Add Receipt",
+    "noResults": "No receipts found."
+  },
+  "status": {
+    "COMPLETED": "Completed",
+    "DRAFT": "Draft",
+    "CANCELLED": "Cancelled"
+  },
+  "action": {
+    "complete": "Complete Receipt",
+    "cancel": "Cancel Receipt",
+    "confirmComplete": "Confirm Completion",
+    "confirmCancel": "Confirm Cancellation",
+    "addBook": "Add Book"
+  },
+  "dialog": {
+    "createTitle": "Create Stock Receipt",
+    "completeTitle": "Confirm receipt completion?",
+    "completeDesc": "This action will add the book quantities to the actual stock. You cannot undo or change information after completion.",
+    "cancelTitle": "Confirm receipt cancellation?",
+    "cancelDesc": "Are you sure you want to cancel this draft receipt? The data will be moved to the cancelled status."
+  },
+  "form": {
+    "sectionGeneral": "1. General Information",
+    "sectionDetails": "2. Import Details",
+    "supplier": "Supplier",
+    "supplierPlaceholder": "Select supplier...",
+    "note": "Note",
+    "notePlaceholder": "Enter note (if any)...",
+    "book": "Book Title",
+    "bookPlaceholder": "Select book...",
+    "quantity": "Quantity",
+    "importPrice": "Import Price",
+    "btnCreate": "Save Draft"
+  },
+  "validation": {
+    "bookRequired": "Please select a book",
+    "numberInvalid": "Value must be a number",
+    "quantityMin": "Quantity must be at least 1",
+    "priceNegative": "Import price cannot be negative",
+    "supplierRequired": "Please select a supplier",
+    "detailsRequired": "Please add at least 1 book to the receipt"
+  },
+  "message": {
+    "createSuccess": "Draft receipt created successfully!",
+    "createError": "Error creating receipt. Please try again!",
+    "completeSuccess": "Receipt completed successfully! Inventory updated.",
+    "cancelSuccess": "Receipt cancelled successfully!"
+  }
+}

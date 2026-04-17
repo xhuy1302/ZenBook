@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="create-orders-table" author="zenbook">
+        <createTable tableName="orders">
+            <column name="id" type="VARCHAR(36)"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="order_code" type="VARCHAR(50)"><constraints unique="true" nullable="false"/></column>
+            <column name="user_id" type="VARCHAR(36)"/> <column name="customer_name" type="VARCHAR(255)"><constraints nullable="false"/></column>
+            <column name="customer_phone" type="VARCHAR(20)"><constraints nullable="false"/></column>
+            <column name="customer_email" type="VARCHAR(255)"><constraints nullable="false"/></column>
+            <column name="shipping_address" type="VARCHAR(500)"><constraints nullable="false"/></column>
+
+            <column name="total_items_price" type="DOUBLE"><constraints nullable="false"/></column>
+            <column name="shipping_fee" type="DOUBLE" defaultValueNumeric="0"><constraints nullable="false"/></column>
+            <column name="discount_amount" type="DOUBLE" defaultValueNumeric="0"><constraints nullable="false"/></column>
+            <column name="final_total" type="DOUBLE"><constraints nullable="false"/></column>
+
+            <column name="payment_method" type="VARCHAR(50)" defaultValue="COD"><constraints nullable="false"/></column>
+            <column name="status" type="VARCHAR(50)"><constraints nullable="false"/></column>
+            <column name="payment_status" type="VARCHAR(50)"><constraints nullable="false"/></column>
+            <column name="note" type="VARCHAR(1000)"/>
+
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-order-details-table" author="zenbook">
+        <createTable tableName="order_details">
+            <column name="id" type="VARCHAR(36)"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="order_id" type="VARCHAR(36)"><constraints nullable="false" foreignKeyName="fk_order_detail_order" references="orders(id)"/></column>
+            <column name="book_id" type="VARCHAR(36)"><constraints nullable="false" foreignKeyName="fk_order_detail_book" references="books(id)"/></column>
+            <column name="quantity" type="INT"><constraints nullable="false"/></column>
+            <column name="price_at_purchase" type="DOUBLE"><constraints nullable="false"/></column>
+            <column name="sub_total" type="DOUBLE"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-order-histories-table" author="zenbook">
+        <createTable tableName="order_histories">
+            <column name="id" type="VARCHAR(36)"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="order_id" type="VARCHAR(36)"><constraints nullable="false" foreignKeyName="fk_history_order" references="orders(id)"/></column>
+            <column name="from_status" type="VARCHAR(50)"/>
+            <column name="to_status" type="VARCHAR(50)"/>
+            <column name="action_by" type="VARCHAR(255)"/>
+            <column name="role" type="VARCHAR(50)"/>
+            <column name="note" type="VARCHAR(500)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260417-add-coupon-id-to-orders" author="zenbook">
+        <addColumn tableName="orders">
+            <column name="coupon_id" type="VARCHAR(36)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -6,44 +6,36 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
 
-        <changeSet id="004-seed-roles" author="dongdang" context="dev,test,prod">
+    <changeSet id="004-seed-roles" author="zenbook" context="dev,test,prod">
+        <insert tableName="roles">
+            <column name="id" value="00000000-0000-7000-0000-000000000001"/>
+            <column name="name" value="ADMIN"/>
+        </insert>
+        <insert tableName="roles">
+            <column name="id" value="00000000-0000-7000-0000-000000000002"/>
+            <column name="name" value="USER"/>
+        </insert>
+        <insert tableName="roles">
+            <column name="id" value="00000000-0000-7000-0000-000000000003"/>
+            <column name="name" value="STAFF"/>
+        </insert>
+        <rollback>
+            <delete tableName="roles">
+                <where>name IN ('ADMIN','USER','STAFF')</where>
+            </delete>
+        </rollback>
+    </changeSet>
 
-            <insert tableName="roles">
-                <column name="id" value="00000000-0000-7000-0000-000000000001"/>
-                <column name="name" value="ADMIN"/>
-            </insert>
-
-            <insert tableName="roles">
-                <column name="id" value="00000000-0000-7000-0000-000000000002"/>
-                <column name="name" value="USER"/>
-            </insert>
-
-            <insert tableName="roles">
-                <column name="id" value="00000000-0000-7000-0000-000000000003"/>
-                <column name="name" value="STAFF"/>
-            </insert>
-
-            <rollback>
-                <delete tableName="roles">
-                    <where>name IN ('ADMIN','USER','STAFF')</where>
-                </delete>
-            </rollback>
-
-        </changeSet>
-
-        <changeSet id="005-seed-admin-user" author="dongdang" context="dev,test">
-
-        <!-- USER -->
+    <changeSet id="005-seed-admin-user" author="zenbook" context="dev,test">
         <insert tableName="users">
             <column name="id" value="00000000-0000-7000-0000-000000000100"/>
-            <column name="username" value="vtech"/>
-            <column name="email" value="vtech@gmail.com"/>
-            <column name="password"
-                    value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/> <!-- Vtech123@ -->
+            <column name="username" value="zbook"/>
+            <column name="email" value="zbook@gmail.com"/>
+            <column name="password" value="$2a$12$MLPpyPZeVe/jKOCo29tCROpUnDbUbp5VtXDGneHm2rXD.pGiTYd7y"/>
             <column name="full_name" value="System Administrator"/>
+            <column name="avatar" value="https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/Logo/Zen+Book.png"/>
         </insert>
 
-        <!-- USER_ROLE -->
         <insert tableName="user_roles">
             <column name="user_id" value="00000000-0000-7000-0000-000000000100"/>
             <column name="role_id" value="00000000-0000-7000-0000-000000000001"/>
@@ -53,11 +45,94 @@
             <delete tableName="user_roles">
                 <where>user_id = '00000000-0000-7000-0000-000000000100'</where>
             </delete>
-
             <delete tableName="users">
-                <where>username = 'admin'</where>
+                <where>username = 'zbook'</where>
             </delete>
         </rollback>
+    </changeSet>
 
-        </changeSet>
+    <changeSet id="006-seed-mock-users" author="zenbook" context="dev,test">
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000101"/><column name="username" value="user1"/><column name="email" value="user1@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 01"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000102"/><column name="username" value="user2"/><column name="email" value="user2@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 02"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000103"/><column name="username" value="user3"/><column name="email" value="user3@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 03"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000104"/><column name="username" value="user4"/><column name="email" value="user4@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 04"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000105"/><column name="username" value="user5"/><column name="email" value="user5@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 05"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000106"/><column name="username" value="user6"/><column name="email" value="user6@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 06"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000107"/><column name="username" value="user7"/><column name="email" value="user7@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 07"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000108"/><column name="username" value="user8"/><column name="email" value="user8@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 08"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000109"/><column name="username" value="user9"/><column name="email" value="user9@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 09"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000110"/><column name="username" value="user10"/><column name="email" value="user10@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Khách hàng 10"/>
+        </insert>
+
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000111"/><column name="username" value="staff1"/><column name="email" value="staff1@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Nhân viên 01"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000112"/><column name="username" value="staff2"/><column name="email" value="staff2@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Nhân viên 02"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000113"/><column name="username" value="staff3"/><column name="email" value="staff3@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Nhân viên 03"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000114"/><column name="username" value="staff4"/><column name="email" value="staff4@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Nhân viên 04"/>
+        </insert>
+        <insert tableName="users">
+            <column name="id" value="00000000-0000-7000-0000-000000000115"/><column name="username" value="staff5"/><column name="email" value="staff5@gmail.com"/><column name="password" value="$2a$10$5uYsUIgxKkz59pOMorEHFOKtkCBRmKRXYTw945uB.Y/B8FnmU6GQ."/><column name="full_name" value="Nhân viên 05"/>
+        </insert>
+
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000101"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000102"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000103"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000104"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000105"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000106"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000107"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000108"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000109"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000110"/><column name="role_id" value="00000000-0000-7000-0000-000000000002"/></insert>
+
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000111"/><column name="role_id" value="00000000-0000-7000-0000-000000000003"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000112"/><column name="role_id" value="00000000-0000-7000-0000-000000000003"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000113"/><column name="role_id" value="00000000-0000-7000-0000-000000000003"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000114"/><column name="role_id" value="00000000-0000-7000-0000-000000000003"/></insert>
+        <insert tableName="user_roles"><column name="user_id" value="00000000-0000-7000-0000-000000000115"/><column name="role_id" value="00000000-0000-7000-0000-000000000003"/></insert>
+
+        <rollback>
+            <delete tableName="user_roles">
+                <where>user_id IN (
+                    '00000000-0000-7000-0000-000000000101', '00000000-0000-7000-0000-000000000102',
+                    '00000000-0000-7000-0000-000000000103', '00000000-0000-7000-0000-000000000104',
+                    '00000000-0000-7000-0000-000000000105', '00000000-0000-7000-0000-000000000106',
+                    '00000000-0000-7000-0000-000000000107', '00000000-0000-7000-0000-000000000108',
+                    '00000000-0000-7000-0000-000000000109', '00000000-0000-7000-0000-000000000110',
+                    '00000000-0000-7000-0000-000000000111', '00000000-0000-7000-0000-000000000112',
+                    '00000000-0000-7000-0000-000000000113', '00000000-0000-7000-0000-000000000114',
+                    '00000000-0000-7000-0000-000000000115'
+                    )</where>
+            </delete>
+            <delete tableName="users">
+                <where>username LIKE 'user%' OR username LIKE 'staff%'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

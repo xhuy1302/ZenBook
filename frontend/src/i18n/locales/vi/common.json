@@ -1,0 +1,57 @@
+{
+  "common": {
+    "welcome": "Chào mừng",
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi",
+    "success": "Thành công!",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "add": "Thêm",
+    "view": "Xem",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "more": "Xem thêm"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "products": "Sản phẩm",
+    "about": "Giới thiệu",
+    "contact": "Liên hệ",
+    "login": "Đăng nhập",
+    "signup": "Đăng ký",
+    "profile": "Tài khoản",
+    "logout": "Đăng xuất"
+  },
+  "footer": {
+    "copyright": "© {{year}} VTech. Bảo lưu mọi quyền.",
+    "privacy": "Chính sách bảo mật",
+    "terms": "Điều khoản dịch vụ",
+    "help": "Trung tâm trợ giúp"
+  },
+  "language": {
+    "vietnamese": "Tiếng Việt",
+    "english": "Tiếng Anh"
+  },
+  "datatablePagination": {
+    "rowsSelected": "Đã chọn {{selected}} / {{total}} dòng",
+    "rowsPerPage": "Số dòng mỗi trang",
+    "page": "Trang {{current}} / {{total}}",
+    "goToFirst": "Trang đầu",
+    "goToPrevious": "Trang trước",
+    "goToNext": "Trang sau",
+    "goToLast": "Trang cuối"
+  },
+  "datatableHeader": {
+    "sortAsc": "Tăng dần",
+    "sortDesc": "Giảm dần",
+    "hide": "Ẩn cột"
+  },
+
+  "datatableView": {
+    "view": "Hiển thị",
+    "toggleColumns": "Ẩn / hiện cột"
+  }
+}

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="20240402-2" author="zenbook">
+        <insert tableName="categories">
+            <column name="id" value="387e742e-1f7c-4a34-a160-064b584a0d01"/>
+            <column name="category_name" value="Kinh tế và kinh doanh"/>
+            <column name="slug" value="kinh-te-va-kinh-doanh"/>
+            <column name="category_desc" value="Sách về quản trị, đầu tư, khởi nghiệp và kỹ năng kinh doanh."/>
+            <column name="level" valueNumeric="0"/>
+            <column name="thumbnail_url" value="https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/categories/3.png"/>
+            <column name="display_order" valueNumeric="1"/>
+            <column name="is_featured" valueBoolean="true"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="categories">
+            <column name="id" value="8f121d4c-2b21-4f9e-9d2a-436d6a2f7c02"/>
+            <column name="category_name" value="Văn học và nghệ thuật"/>
+            <column name="slug" value="van-hoc-va-nghe-thuat"/>
+            <column name="category_desc" value="Tuyển tập tiểu thuyết, truyện ngắn, thơ và các tác phẩm nghệ thuật đặc sắc."/>
+            <column name="level" valueNumeric="0"/>
+            <column name="thumbnail_url" value="https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/categories/4.png"/>
+            <column name="display_order" valueNumeric="2"/>
+            <column name="is_featured" valueBoolean="true"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="categories">
+            <column name="id" value="a2b6d8e0-1c5f-4d4a-bd5e-33928a6f8b03"/>
+            <column name="category_name" value="Kỹ năng và phát triển bản thân"/>
+            <column name="slug" value="ky-nang-va-phat-trien-ban-than"/>
+            <column name="category_desc" value="Sách giúp cải thiện tư duy, kỹ năng sống và phát triển sự nghiệp."/>
+            <column name="level" valueNumeric="0"/>
+            <column name="thumbnail_url" value="https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/categories/5.png"/>
+            <column name="display_order" valueNumeric="3"/>
+            <column name="is_featured" valueBoolean="true"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="categories">
+            <column name="id" value="e4c7f9d1-0a3b-4c2e-bf6a-44819c5d1e04"/>
+            <column name="category_name" value="Khoa học và công nghệ"/>
+            <column name="slug" value="khoa-hoc-va-cong-nghe"/>
+            <column name="category_desc" value="Kiến thức về lập trình, AI, khoa học tự nhiên và công nghệ mới."/>
+            <column name="level" valueNumeric="0"/>
+            <column name="thumbnail_url" value="https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/categories/6.png"/>
+            <column name="display_order" valueNumeric="4"/>
+            <column name="is_featured" valueBoolean="true"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="categories">
+            <column name="id" value="fb9e1a2d-3c4b-4a5f-9e8d-77625b4c3a05"/>
+            <column name="category_name" value="Giáo dục và ngoại ngữ"/>
+            <column name="slug" value="giao-duc-va-ngoai-ngu"/>
+            <column name="category_desc" value="Giáo trình học thuật, tài liệu ôn thi và sách học ngôn ngữ (Anh, Nhật, Trung...)."/>
+            <column name="level" valueNumeric="0"/>
+            <column name="thumbnail_url" value="https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/categories/7.png"/>
+            <column name="display_order" valueNumeric="5"/>
+            <column name="is_featured" valueBoolean="true"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="categories">
+            <column name="id" value="c1d2e3f4-b5a6-4c7d-8e9f-012345678906"/>
+            <column name="category_name" value="Thiếu nhi và gia đình"/>
+            <column name="slug" value="thieu-nhi-va-gia-dinh"/>
+            <column name="category_desc" value="Truyện tranh, sách giáo dục cho trẻ và cẩm nang chăm sóc gia đình."/>
+            <column name="level" valueNumeric="0"/>
+            <column name="thumbnail_url" value="https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/categories/8.png"/>
+            <column name="display_order" valueNumeric="6"/>
+            <column name="is_featured" valueBoolean="true"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,78 @@
+{
+  "list": {
+    "title": "Author Management",
+    "description": "Manage author information, including name, avatar, and active status."
+  },
+  "filters": {
+    "search": "Search author name...",
+    "status": {
+      "label": "Status",
+      "all": "All Status",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "BLOCKED": "Blocked"
+    },
+    "reset": "Reset"
+  },
+  "table": {
+    "noResults": "No results found.",
+    "columns": {
+      "name": "Author Name",
+      "avatar": "Avatar",
+      "status": "Status",
+      "createdAt": "Created At",
+      "actions": "Actions",
+      "noBiography": "No biography",
+      "biography": "Biography",
+      "nationality": "Nationality",
+      "dateOfBirth": "Date of Birth",
+      "deathDate": "Death Date"
+    }
+  },
+  "dialogTitle": {
+    "permanentDelete": "Permanent Delete",
+    "restore": "Restore Author",
+    "trash": "Author Trash",
+    "softDelete": "Delete Author"
+  },
+  "message": {
+    "warning": {
+      "permanentDeleteConfirm": "Are you sure you want to permanently delete author {{name}}?",
+      "softDeleteConfirm": "Are you sure you want to move author {{name}} to trash?",
+      "restoreConfirm": "Are you sure you want to restore author {{name}}?"
+    },
+    "success": {
+      "create": "Author created successfully",
+      "update": "Author updated successfully",
+      "permanentDelete": "Permanently deleted successfully",
+      "softDelete": "Moved to trash successfully",
+      "restore": "Restored successfully"
+    },
+    "error": {
+      "delete": "Delete failed",
+      "fetch": "Failed to fetch authors",
+      "update": "Update failed",
+      "create": "Create author failed",
+      "restore": "Restore failed",
+      "permanentDelete": "Permanent delete failed",
+      "softDelete": "Move to trash failed",
+      "validation": {
+        "nameRequired": "Author name is required",
+        "nameMinLength": "Author name must be at least 2 characters long",
+        "nameMaxLength": "Author name must not exceed 100 characters"
+      },
+      "existed": "Author already exists"
+    }
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "deleteForever": "Delete Forever",
+    "restore": "Restore",
+    "confirm": "Confirm",
+    "close": "Close",
+    "edit": "Save Changes",
+    "delete": "Delete",
+    "add": "Add New",
+    "create": "Create"
+  }
+}

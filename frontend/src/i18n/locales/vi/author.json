@@ -1,0 +1,78 @@
+{
+  "list": {
+    "title": "Quan lý tác giả",
+    "description": "Quản lý thông tin tác giả, bao gồm tên, ảnh đại diện và trạng thái hoạt động."
+  },
+  "filters": {
+    "search": "Tìm kiếm tên tác giả...",
+    "status": {
+      "label": "Trạng thái",
+      "all": "Tất cả trạng thái",
+      "ACTIVE": "Hoạt động",
+      "INACTIVE": "Ngừng hoạt động",
+      "BLOCKED": "Đã khóa"
+    },
+    "reset": "Đặt lại"
+  },
+  "table": {
+    "noResults": "Không tìm thấy kết quả nào.",
+    "columns": {
+      "name": "Tên tác giả",
+      "avatar": "Ảnh đại diện",
+      "status": "Trạng thái",
+      "createdAt": "Ngày tạo",
+      "actions": "Thao tác",
+      "biography": "Tiểu sử",
+      "noBiography": "Không có tiểu sử",
+      "nationality": "Quốc tịch",
+      "dateOfBirth": "Ngày sinh",
+      "deathDate": "Ngày mất"
+    }
+  },
+  "dialogTitle": {
+    "permanentDelete": "Xóa vĩnh viễn",
+    "restore": "Khôi phục tác giả",
+    "trash": "Thùng rác tác giả",
+    "softDelete": "Xóa tác giả"
+  },
+  "message": {
+    "warning": {
+      "permanentDeleteConfirm": "Bạn có chắc muốn xóa vĩnh viễn tác giả {{name}} không?",
+      "softDeleteConfirm": "Bạn có chắc muốn chuyển tác giả {{name}} vào thùng rác?",
+      "restoreConfirm": "Bạn có chắc muốn khôi phục tác giả {{name}} không?"
+    },
+    "success": {
+      "create": "Tạo tác giả thành công",
+      "update": "Cập nhật tác giả thành công",
+      "permanentDelete": "Xóa vĩnh viễn thành công",
+      "softDelete": "Đã chuyển vào thùng rác",
+      "restore": "Khôi phục thành công"
+    },
+    "error": {
+      "delete": "Xóa thất bại",
+      "fetch": "Không thể tải danh sách tác giả",
+      "update": "Cập nhật thất bại",
+      "create": "Tạo tác giả thất bại",
+      "restore": "Khôi phục thất bại",
+      "permanentDelete": "Xóa vĩnh viễn thất bại",
+      "softDelete": "Chuyển vào thùng rác thất bại",
+      "validation": {
+        "nameRequired": "Tên tác giả là bắt buộc",
+        "nameMinLength": "Tên tác giả phải có ít nhất 2 ký tự",
+        "nameMaxLength": "Tên tác giả không được vượt quá 100 ký tự"
+      },
+      "existed": "Tác giả đã tồn tại"
+    }
+  },
+  "actions": {
+    "cancel": "Hủy",
+    "deleteForever": "Xóa vĩnh viễn",
+    "restore": "Khôi phục",
+    "confirm": "Xác nhận",
+    "close": "Đóng",
+    "edit": "Lưu thay đổi",
+    "delete": "Xóa",
+    "add": "Thêm mới",
+    "create": "Tạo"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "title": "Order Management",
+  "common": {
+    "loading": "Loading..."
+  },
+  "table": {
+    "columns": {
+      "orderCode": "Order Code",
+      "customer": "Customer",
+      "total": "Total",
+      "status": "Status",
+      "payment": "Payment",
+      "createdAt": "Created At",
+      "actions": "Actions",
+      "book": "Book",
+      "price": "Price",
+      "stock": "Stock",
+      "quantity": "Quantity"
+    },
+    "noResults": "No orders found",
+    "noBooksFound": "No books found"
+  },
+  "status": {
+    "PENDING": "Pending",
+    "CONFIRMED": "Confirmed",
+    "PACKING": "Packing",
+    "SHIPPING": "Shipping",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "RETURNED": "Returned"
+  },
+  "paymentStatus": {
+    "UNPAID": "Unpaid",
+    "PAID": "Paid",
+    "REFUNDED": "Refunded"
+  },
+  "filters": {
+    "search": "Search by order code...",
+    "searchBooks": "Search by title, ISBN, author...",
+    "status": {
+      "label": "Status",
+      "all": "All statuses"
+    },
+    "payment": {
+      "label": "Payment",
+      "all": "All payments"
+    },
+    "reset": "Clear filters"
+  },
+  "actions": {
+    "title": "Actions",
+    "view": "View Details",
+    "edit": "Edit",
+    "create": "Create Order",
+    "confirm": "Confirm",
+    "packing": "Packing",
+    "shipping": "Shipping",
+    "complete": "Complete",
+    "cancel": "Cancel",
+    "return": "Return",
+    "save": "Save",
+    "selectBooks": "Select Books",
+    "confirmSelection": "Confirm Selection"
+  },
+  "detail": {
+    "title": "Order Details",
+    "customerInfo": "Customer Information",
+    "shippingInfo": "Shipping Information",
+    "items": "Items",
+    "totalItems": "Items Total",
+    "shippingFee": "Shipping Fee",
+    "discount": "Discount",
+    "finalTotal": "Final Total",
+    "history": "Status History"
+  },
+  "form": {
+    "createTitle": "Create New Order",
+    "editTitle": "Edit Order"
+  },
+  "fields": {
+    "customerName": "Customer Name",
+    "customerPhone": "Phone Number",
+    "customerEmail": "Email",
+    "shippingAddress": "Shipping Address",
+    "paymentMethod": "Payment Method",
+    "note": "Note",
+    "items": "Products",
+    "selectedBooks": "Selected Books",
+    "noBooksSelected": "No books selected"
+  },
+  "statusDialog": {
+    "title": "Confirm {{action}}",
+    "description": "Are you sure you want to change order {{orderCode}} to {{status}}?",
+    "notePlaceholder": "Enter note (optional)"
+  },
+  "dialog": {
+    "selectBooksTitle": "Select Books for Order",
+    "totalSelected": "Total Selected"
+  },
+  "validation": {
+    "customerNameRequired": "Customer name is required",
+    "phoneInvalid": "Invalid phone number (10-11 digits)",
+    "emailInvalid": "Invalid email address",
+    "addressRequired": "Shipping address is required",
+    "paymentMethodRequired": "Payment method is required",
+    "itemsRequired": "Please select at least one product",
+    "bookRequired": "Please select a book",
+    "quantityPositive": "Quantity must be greater than 0"
+  },
+  "message": {
+    "success": {
+      "create": "Order created successfully",
+      "edit": "Order updated successfully",
+      "updateStatus": "Status updated successfully"
+    },
+    "error": {
+      "create": "Failed to create order",
+      "edit": "Failed to update order",
+      "updateStatus": "Failed to update status"
+    }
+  }
+}
