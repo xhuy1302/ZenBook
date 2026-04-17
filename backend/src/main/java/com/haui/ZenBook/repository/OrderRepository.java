@@ -18,7 +18,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, String> {
     String findMaxOrderCodeByDate(String datePrefix);
 
     long countByStatus(OrderStatus status);
-
+    long countByUserIdAndCouponId(String userId, String couponId);
     Page<OrderEntity> findByStatus(OrderStatus status, Pageable pageable);
 
     Page<OrderEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);

@@ -73,6 +73,9 @@ public class OrderEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "coupon_id")
+    private String couponId;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderDetailEntity> details = new ArrayList<>();

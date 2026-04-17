@@ -1,0 +1,109 @@
+{
+  "common": {
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "saveChanges": "Lưu thay đổi",
+    "delete": "Xóa",
+    "restore": "Khôi phục",
+    "reset": "Làm mới",
+    "action": "Thao tác",
+    "status": "Trạng thái",
+    "na": "N/A"
+  },
+  "fields": {
+    "status": {
+      "options": {
+        "ACTIVE": "Đang áp dụng",
+        "INACTIVE": "Tạm dừng",
+        "EXPIRED": "Hết hạn",
+        "DELETED": "Đã xóa"
+      }
+    },
+    "discountType": {
+      "options": {
+        "PERCENTAGE": "Giảm theo phần trăm (%)",
+        "FIXED_AMOUNT": "Giảm tiền mặt (đ)"
+      }
+    }
+  },
+  "coupon": {
+    "validation": {
+      "codeMin": "Mã giảm giá phải từ 3 ký tự trở lên",
+      "required": "Trường này là bắt buộc",
+      "min1": "Giá trị phải lớn hơn 0",
+      "min0": "Giá trị không được nhỏ hơn 0",
+      "percentMax": "Mức giảm % không được vượt quá 100!",
+      "dateInvalid": "Ngày kết thúc phải sau ngày bắt đầu!",
+      "maxDiscountRequired": "Vui lòng nhập mức giảm tối đa cho loại giảm %"
+    },
+    "page": {
+      "title": "Quản lý Mã giảm giá"
+    },
+    "table": {
+      "code": "Mã Code",
+      "discountValue": "Mức giảm",
+      "condition": "Điều kiện",
+      "usage": "Đã dùng",
+      "duration": "Thời hạn",
+      "status": "Trạng thái",
+      "action": "Thao tác",
+      "searchPlaceholder": "Tìm kiếm mã code...",
+      "allStatus": "Tất cả trạng thái",
+      "allTypes": "Tất cả loại giảm",
+      "btnAdd": "Thêm mã mới",
+      "noResults": "Không tìm thấy mã giảm giá nào."
+    },
+    "dialog": {
+      "createTitle": "Tạo mã giảm giá mới",
+      "editTitle": "Cập nhật mã giảm giá",
+      "viewTitle": "Chi tiết mã giảm giá",
+      "deleteTitle": "Xác nhận xóa mã",
+      "restoreTitle": "Khôi phục mã giảm giá",
+      "hardDeleteTitle": "Cảnh báo: Xóa vĩnh viễn",
+      "deleteConfirm1": "Bạn có chắc chắn muốn xóa mã ",
+      "deleteConfirm2": "? Mã sẽ không thể sử dụng nhưng có thể khôi phục từ thùng rác.",
+      "btnSoftDelete": "Chuyển vào thùng rác"
+    },
+    "form": {
+      "section1": "1. Thông tin cơ bản",
+      "section2": "2. Điều kiện & Hạn mức",
+      "section3": "3. Thời gian & Trạng thái",
+      "code": "Mã Code",
+      "codePlaceholder": "VD: CHAOHE2026",
+      "discountType": "Loại giảm giá",
+      "discountValue": "Giá trị giảm",
+      "maxDiscount": "Giảm tối đa (đ)",
+      "maxDiscountNote": "Chặn trần số tiền giảm khi dùng %",
+      "minOrder": "Đơn hàng tối thiểu (đ)",
+      "usageLimit": "Tổng lượt dùng",
+      "maxUsagePerUser": "Lượt dùng / Người dùng",
+      "category": "Áp dụng cho Danh mục",
+      "allCategories": "Tất cả danh mục",
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "btnCreate": "Tạo mã",
+      "btnUpdate": "Cập nhật mã",
+      "createdAt": "Ngày tạo",
+      "updatedAt": "Cập nhật cuối"
+    },
+    "badge": {
+      "PERCENTAGE": "Giảm %",
+      "FIXED_AMOUNT": "Giảm tiền"
+    },
+    "messages": {
+      "createSuccess": "Tạo mã giảm giá thành công!",
+      "createError": "Lỗi khi tạo mã giảm giá!",
+      "updateSuccess": "Cập nhật mã thành công!",
+      "updateError": "Cập nhật thất bại!",
+      "softDeleteSuccess": "Đã chuyển mã vào thùng rác!",
+      "restoreSuccess": "Khôi phục mã giảm giá thành công!",
+      "hardDeleteSuccess": "Đã xóa vĩnh viễn mã khỏi hệ thống!",
+      "confirmHardDelete": "Bạn có chắc chắn muốn XÓA VĨNH VIỄN mã \"{{code}}\" không? Hành động này không thể hoàn tác."
+    },
+    "trash": {
+      "title": "Thùng rác mã giảm giá",
+      "empty": "Thùng rác trống.",
+      "btnTrash": "Thùng rác"
+    }
+  }
+}

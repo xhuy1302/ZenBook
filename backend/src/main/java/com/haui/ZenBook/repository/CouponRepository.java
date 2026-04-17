@@ -1,0 +1,30 @@
+package com.haui.ZenBook.repository;
+
+import com.haui.ZenBook.entity.CouponEntity;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface CouponRepository extends JpaRepository<CouponEntity, String> {
+
+    // Phục vụ CRUD Admin
+    boolean existsByCodeAndDeletedAtIsNull(String code);
+
+    Optional<CouponEntity> findByCodeAndDeletedAtIsNull(String code);
+
+    // ĐÃ SỬA: Bỏ Pageable, trả về List và sắp xếp giảm dần theo thời gian tạo
+    List<CouponEntity> findAllByDeletedAtIsNullOrderByCreatedAtDesc();
+
+    // ĐÃ SỬA: Bỏ Pageable, trả về List và sắp xếp giảm dần theo thời gian xóa (Dành cho Thùng rác)
+    List<CouponEntity> findAllByDeletedAtIsNotNullOrderByDeletedAtDesc();
+
+    // Phục vụ Validate Đặt hàng (PESSIMISTIC_WRITE để chống Race Condition)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c FROM CouponEntity c WHERE c.code = :code AND c.deletedAt IS NULL")
+    Optional<CouponEntity> findByCodeForUpdate(@Param("code") String code);
+}

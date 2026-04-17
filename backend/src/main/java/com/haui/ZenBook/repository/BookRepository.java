@@ -14,6 +14,8 @@ public interface BookRepository extends JpaRepository<BookEntity, String>, JpaSp
     Optional<BookEntity> findBySlug(String slug);
     boolean existsBySlug(String slug);
     boolean existsByIsbn(String isbn);
+    boolean existsByTitle(String title);
+    boolean existsByTitleAndIdNot(String title, String id);
 
     List<BookEntity> findByDeletedAtIsNullOrderByCreatedAtDesc();
 

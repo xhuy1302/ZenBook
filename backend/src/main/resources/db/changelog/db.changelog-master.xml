@@ -18,4 +18,5 @@
     <include file="classpath:db/changelog/changes/011-create-table-receipt.xml"/>
     <include file="classpath:db/changelog/changes/012-create-table-order.xml"/>
     <include file="classpath:db/changelog/changes/013-create-table-promotions.xml"/>
+    <include file="classpath:db/changelog/changes/014-create-table-coupons.xml"/>
 </databaseChangeLog>

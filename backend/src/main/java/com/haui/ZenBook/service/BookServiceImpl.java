@@ -41,7 +41,14 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public BookResponse createBook(BookRequest request) {
-        if (request.getIsbn() != null && !request.getIsbn().isBlank() && bookRepository.existsByIsbn(request.getIsbn())) {
+
+        if (request.getTitle() != null && !request.getTitle().isBlank()
+                && bookRepository.existsByTitle(request.getTitle())) {
+            throw new AppException(ErrorCode.BOOK_TITLE_EXISTED, request.getTitle());
+        }
+
+        if (request.getIsbn() != null && !request.getIsbn().isBlank()
+                && bookRepository.existsByIsbn(request.getIsbn())) {
             throw new AppException(ErrorCode.BOOK_ISBN_EXISTED, request.getIsbn());
         }
 
@@ -97,17 +104,24 @@ public class BookServiceImpl implements BookService {
         BookEntity book = bookRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
 
+        // ✅ Kiểm tra trùng title (bỏ qua chính nó)
+        if (request.getTitle() != null && !request.getTitle().isBlank()
+                && !request.getTitle().equals(book.getTitle())
+                && bookRepository.existsByTitleAndIdNot(request.getTitle(), id)) {
+            throw new AppException(ErrorCode.BOOK_TITLE_EXISTED, request.getTitle());
+        }
+
         // Kiểm tra ISBN trùng (bỏ qua nếu ISBN không đổi)
-        if (request.getIsbn() != null && !request.getIsbn().isBlank() && !request.getIsbn().equals(book.getIsbn())) {
-            if (bookRepository.existsByIsbn(request.getIsbn())) {
-                throw new AppException(ErrorCode.BOOK_ISBN_EXISTED, request.getIsbn());
-            }
+        if (request.getIsbn() != null && !request.getIsbn().isBlank()
+                && !request.getIsbn().equals(book.getIsbn())
+                && bookRepository.existsByIsbn(request.getIsbn())) {
+            throw new AppException(ErrorCode.BOOK_ISBN_EXISTED, request.getIsbn());
         }
 
         bookMapper.updateEntityFromRequest(request, book);
         book.setSlug(SlugUtils.makeSlug(request.getTitle()));
 
-        // ✅ Cập nhật thumbnail nếu có file mới
+        // Cập nhật thumbnail nếu có file mới
         if (request.getThumbnailFile() != null && !request.getThumbnailFile().isEmpty()) {
             try {
                 if (book.getThumbnail() != null && !book.getThumbnail().isBlank()) {
@@ -121,28 +135,9 @@ public class BookServiceImpl implements BookService {
             }
         }
 
-        // ✅ Xóa từng ảnh gallery được chỉ định theo ID
+        // ✅ Xóa từng ảnh gallery được chỉ định theo ID (chỉ 1 khối, không duplicate)
         if (request.getDeleteImageIds() != null && !request.getDeleteImageIds().isEmpty()) {
             List<BookImageEntity> imagesToDelete = bookImageRepository.findAllById(request.getDeleteImageIds());
-
-            for (BookImageEntity image : imagesToDelete) {
-                // Kiểm tra ảnh có thuộc sách này không
-                if (!image.getBook().getId().equals(id)) {
-                    log.warn("Ảnh {} không thuộc sách {}, bỏ qua", image.getId(), id);
-                    continue;
-                }
-                if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
-                    s3Service.deleteFile(image.getImageUrl());
-                }
-                book.getImages().remove(image);
-                bookImageRepository.delete(image);
-            }
-        }
-
-        // ✅ Thêm ảnh gallery mới, KHÔNG xóa ảnh cũ
-        if (request.getDeleteImageIds() != null && !request.getDeleteImageIds().isEmpty()) {
-            List<BookImageEntity> imagesToDelete = bookImageRepository.findAllById(request.getDeleteImageIds());
-
             for (BookImageEntity image : imagesToDelete) {
                 if (!image.getBook().getId().equals(id)) {
                     log.warn("Ảnh {} không thuộc sách {}, bỏ qua", image.getId(), id);
@@ -151,7 +146,6 @@ public class BookServiceImpl implements BookService {
                 if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
                     s3Service.deleteFile(image.getImageUrl());
                 }
-                // ✅ Fix 1+2: Null-safe + dùng removeIf theo ID thay vì remove(object)
                 if (book.getImages() != null) {
                     book.getImages().removeIf(img -> img.getId().equals(image.getId()));
                 }
@@ -159,9 +153,8 @@ public class BookServiceImpl implements BookService {
             }
         }
 
-// ✅ Thêm ảnh gallery mới, KHÔNG xóa ảnh cũ
+        // ✅ Thêm ảnh gallery mới, KHÔNG xóa ảnh cũ
         if (request.getGalleryFiles() != null && !request.getGalleryFiles().isEmpty()) {
-            // ✅ Fix 3: Khởi tạo Set nếu null
             if (book.getImages() == null) {
                 book.setImages(new HashSet<>());
             }
