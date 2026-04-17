@@ -1,14 +1,20 @@
-'use client'
+import { Folder, Forward, MoreHorizontal, Trash2, type LucideIcon } from 'lucide-react'
 
-import { type LucideIcon } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
-  SidebarMenuItem
+  SidebarMenuItem,
+  useSidebar
 } from '@/components/ui/sidebar'
 
 export function NavProjects({
@@ -20,40 +26,49 @@ export function NavProjects({
     icon: LucideIcon
   }[]
 }) {
-  const location = useLocation()
-  const pathname = location.pathname
+  const { isMobile } = useSidebar()
 
   return (
-    <SidebarGroup className='group-data-[collapsible=icon]:hidden mt-2'>
-      <SidebarGroupLabel className='uppercase tracking-widest text-muted-foreground font-bold text-[11px] mb-1'>
-        Hệ thống & Cấu hình
-      </SidebarGroupLabel>
+    <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
+      <SidebarGroupLabel>Projects</SidebarGroupLabel>
       <SidebarMenu>
-        {projects.map((item) => {
-          const isActive = pathname === item.url || pathname.startsWith(`${item.url}/`)
-
-          return (
-            <SidebarMenuItem key={item.name} className='mb-1'>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive}
-                tooltip={item.name}
-                className={`transition-all duration-200 rounded-md ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground font-bold shadow-md hover:bg-primary/90 hover:text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium'
-                }`}
+        {projects.map((item) => (
+          <SidebarMenuItem key={item.name}>
+            <SidebarMenuButton asChild>
+              <a href={item.url}>
+                <item.icon />
+                <span>{item.name}</span>
+              </a>
+            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuAction showOnHover>
+                  <MoreHorizontal />
+                  <span className='sr-only'>More</span>
+                </SidebarMenuAction>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className='w-48 rounded-lg'
+                side={isMobile ? 'bottom' : 'right'}
+                align={isMobile ? 'end' : 'start'}
               >
-                <Link to={item.url} className='flex items-center gap-2'>
-                  <item.icon
-                    className={`size-4 transition-transform ${isActive ? 'scale-110' : ''}`}
-                  />
-                  <span>{item.name}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )
-        })}
+                <DropdownMenuItem>
+                  <Folder className='text-muted-foreground' />
+                  <span>View Project</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Forward className='text-muted-foreground' />
+                  <span>Share Project</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Trash2 className='text-muted-foreground' />
+                  <span>Delete Project</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        ))}
       </SidebarMenu>
     </SidebarGroup>
   )

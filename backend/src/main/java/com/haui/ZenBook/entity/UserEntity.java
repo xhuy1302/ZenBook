@@ -7,14 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -23,8 +18,7 @@ import java.util.stream.Collectors;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserEntity extends BaseEntity implements UserDetails {
-
+public class UserEntity extends BaseEntity{
     @Column(name = "username", nullable = false, length = 50)
     private String username;
 
@@ -45,7 +39,7 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private UserStatus status; // Bỏ gán trực tiếp ở đây để tránh lỗi Builder
+    private UserStatus status;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
@@ -57,40 +51,4 @@ public class UserEntity extends BaseEntity implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<RoleEntity> roles;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Tránh lỗi NullPointerException nếu roles chưa được load
-        if (roles == null) return java.util.Collections.emptyList();
-
-        return roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public String getUsername() {
-        return this.email; // Đăng nhập bằng Email
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        // Nếu status null thì coi như ACTIVE để tránh bị chặn đăng nhập oan
-        return status == null || status == UserStatus.ACTIVE;
-    }
 }

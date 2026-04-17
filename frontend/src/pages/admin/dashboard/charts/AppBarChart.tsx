@@ -9,35 +9,47 @@ import {
   type ChartConfig
 } from '@/components/ui/chart'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
-import type { RevenueChartData } from '@/services/dashboard/db.type'
+
+const chartData = [
+  { month: 'January', desktop: 186, mobile: 80 },
+  { month: 'February', desktop: 305, mobile: 200 },
+  { month: 'March', desktop: 237, mobile: 120 },
+  { month: 'April', desktop: 73, mobile: 190 },
+  { month: 'May', desktop: 209, mobile: 130 },
+  { month: 'June', desktop: 214, mobile: 140 }
+]
 
 const chartConfig = {
-  revenue: { label: 'Doanh thu', color: 'hsl(var(--chart-1))' },
-  profit: { label: 'Lợi nhuận', color: 'hsl(var(--chart-2))' }
+  desktop: {
+    label: 'Desktop',
+    color: 'hsl(var(--chart-1))'
+  },
+  mobile: {
+    label: 'Mobile',
+    color: 'hsl(var(--chart-2))'
+  }
 } satisfies ChartConfig
-
-export default function AppBarChart({ chartData }: { chartData: RevenueChartData[] }) {
-  if (!chartData || chartData.length === 0)
-    return (
-      <div className='flex h-full items-center justify-center text-muted-foreground'>
-        Chưa có dữ liệu
-      </div>
-    )
-
+export default function AppBarChart() {
   return (
-    <div className='flex flex-col gap-4'>
-      <h1 className='text-lg font-semibold'>Tăng trưởng doanh thu</h1>
-      <ChartContainer config={chartConfig} className='min-h-[250px] w-full'>
+    <>
+      <h1 className='text-lg font-medium mb-6'>Total Revenue</h1>
+      <ChartContainer config={chartConfig} className='min-h-[200px] w-full'>
         <BarChart accessibilityLayer data={chartData}>
-          <CartesianGrid vertical={false} strokeDasharray='3 3' />
-          <XAxis dataKey='month' tickLine={false} axisLine={false} tickMargin={10} />
-          <YAxis tickLine={false} axisLine={false} />
+          <CartesianGrid vertical={true} />
+          <XAxis
+            dataKey='month'
+            tickLine={true}
+            tickMargin={10}
+            axisLine={false}
+            tickFormatter={(value) => value.slice(0, 3)}
+          />
+          <YAxis tickLine={true} tickMargin={10} axisLine={false} />
           <ChartTooltip content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
-          <Bar dataKey='revenue' fill='var(--color-revenue)' radius={[4, 4, 0, 0]} />
-          <Bar dataKey='profit' fill='var(--color-profit)' radius={[4, 4, 0, 0]} />
+          <Bar dataKey='desktop' fill='var(--color-desktop)' radius={4} />
+          <Bar dataKey='mobile' fill='var(--color-mobile)' radius={4} />
         </BarChart>
       </ChartContainer>
-    </div>
+    </>
   )
 }
