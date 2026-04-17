@@ -1,18 +1,17 @@
-'use client'
-
 import {
-  BookOpen,
-  ShoppingCart,
-  Users,
-  FileText,
-  TicketPercent,
-  Tags,
-  Star,
-  Settings2,
   AudioWaveform,
+  Box,
+  CircleStar,
+  Command,
   GalleryVerticalEnd,
-  Package,
-  Gift
+  ListCollapseIcon,
+  MessageCircleMore,
+  Settings,
+  ShoppingCart,
+  StickyNote,
+  Tags,
+  TicketPercent,
+  Users2
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -27,97 +26,140 @@ import {
   SidebarHeader,
   SidebarRail
 } from '@/components/ui/sidebar'
-import { useContext, useMemo } from 'react'
-import { AuthContext } from '@/context/AuthContext'
-import { useQuery } from '@tanstack/react-query'
-import { orderService } from '@/services/order/order.api'
 
-const staticData = {
+// This is sample data.
+const data = {
+  user: {
+    name: 'Zenbook',
+    email: 'zenbook@gmail.com',
+    avatar: '/avatars/shadcn.jpg'
+  },
   teams: [
     {
-      name: 'Zenbook Store.',
+      name: 'Acme Inc',
       logo: GalleryVerticalEnd,
-      plan: 'Pro Plan'
+      plan: 'Enterprise'
     },
     {
-      name: 'Zenbook Logistics',
+      name: 'Acme Corp.',
       logo: AudioWaveform,
       plan: 'Startup'
+    },
+    {
+      name: 'Evil Corp.',
+      logo: Command,
+      plan: 'Free'
     }
   ],
-  systemMenus: [
-    { name: 'Tài khoản', url: '/dashboard/users', icon: Users },
-    // Đã xóa 'Nhà cung cấp' khỏi đây
-    { name: 'Khuyến mãi', url: '/dashboard/promotions', icon: Gift },
-    { name: 'Mã giảm giá', url: '/dashboard/coupons', icon: TicketPercent },
-    { name: 'Bài viết & Blog', url: '/dashboard/blog', icon: FileText },
-    { name: 'Đánh giá / Review', url: '/dashboard/reviews', icon: Star },
-    { name: 'Tags sách', url: '/dashboard/tags', icon: Tags },
-    { name: 'Cài đặt hệ thống', url: '/dashboard/settings', icon: Settings2 }
+  navMain: [
+    {
+      title: 'Products',
+      url: '#',
+      icon: Box,
+      isActive: true,
+      items: [
+        {
+          title: 'List Products',
+          url: '#'
+        },
+        {
+          title: 'Product Variant',
+          url: '#'
+        },
+        {
+          title: 'Colors',
+          url: '#'
+        },
+        {
+          title: 'Versions',
+          url: '#'
+        },
+        {
+          title: 'Specifications',
+          url: '#'
+        }
+      ]
+    },
+    {
+      title: 'Orders',
+      url: '#',
+      icon: ShoppingCart,
+      items: [
+        {
+          title: 'Introduction',
+          url: '#'
+        },
+        {
+          title: 'Get Started',
+          url: '#'
+        },
+        {
+          title: 'Tutorials',
+          url: '#'
+        },
+        {
+          title: 'Changelog',
+          url: '#'
+        }
+      ]
+    }
+  ],
+  projects: [
+    {
+      name: 'Categories',
+      url: '/dashboard/categories',
+      icon: ListCollapseIcon
+    },
+    {
+      name: 'Brands',
+      url: '/dashboard/brands',
+      icon: CircleStar
+    },
+    {
+      name: 'Blog',
+      url: '#',
+      icon: StickyNote
+    },
+    {
+      name: 'Users',
+      url: '/dashboard/users',
+      icon: Users2
+    },
+    {
+      name: 'Vouchers',
+      url: '#',
+      icon: TicketPercent
+    },
+    {
+      name: 'Tags',
+      url: '#',
+      icon: Tags
+    },
+    {
+      name: 'Reviews',
+      url: '#',
+      icon: MessageCircleMore
+    },
+    {
+      name: 'Settings',
+      url: '#',
+      icon: Settings
+    }
   ]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const authContext = useContext(AuthContext)
-  const user = authContext?.user
-
-  const { data: pendingCount = 0 } = useQuery({
-    queryKey: ['orders', 'sidebar-count'],
-    queryFn: () => orderService.getCountPending(),
-    refetchInterval: 30000,
-    enabled: !!user
-  })
-
-  const navMainWithBadge = useMemo(
-    () => [
-      {
-        title: 'Quản lý Sách',
-        url: '#',
-        icon: BookOpen,
-        isActive: true,
-        items: [
-          { title: 'Tất cả sách', url: '/dashboard/books' },
-          { title: 'Danh mục', url: '/dashboard/categories' },
-          { title: 'Tác giả', url: '/dashboard/authors' },
-          { title: 'Nhà xuất bản', url: '/dashboard/publishers' }
-        ]
-      },
-      {
-        title: 'Quản lý Kho',
-        url: '#',
-        icon: Package,
-        items: [
-          { title: 'Phiếu nhập kho', url: '/dashboard/receipts' },
-          { title: 'Kiểm kê tồn kho', url: '/dashboard/inventory' }
-        ]
-      },
-      {
-        title: 'Đơn hàng',
-        url: '/dashboard/orders',
-        icon: ShoppingCart,
-        badge: pendingCount > 0 ? String(pendingCount) : undefined
-      }
-    ],
-    [pendingCount]
-  )
-
-  const currentUser = {
-    name: user?.fullName || 'Zenbook Admin',
-    email: user?.email || 'admin@zenbook.com',
-    avatar: user?.avatar || '/avatars/admin.jpg'
-  }
-
   return (
     <Sidebar side='left' variant='inset' collapsible='icon' {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={staticData.teams} />
+        <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMainWithBadge} />
-        <NavProjects projects={staticData.systemMenus} />
+        <NavMain items={data.navMain} />
+        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={currentUser} />
+        <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -3,18 +3,8 @@ import { Toaster } from 'sonner'
 import LoginPage from '@/pages/auth/LoginPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
 import LayoutAdmin from '@/pages/admin/LayoutAdmin'
-import ProtectedRoute from './routes/ProtectedRoute' // Đường dẫn của bạn
+import ProtectedRoute from './components/auth/ProtectedRoute'
 import DashboardHome from './pages/admin/dashboard/content/DashBoardHome'
-import UserPage from './pages/admin/manage-user/page'
-import AuthorPage from './pages/admin/manage-author/page'
-import CategoryPage from './pages/admin/manage-category/page'
-import PublisherPage from './pages/admin/manage-publisher/page'
-import BookPage from './pages/admin/manage-book/page'
-import ReceiptPage from './pages/admin/manage-receipt/page'
-import OrderPage from './pages/admin/manage-order/page'
-import PromotionPage from './pages/admin/manage-promotion/page'
-import TagPage from './pages/admin/manage-tag/page'
-import CouponPage from './pages/admin/manage-coupon/page'
 
 function App() {
   return (
@@ -30,39 +20,16 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* <Route path='*' element={<NotFound404 />} /> */}
-
-          {/* =========================================
-              PUBLIC ROUTES (Ai cũng vào được)
-              ========================================= */}
+          {/* TODO: tạo các public route */}
           <Route path='/login' element={<LoginPage />} />
           <Route path='/signup' element={<SignUpPage />} />
-
-          {/* =========================================
-              PROTECTED ROUTES DÀNH CHO USER BÌNH THƯỜNG
-              ========================================= */}
-          {/* Ví dụ: Admin hay User đều có thể xem Profile */}
-          <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN', 'STAFF']} />}>
+          {/* TODO: tạo protected route */}
+          <Route element={<ProtectedRoute />}>
             {/* <Route path='/profile' element={<ProfilePage />} /> */}
-            {/* <Route path='/cart' element={<CartPage />} /> */}
-          </Route>
-
-          {/* =========================================
-              PROTECTED ROUTES CHỈ DÀNH CHO ADMIN
-              ========================================= */}
-          {/* Thêm allowedRoles={['ADMIN']} để gác cổng */}
-          <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
             <Route path='/dashboard' element={<LayoutAdmin />}>
               <Route index element={<DashboardHome />} />
-              <Route path='users' element={<UserPage />} />
-              <Route path='authors' element={<AuthorPage />} />
-              <Route path='categories' element={<CategoryPage />} />
-              <Route path='publishers' element={<PublisherPage />} />
-              <Route path='books' element={<BookPage />} />
-              <Route path='receipts' element={<ReceiptPage />} />
-              <Route path='orders' element={<OrderPage />} />
-              <Route path='promotions' element={<PromotionPage />} />
-              <Route path='tags' element={<TagPage />} />
-              <Route path='coupons' element={<CouponPage />} />
+              {/* <Route path='users' element={<UserPage />} /> */}
+              {/* <Route path='categories' element={<CategoryPage />} /> */}
               {/* <Route path='brands' element={<BrandPage />} /> */}
             </Route>
           </Route>

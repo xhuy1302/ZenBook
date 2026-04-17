@@ -9,81 +9,71 @@ import {
   type ChartConfig
 } from '@/components/ui/chart'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
-import type { VisitorChartData } from '@/services/dashboard/db.type'
 
-// 1. Sửa nhãn (label) để phản ánh đúng logic Backend
+const chartData = [
+  { month: 'January', desktop: 186, mobile: 80 },
+  { month: 'February', desktop: 305, mobile: 200 },
+  { month: 'March', desktop: 237, mobile: 120 },
+  { month: 'April', desktop: 73, mobile: 190 },
+  { month: 'May', desktop: 209, mobile: 130 },
+  { month: 'June', desktop: 214, mobile: 140 }
+]
+
 const chartConfig = {
-  newVisitors: {
-    label: 'Tài khoản mới', // Logic: User mới đăng ký
-    color: 'hsl(var(--chart-1))'
-  },
-  returningVisitors: {
-    label: 'Khách đặt đơn cũ', // Logic: Khách cũ quay lại mua hàng
+  desktop: {
+    label: 'Desktop',
     color: 'hsl(var(--chart-2))'
+  },
+  mobile: {
+    label: 'Mobile',
+    color: 'hsl(var(--chart-3))'
   }
 } satisfies ChartConfig
-
-export default function AppAreaChart({ chartData }: { chartData: VisitorChartData[] }) {
-  if (!chartData || chartData.length === 0)
-    return (
-      <div className='flex h-full items-center justify-center text-muted-foreground'>
-        Chưa có dữ liệu người dùng
-      </div>
-    )
-
+export default function AppAreaChart() {
   return (
-    <div className='flex flex-col gap-2'>
-      {/* 2. Đổi tiêu đề cho đúng bản chất dữ liệu */}
-      <h1 className='text-lg font-semibold'>Phân tích tăng trưởng người dùng</h1>
-      <p className='text-sm text-muted-foreground mb-2'>
-        Thống kê dựa trên lượt đăng ký mới và khách hàng phát sinh đơn hàng
-      </p>
-
-      <ChartContainer config={chartConfig} className='min-h-[250px] w-full'>
-        <AreaChart accessibilityLayer data={chartData} margin={{ left: -20, right: 10 }}>
-          <CartesianGrid vertical={false} strokeDasharray='3 3' />
+    <>
+      <h1 className='text-lg font-medium mb-6'>Total Vistor</h1>
+      <ChartContainer config={chartConfig} className='min-h-[200px] w-full'>
+        <AreaChart accessibilityLayer data={chartData}>
+          <CartesianGrid vertical={true} />
           <XAxis
             dataKey='month'
-            tickLine={false}
-            axisLine={false}
+            tickLine={true}
             tickMargin={10}
-            // Giúp hiển thị tháng tiếng Việt cho đẹp nếu cần
+            axisLine={false}
+            tickFormatter={(value) => value.slice(0, 3)}
           />
-          <YAxis tickLine={false} axisLine={false} tickMargin={10} />
-
-          {/* 3. Chỉnh Tooltip để hiện rõ đơn vị là "Người" hoặc "Tài khoản" */}
-          <ChartTooltip content={<ChartTooltipContent indicator='dot' />} />
-
+          <YAxis tickLine={true} tickMargin={10} axisLine={false} />
+          <ChartTooltip content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
-
           <defs>
-            <linearGradient id='fillNew' x1='0' y1='0' x2='0' y2='1'>
-              <stop offset='5%' stopColor='var(--color-newVisitors)' stopOpacity={0.3} />
-              <stop offset='95%' stopColor='var(--color-newVisitors)' stopOpacity={0} />
+            <linearGradient id='fillDesktop' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='5%' stopColor='var(--color-desktop)' stopOpacity={0.8} />
+              <stop offset='95%' stopColor='var(--color-desktop)' stopOpacity={0.1} />
             </linearGradient>
-            <linearGradient id='fillReturning' x1='0' y1='0' x2='0' y2='1'>
-              <stop offset='5%' stopColor='var(--color-returningVisitors)' stopOpacity={0.3} />
-              <stop offset='95%' stopColor='var(--color-returningVisitors)' stopOpacity={0} />
+            <linearGradient id='fillMobile' x1='0' y1='0' x2='0' y2='1'>
+              <stop offset='5%' stopColor='var(--color-mobile)' stopOpacity={0.8} />
+              <stop offset='95%' stopColor='var(--color-mobile)' stopOpacity={0.1} />
             </linearGradient>
           </defs>
-
-          {/* Cấu trúc xếp chồng: Khách cũ ở dưới làm nền, khách mới đè lên trên */}
           <Area
-            dataKey='returningVisitors'
-            type='monotone'
-            fill='url(#fillReturning)'
-            stroke='var(--color-returningVisitors)'
+            dataKey='mobile'
+            type='natural'
+            fill='url(#fillMobile)'
+            fillOpacity={0.4}
+            stroke='var(--color-mobile)'
             stackId='a'
           />
           <Area
-            dataKey='newVisitors'
-            type='monotone'
-            fill='url(#fillNew)'
-            stroke='var(--color-newVisitors)'
+            dataKey='desktop'
+            type='natural'
+            fill='url(#fillDesktop)'
+            fillOpacity={0.4}
+            stroke='var(--color-desktop)'
             stackId='a'
           />
         </AreaChart>
       </ChartContainer>
-    </div>
+    </>
   )
 }
