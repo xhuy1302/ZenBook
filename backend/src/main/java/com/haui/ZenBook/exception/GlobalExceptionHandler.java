@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import java.nio.file.AccessDeniedException;
+// CHÚ Ý SỐ 1: Đã sửa lại import AccessDeniedException chuẩn của Spring Security
+import org.springframework.security.access.AccessDeniedException;
 
 @ControllerAdvice
 @RequiredArgsConstructor
@@ -17,7 +18,13 @@ public class GlobalExceptionHandler {
     private final MessageUtil messageUtil;
 
     @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse> handleRuntimeException(RuntimeException ex){
+        // CHÚ Ý SỐ 2: Đã đổi RuntimeException thành Exception ở đây
+    ResponseEntity<ApiResponse> handleException(Exception ex){
+
+        // In log ra console để bạn dễ dàng biết API bị lỗi gì bên dưới
+        System.err.println("===> LỖI HỆ THỐNG: " + ex.getMessage());
+        ex.printStackTrace();
+
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
         apiResponse.setMessage(messageUtil.getMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage()));

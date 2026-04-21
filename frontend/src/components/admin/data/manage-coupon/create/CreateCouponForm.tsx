@@ -31,32 +31,28 @@ export function CreateCouponForm({ onSuccess }: { onSuccess: () => void }) {
   const { t } = useTranslation('coupon')
   const queryClient = useQueryClient()
 
-  // Lấy danh sách Categories để áp mã theo danh mục (Nâng cao)
   const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: () => getAllCategoriesApi()
   })
   const categories = categoriesData || []
 
-  // Khởi tạo ngày giờ mặc định (Hôm nay -> Tháng sau)
   const today = new Date()
   const nextMonth = new Date()
   nextMonth.setMonth(today.getMonth() + 1)
 
   const form = useForm<CouponFormValues>({
-    // 👉 Áp dụng chuẩn y hệt như file Book của bạn: Dùng 'unknown' thay vì 'any'
     resolver: zodResolver(
       getCouponSchema(t as unknown as (key: string) => string)
     ) as unknown as import('react-hook-form').Resolver<CouponFormValues>,
-
     defaultValues: {
       code: '',
       discountType: DiscountType.PERCENTAGE,
-      // 👉 Dùng unknown làm cầu nối ép kiểu an toàn
       discountValue: undefined as unknown as number,
-      maxDiscountAmount: undefined,
+      // Ép chặt null ngay từ đầu để Zod không bị ngợp
+      maxDiscountAmount: null as unknown as number,
       minOrderValue: 0,
-      usageLimit: undefined,
+      usageLimit: null as unknown as number,
       maxUsagePerUser: 1,
       status: CouponStatus.ACTIVE,
       categoryId: undefined,
@@ -114,9 +110,13 @@ export function CreateCouponForm({ onSuccess }: { onSuccess: () => void }) {
                   value={field.value}
                   onValueChange={(val) => {
                     field.onChange(val)
-                    // Reset trần giảm giá khi đổi từ % sang Tiền mặt
-                    if (val === DiscountType.FIXED_AMOUNT)
-                      form.setValue('maxDiscountAmount', undefined)
+                    if (val === DiscountType.FIXED_AMOUNT) {
+                      // FIX CHÍNH LÀ ĐÂY: Phải là null as any để Zod xử lý đúng
+                      form.setValue('maxDiscountAmount', null as unknown as number, {
+                        shouldValidate: true
+                      })
+                      form.clearErrors('maxDiscountAmount')
+                    }
                   }}
                 >
                   <SelectTrigger>
@@ -152,15 +152,25 @@ export function CreateCouponForm({ onSuccess }: { onSuccess: () => void }) {
             </Label>
             <Input
               type='number'
-              {...form.register('maxDiscountAmount', { valueAsNumber: true })}
+              {...form.register('maxDiscountAmount', {
+                setValueAs: (v) => {
+                  // Gom tất cả những thứ không hợp lệ thành null
+                  if (v === '' || v === undefined || v === null) return null
+                  const num = Number(v)
+                  return Number.isNaN(num) ? null : num
+                }
+              })}
               placeholder='VD: 50000'
               disabled={currentDiscountType === DiscountType.FIXED_AMOUNT}
               className={`${currentDiscountType === DiscountType.FIXED_AMOUNT ? 'bg-muted cursor-not-allowed' : ''} ${errors.maxDiscountAmount ? 'border-red-500' : ''}`}
             />
-            {currentDiscountType === DiscountType.PERCENTAGE && (
+            {currentDiscountType === DiscountType.PERCENTAGE && !errors.maxDiscountAmount && (
               <p className='text-[10px] text-muted-foreground italic'>
                 {t('form.maxDiscountNote', 'Nên điền nếu giảm theo %')}
               </p>
+            )}
+            {errors.maxDiscountAmount && (
+              <p className='text-[10px] text-red-500'>{errors.maxDiscountAmount.message}</p>
             )}
           </div>
         </div>
@@ -190,7 +200,13 @@ export function CreateCouponForm({ onSuccess }: { onSuccess: () => void }) {
             <Label>{t('form.usageLimit', 'Tổng lượt dùng hệ thống')}</Label>
             <Input
               type='number'
-              {...form.register('usageLimit', { valueAsNumber: true })}
+              {...form.register('usageLimit', {
+                setValueAs: (v) => {
+                  if (v === '' || v === undefined || v === null) return null
+                  const num = Number(v)
+                  return Number.isNaN(num) ? null : num
+                }
+              })}
               placeholder='Để trống = Không giới hạn'
             />
           </div>

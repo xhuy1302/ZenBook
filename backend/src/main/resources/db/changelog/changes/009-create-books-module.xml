@@ -127,4 +127,16 @@
         <addPrimaryKey tableName="book_tags" columnNames="book_id, tag_id" constraintName="pk_book_tags"/>
 
     </changeSet>
+
+    <changeSet id="20260418-add-display-columns-to-books" author="zenbook">
+        <addColumn tableName="books">
+            <column name="average_rating" type="DOUBLE" defaultValueNumeric="0.0"/>
+
+            <column name="total_reviews" type="INT" defaultValueNumeric="0"/>
+
+            <column name="award" type="VARCHAR(255)"/>
+
+            <column name="views" type="INT" defaultValueNumeric="0"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

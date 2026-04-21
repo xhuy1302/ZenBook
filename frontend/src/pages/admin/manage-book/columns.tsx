@@ -1,13 +1,41 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { BookStatusBadge } from '@/components/admin/data/manage-book/BookStatusBadge'
-// 👉 THÊM MỚI: Import thêm component badge cho Format
 import { BookFormatBadge } from '@/components/admin/data/manage-book/BookFormatBadge'
 import { BookActionsCell } from '@/components/admin/action/BookAction'
 import type { BookResponse } from '@/services/book/book.type'
 import { DataTableColumnHeader } from '@/components/admin/datatable/DataTableColumnHeader'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { TFunction } from 'i18next'
 
 export const getColumns = (t: TFunction<'product'>): ColumnDef<BookResponse>[] => [
+  // 🟢 THÊM CỘT CHECKBOX
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <div className='pl-2'>
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label='Select all'
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className='pl-2'>
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label='Select row'
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false
+  },
+  // Các cột hiện có (giữ nguyên)
   {
     accessorKey: 'title',
     header: ({ column }) => (
@@ -65,7 +93,6 @@ export const getColumns = (t: TFunction<'product'>): ColumnDef<BookResponse>[] =
     header: () => <div className='text-center'>{t('book.table.stock')}</div>,
     cell: ({ row }) => <div className='text-center font-medium'>{row.original.stockQuantity}</div>
   },
-
   {
     accessorKey: 'format',
     header: () => <div className='text-center'>{t('book.form.format', 'Định dạng')}</div>,
@@ -75,7 +102,6 @@ export const getColumns = (t: TFunction<'product'>): ColumnDef<BookResponse>[] =
       </div>
     )
   },
-
   {
     accessorKey: 'status',
     header: () => <div className='text-center'>{t('book.table.status')}</div>,

@@ -73,7 +73,7 @@ public class PromotionScheduler {
         }
     }
 
-    // Hàm phụ trợ: Tính toán giá tiền sau khi giảm
+
     private double calculateDiscount(Double originalPrice, DiscountType type, Double value) {
         if (originalPrice == null || originalPrice <= 0) return 0.0;
 

@@ -13,7 +13,13 @@
     "search": "Search",
     "filter": "Filter",
     "sort": "Sort",
-    "more": "More"
+    "more": "More",
+    "change": "Change"
+  },
+  "search": {
+    "resultsFor": "SEARCH RESULTS FOR:",
+    "vietnameseBooks": "Vietnamese Books",
+    "countUnit": "results"
   },
   "nav": {
     "home": "Home",
@@ -53,5 +59,206 @@
   "datatableView": {
     "view": "View",
     "toggleColumns": "Toggle columns"
+  },
+  "header": {
+    "deliverTo": "Deliver to:",
+    "location": "New York 10001",
+    "trackOrder": "Track Order",
+    "newsletter": "Newsletter",
+    "searchPlaceholder": "Search by title, author, or ISBN...",
+    "search": "Search",
+    "account": "Account",
+    "wishlist": "Wishlist",
+    "cart": "Cart",
+    "allCategories": "All Categories",
+    "flashSale": "Flash Sale",
+    "nav": {
+      "hot": "Hot Books",
+      "newArrivals": "New Arrivals",
+      "bestSellers": "Best Sellers",
+      "promotion": "Promotion"
+    }
+  },
+  "hero": {
+    "categories": "Book Categories",
+    "bookOfMonth": "Book of the Month",
+    "newArrivals": "New Arrivals",
+    "prevSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "goToSlide": "Go to slide {index}"
+  },
+  "heroBanners": {
+    "1": {
+      "badge": "New Collection 2025",
+      "title": "Discover Your Next\nGreat Read",
+      "subtitle": "Thousands of titles across every genre",
+      "cta": "Shop Now"
+    },
+    "2": {
+      "badge": "Editor's Choice",
+      "title": "Read More.\nLive Better.",
+      "subtitle": "Hand-picked selections from expert curators",
+      "cta": "Explore Books"
+    },
+    "3": {
+      "badge": "Sale Ends Soon",
+      "title": "Flash Sale\nUp to 50% Off",
+      "subtitle": "Limited time offers on bestsellers",
+      "cta": "View Deals"
+    }
+  },
+  "categories": {
+    "1": "Technology",
+    "2": "Literature",
+    "3": "Economics",
+    "4": "Self-Help",
+    "5": "Kids & Family",
+    "6": "Comics & Manga",
+    "7": "History",
+    "8": "Science",
+    "9": "Philosophy",
+    "10": "Arts & Design",
+    "11": "Biography",
+    "12": "Travel"
+  },
+  "trust": {
+    "shipping": { "title": "Free Shipping", "desc": "On orders over $25" },
+    "returns": { "title": "Easy Returns", "desc": "30-day return policy" },
+    "secure": { "title": "Secure Payments", "desc": "100% protected checkout" },
+    "support": { "title": "24/7 Support", "desc": "Dedicated book experts" }
+  },
+  "flashSale": {
+    "title": "Flash Sale",
+    "endsIn": "Ends in:",
+    "viewAll": "View All",
+    "addToCart": "Add",
+    "almostGone": "Almost gone!",
+    "left": "left"
+  },
+  "bookCard": {
+    "quickAdd": "Quick Add",
+    "new": "New",
+    "award": "Award"
+  },
+  "bookGrid": {
+    "trending": "Trending Now",
+    "awards": "Award Winners",
+    "recent": "Recently Viewed",
+    "viewAll": "View All"
+  },
+  "publishers": {
+    "title": "Trusted Publishers",
+    "subtitle": "We partner with the world's leading publishers"
+  },
+  "testimonials": {
+    "title": "What Our Readers Say",
+    "subtitle": "Join over 50,000 happy readers worldwide",
+    "items": {
+      "1": {
+        "name": "Sarah Mitchell",
+        "location": "New York, USA",
+        "comment": "ZenBook has completely changed how I shop for books. The curation is excellent and delivery is always faster than expected. My go-to bookstore!"
+      },
+      "2": {
+        "name": "David Chen",
+        "location": "San Francisco, USA",
+        "comment": "I've discovered so many hidden gems through ZenBook's recommendation engine. The flash sales are incredible—I saved 40% on my last order."
+      },
+      "3": {
+        "name": "Emma Rodriguez",
+        "location": "London, UK",
+        "comment": "The selection is vast and the interface is clean. I love the category browsing feature. Shipping to the UK is reliable and well-packaged."
+      }
+    }
+  },
+  "footer": {
+    "tagline": "Your premier destination for books across all genres. Curated collections, competitive prices, and fast delivery.",
+    "about": {
+      "title": "About ZenBook",
+      "links": ["Our Story", "Careers", "Press", "Blog", "Affiliate Program"]
+    },
+    "support": {
+      "title": "Customer Support",
+      "links": ["Help Center", "Contact Us", "Order Status", "Returns & Exchanges", "Gift Cards"]
+    },
+    "policies": {
+      "title": "Policies",
+      "links": ["Privacy Policy", "Terms of Service", "Cookie Policy", "Accessibility", "Sitemap"]
+    },
+    "paymentTitle": "Payment Methods",
+    "newsletterTitle": "Newsletter",
+    "newsletterDesc": "Get weekly curated book recommendations.",
+    "emailPlaceholder": "Your email",
+    "copyright": "© {year} ZenBook. All rights reserved.",
+    "madeWith": "Made with care for book lovers everywhere."
+  },
+  "cart": {
+    "title": "Review your bag.",
+    "selectAll": "Select All Items",
+    "items": "items",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "free": "Free",
+    "giftCardLabel": "Gift card or discount code",
+    "giftCardPlaceholder": "e.g. ZENBOOK2026",
+    "apply": "Apply",
+    "includingVat": "Including VAT",
+    "total": "Total",
+    "checkout": "Checkout safely",
+    "emptyTitle": "Your bag is empty.",
+    "emptyDesc": "Looks like you haven't added anything to your cart yet.",
+    "continueShopping": "Continue Shopping"
+  },
+  "product": {
+    "loading": "Loading book information...",
+    "notFound": "Product not found",
+    "deliveryInfo": "Delivery Information",
+    "deliverTo": "Deliver to",
+    "location": "Hanoi, Vietnam",
+    "standardDelivery": "Standard Delivery",
+    "estimatedDelivery": "Estimated delivery in 2-3 business days",
+    "relatedOffers": "Related Offers",
+    "notFoundDesc": "This book may have been removed or the link is incorrect.",
+    "tabs": {
+      "description": "Description",
+      "specification": "Specifications",
+      "reviews": "Reviews"
+    },
+    "author": "Author",
+    "updating": "Updating",
+    "reviews": "reviews",
+    "sold": "Sold",
+    "save": "Save",
+    "policy": {
+      "genuine": "100% genuine books guaranteed",
+      "freeship": "Free shipping nationwide for orders from 200,000₫"
+    },
+    "quantity": "Quantity",
+    "inStock": "items available",
+    "outOfStock": "Out of stock",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "noDescription": "No description available for this product.",
+    "seeMore": "See more",
+    "collapse": "Collapse",
+    "specs": {
+      "sku": "SKU",
+      "publisher": "Publisher",
+      "publicationYear": "Publication Year",
+      "author": "Author",
+      "format": "Format",
+      "pages": "Pages",
+      "dimensions": "Dimensions",
+      "language": "Language"
+    },
+    "hardcover": "Hardcover",
+    "paperback": "Paperback",
+    "pages": "pages",
+    "vietnamese": "Vietnamese",
+    "noReviews": "No reviews for this product yet.",
+    "beFirstReview": "Be the first to purchase and review!",
+    "star": "stars",
+    "relatedBooks": "Related Books"
   }
 }

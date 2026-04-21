@@ -19,15 +19,30 @@ public class PromotionResponse {
     private PromotionStatus status;
     private LocalDateTime createdAt;
 
-    // Bạn có thể trả về một DTO sách rút gọn (ID, Tên, Ảnh) thay vì trả cả BookResponse khổng lồ
     private List<PromotionBookDto> books;
 
     @Data
     public static class PromotionBookDto {
         private String id;
         private String title;
+        private String slug;
         private String thumbnail;
         private Double originalPrice;
         private Double salePrice;
+        private Integer stockQuantity;
+
+        private Double rating;
+        private Integer reviews;
+
+        // 👉 ĐÃ THÊM: Trường này để lưu phần trăm giảm giá gửi cho Frontend hiển thị Badge đỏ
+        private Integer discount;
+
+        private List<AuthorDto> authors;
+    }
+
+    @Data
+    public static class AuthorDto {
+        private String id;
+        private String name;
     }
 }

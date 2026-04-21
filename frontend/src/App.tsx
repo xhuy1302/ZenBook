@@ -1,9 +1,15 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import LayoutClient from '@/pages/client/LayoutCilent'
+import HomePage from '@/pages/client/home/HomePage'
+import AccountPage from '@/pages/client/customer/CustomerPage'
+import CartPage from '@/pages/client/cart/CartPage'
+import ProductListPage from '@/pages/client/product-list/ProductListPage'
+import ProductDetailPage from '@/pages/client/product-detail/ProductDetailPage'
 import LoginPage from '@/pages/auth/LoginPage'
 import SignUpPage from '@/pages/auth/SignUpPage'
 import LayoutAdmin from '@/pages/admin/LayoutAdmin'
-import ProtectedRoute from './routes/ProtectedRoute' // Đường dẫn của bạn
+import ProtectedRoute from './routes/ProtectedRoute'
 import DashboardHome from './pages/admin/dashboard/content/DashBoardHome'
 import UserPage from './pages/admin/manage-user/page'
 import AuthorPage from './pages/admin/manage-author/page'
@@ -15,6 +21,12 @@ import OrderPage from './pages/admin/manage-order/page'
 import PromotionPage from './pages/admin/manage-promotion/page'
 import TagPage from './pages/admin/manage-tag/page'
 import CouponPage from './pages/admin/manage-coupon/page'
+import NewsPage from './pages/admin/manage-news/page'
+
+// 👉 IMPORT THÊM CÁC TAB CỦA ACCOUNT PAGE
+import ProfileTab from '@/components/zenbook/account/Profiletab'
+import OrdersTab from '@/components/zenbook/account/Orderstab'
+import AddressTab from '@/components/zenbook/account/Addresstab'
 
 function App() {
   return (
@@ -31,26 +43,41 @@ function App() {
         <Routes>
           {/* <Route path='*' element={<NotFound404 />} /> */}
 
-          {/* =========================================
-              PUBLIC ROUTES (Ai cũng vào được)
-              ========================================= */}
           <Route path='/login' element={<LoginPage />} />
           <Route path='/signup' element={<SignUpPage />} />
 
           {/* =========================================
-              PROTECTED ROUTES DÀNH CHO USER BÌNH THƯỜNG
+              LAYOUT CLIENT (Có Header & Footer)
               ========================================= */}
-          {/* Ví dụ: Admin hay User đều có thể xem Profile */}
-          <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN', 'STAFF']} />}>
-            {/* <Route path='/profile' element={<ProfilePage />} /> */}
-            {/* <Route path='/cart' element={<CartPage />} /> */}
+          <Route element={<LayoutClient />}>
+            {/* CÁC ROUTE PUBLIC (Ai cũng xem được) */}
+            <Route path='/' element={<HomePage />} />
+            <Route path='/product' element={<ProductListPage />} />
+            <Route path='/search' element={<ProductListPage />} />
+            <Route path='/product/:slug' element={<ProductDetailPage />} />
+
+            {/* =========================================
+                PROTECTED ROUTES CLIENT (Phải đăng nhập)
+                ========================================= */}
+            <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN', 'STAFF']} />}>
+              <Route path='/cart' element={<CartPage />} />
+
+              {/* 👉 KHAI BÁO ROUTE CON CHO ACCOUNT PAGE */}
+              <Route path='/customer' element={<AccountPage />}>
+                {/* Khi vào đúng /customer/profile thì render ProfileTab mặc định */}
+                <Route index element={<ProfileTab />} />
+
+                {/* Các URL con: /customer/profile/orders, v.v... */}
+                <Route path='orders' element={<OrdersTab />} />
+                <Route path='address' element={<AddressTab />} />
+              </Route>
+            </Route>
           </Route>
 
           {/* =========================================
               PROTECTED ROUTES CHỈ DÀNH CHO ADMIN
               ========================================= */}
-          {/* Thêm allowedRoles={['ADMIN']} để gác cổng */}
-          <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'STAFF']} />}>
             <Route path='/dashboard' element={<LayoutAdmin />}>
               <Route index element={<DashboardHome />} />
               <Route path='users' element={<UserPage />} />
@@ -63,7 +90,7 @@ function App() {
               <Route path='promotions' element={<PromotionPage />} />
               <Route path='tags' element={<TagPage />} />
               <Route path='coupons' element={<CouponPage />} />
-              {/* <Route path='brands' element={<BrandPage />} /> */}
+              <Route path='news' element={<NewsPage />} />
             </Route>
           </Route>
         </Routes>

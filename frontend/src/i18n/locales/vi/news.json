@@ -1,0 +1,155 @@
+{
+  "list": "Quản lý bài viết",
+  "page": {
+    "title": "Quản lý Bài viết / Tin tức"
+  },
+  "dialogTitle": {
+    "create": "Thêm bài viết mới",
+    "view": "Chi tiết bài viết",
+    "delete": "Xác nhận xóa bài viết",
+    "update": "Cập nhật bài viết",
+    "permanentDelete": "Xóa vĩnh viễn bài viết",
+    "restore": "Xác nhận khôi phục"
+  },
+  "filters": {
+    "search": "Tìm kiếm tiêu đề bài viết...",
+    "reset": "Đặt lại",
+    "status": {
+      "label": "Trạng thái",
+      "all": "Tất cả trạng thái",
+      "DRAFT": "Bản nháp",
+      "PUBLISHED": "Đã xuất bản",
+      "HIDDEN": "Đã ẩn"
+    }
+  },
+  "table": {
+    "noResults": "Không tìm thấy bài viết nào.",
+    "allStatus": "Tất cả trạng thái",
+    "searchPlaceholder": "Tìm kiếm tiêu đề bài viết...",
+    "columns": {
+      "title": "Bài viết",
+      "category": "Danh mục",
+      "author": "Tác giả",
+      "views": "Lượt xem",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    }
+  },
+  "form": {
+    "sections": {
+      "basic": "1. Thông tin cơ bản",
+      "content": "2. Nội dung bài viết",
+      "classify": "3. Phân loại & Liên kết",
+      "seo": "4. Tối ưu SEO (Tùy chọn)",
+      "media": "5. Ảnh bìa"
+    }
+  },
+  "fields": {
+    "title": {
+      "label": "Tiêu đề bài viết",
+      "placeholder": "Nhập tiêu đề bài viết..."
+    },
+    "slug": {
+      "label": "Đường dẫn (Slug)",
+      "placeholder": "Đường dẫn sẽ được tạo tự động"
+    },
+    "summary": {
+      "label": "Mô tả ngắn (Summary)",
+      "placeholder": "Nhập đoạn mô tả ngắn hiển thị ở trang chủ..."
+    },
+    "content": {
+      "label": "Nội dung bài viết"
+    },
+    "thumbnail": {
+      "label": "Ảnh bìa bài viết",
+      "placeholder": "Kéo thả hoặc click để tải ảnh lên"
+    },
+    "category": {
+      "label": "Danh mục",
+      "placeholder": "Chọn danh mục bài viết"
+    },
+    "tags": {
+      "label": "Nhãn (Tags)",
+      "placeholder": "Chọn các nhãn liên quan"
+    },
+    "books": {
+      "label": "Sách đính kèm (Chốt sale)",
+      "placeholder": "Chọn sách liên quan đến bài viết"
+    },
+    "status": {
+      "label": "Trạng thái",
+      "options": {
+        "DRAFT": "Bản nháp",
+        "PUBLISHED": "Xuất bản ngay",
+        "HIDDEN": "Ẩn bài viết"
+      }
+    },
+    "seo": {
+      "metaTitle": {
+        "label": "Tiêu đề SEO (Meta Title)",
+        "placeholder": "Tiêu đề hiển thị trên Google (Tối đa 60 ký tự)..."
+      },
+      "metaDescription": {
+        "label": "Mô tả SEO (Meta Description)",
+        "placeholder": "Mô tả hiển thị trên Google (Tối đa 160 ký tự)..."
+      }
+    },
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Cập nhật cuối",
+    "publishedAt": "Ngày xuất bản"
+  },
+  "validation": {
+    "titleRequired": "Tiêu đề bài viết không được để trống.",
+    "titleMin": "Tiêu đề bài viết phải có ít nhất 5 ký tự.",
+    "titleMax": "Tiêu đề bài viết không được vượt quá 255 ký tự.",
+    "contentRequired": "Nội dung bài viết không được để trống.",
+    "summaryMax": "Mô tả ngắn không được vượt quá 500 ký tự.",
+    "metaTitleMax": "Tiêu đề SEO không nên vượt quá 100 ký tự.",
+    "metaDescMax": "Mô tả SEO không nên vượt quá 255 ký tự.",
+    "thumbnailRequired": "Vui lòng tải lên ảnh bìa cho bài viết.",
+    "thumbnailSize": "Kích thước ảnh bìa không được vượt quá 5MB.",
+    "thumbnailType": "Chỉ chấp nhận các định dạng ảnh: .jpg, .jpeg, .png, .webp."
+  },
+  "message": {
+    "success": {
+      "create": "Thêm bài viết mới thành công!",
+      "update": "Cập nhật bài viết thành công!",
+      "delete": "Đã chuyển bài viết vào thùng rác!",
+      "permanentDelete": "Đã xóa vĩnh viễn bài viết khỏi hệ thống!",
+      "restore": "Khôi phục bài viết thành công!",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa bài viết \"{{title}}\"? Bài viết sẽ được chuyển vào thùng rác."
+    },
+    "error": {
+      "create": "Có lỗi xảy ra khi tạo bài viết. Vui lòng thử lại!",
+      "update": "Có lỗi xảy ra khi cập nhật bài viết. Vui lòng thử lại!",
+      "delete": "Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại!",
+      "restore": "Có lỗi xảy ra khi khôi phục bài viết.",
+      "title_existed": "Tiêu đề bài viết này đã tồn tại!",
+      "slug_existed": "Đường dẫn (Slug) này đã tồn tại!",
+      "upload_failed": "Tải ảnh lên thất bại. Vui lòng kiểm tra lại!"
+    },
+    "warning": {
+      "permanentDeleteConfirm": "Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa VĨNH VIỄN bài viết \"{{title}}\" không?",
+      "restoreConfirm": "Bạn có chắc chắn muốn khôi phục bài viết \"{{title}}\" không?"
+    }
+  },
+  "actions": {
+    "create": "Đăng bài viết",
+    "confirm": "Xác nhận xóa",
+    "close": "Đóng",
+    "edit": "Lưu thay đổi",
+    "cancel": "Hủy",
+    "deleteForever": "Xóa vĩnh viễn",
+    "restore": "Khôi phục",
+    "removeImage": "Xóa ảnh"
+  },
+  "trash": {
+    "title": "Thùng rác bài viết",
+    "btnTrash": "Thùng rác",
+    "trashEmpty": "Thùng rác bài viết hiện đang trống."
+  },
+  "common": {
+    "noData": "Không có dữ liệu nào.",
+    "loading": "Đang tải dữ liệu..."
+  }
+}

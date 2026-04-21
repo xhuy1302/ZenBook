@@ -7,23 +7,26 @@ import com.haui.ZenBook.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/v1/books")
+@RestController("adminBookController") // Phân biệt Bean với Customer
+@RequestMapping("/api/v1/admin/books") // Thêm /admin để không đụng URL với Customer
 @RequiredArgsConstructor
 @Slf4j
 public class BookController {
 
     private final BookService bookService;
+    private final MessageSource messageSource; // Tiêm MessageSource để xử lý đa ngôn ngữ
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ApiResponse<BookResponse> createBook(@ModelAttribute @Valid BookRequest request) {
         return ApiResponse.<BookResponse>builder()
                 .data(bookService.createBook(request))
-                .message("Tạo mới sách thành công!")
+                .message(messageSource.getMessage("book.create.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 
@@ -33,7 +36,7 @@ public class BookController {
             @ModelAttribute @Valid BookRequest request) {
         return ApiResponse.<BookResponse>builder()
                 .data(bookService.updateBook(id, request))
-                .message("Cập nhật sách thành công!")
+                .message(messageSource.getMessage("book.update.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 
@@ -41,6 +44,7 @@ public class BookController {
     public ApiResponse<BookResponse> getBook(@PathVariable String id) {
         return ApiResponse.<BookResponse>builder()
                 .data(bookService.getBookById(id))
+                .message(messageSource.getMessage("book.get.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 
@@ -48,6 +52,7 @@ public class BookController {
     public ApiResponse<BookResponse> getBookBySlug(@PathVariable String slug) {
         return ApiResponse.<BookResponse>builder()
                 .data(bookService.getBookBySlug(slug))
+                .message(messageSource.getMessage("book.get.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 
@@ -55,6 +60,7 @@ public class BookController {
     public ApiResponse<List<BookResponse>> getAllBooks() {
         return ApiResponse.<List<BookResponse>>builder()
                 .data(bookService.getAllBooks())
+                .message(messageSource.getMessage("book.get_all.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 
@@ -62,7 +68,7 @@ public class BookController {
     public ApiResponse<Void> deleteBook(@PathVariable String id) {
         bookService.deleteBook(id);
         return ApiResponse.<Void>builder()
-                .message("Đã chuyển sách vào thùng rác!")
+                .message(messageSource.getMessage("book.delete.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 
@@ -72,15 +78,15 @@ public class BookController {
             @RequestParam String status) {
         return ApiResponse.<BookResponse>builder()
                 .data(bookService.updateStatus(id, status))
-                .message("Cập nhật trạng thái thành công!")
+                .message(messageSource.getMessage("book.update_status.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 
-    // ĐÃ XÓA PHÂN TRANG (page, size)
     @GetMapping("/trash")
     public ApiResponse<List<BookResponse>> getBooksInTrash() {
         return ApiResponse.<List<BookResponse>>builder()
                 .data(bookService.getBooksInTrash())
+                .message(messageSource.getMessage("book.get_trash.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 
@@ -88,7 +94,7 @@ public class BookController {
     public ApiResponse<Void> restoreBook(@PathVariable String id) {
         bookService.restoreBook(id);
         return ApiResponse.<Void>builder()
-                .message("Khôi phục sách thành công")
+                .message(messageSource.getMessage("book.restore.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 
@@ -96,7 +102,7 @@ public class BookController {
     public ApiResponse<Void> hardDeleteBook(@PathVariable String id) {
         bookService.hardDeleteBook(id);
         return ApiResponse.<Void>builder()
-                .message("Đã xóa vĩnh viễn sách")
+                .message(messageSource.getMessage("book.hard_delete.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
 }

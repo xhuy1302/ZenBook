@@ -4,7 +4,6 @@ import com.haui.ZenBook.dto.promotion.PromotionRequest;
 import com.haui.ZenBook.dto.promotion.PromotionResponse;
 import com.haui.ZenBook.entity.BookEntity;
 import com.haui.ZenBook.entity.PromotionEntity;
-import com.haui.ZenBook.enums.DiscountType;
 import com.haui.ZenBook.enums.PromotionStatus;
 import com.haui.ZenBook.exception.AppException;
 import com.haui.ZenBook.exception.ErrorCode;
@@ -39,11 +38,6 @@ public class PromotionServiceImpl implements PromotionService {
         List<BookEntity> books = bookRepository.findAllById(request.getBookIds());
         entity.setBooks(books);
 
-        if (initialStatus == PromotionStatus.ACTIVE) {
-            applyDiscountToBooks(books, entity.getDiscountType(), entity.getDiscountValue());
-            bookRepository.saveAll(books);
-        }
-
         return promotionMapper.toResponse(promotionRepository.save(entity));
     }
 
@@ -54,11 +48,6 @@ public class PromotionServiceImpl implements PromotionService {
 
         PromotionEntity existing = promotionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
-
-        if (existing.getStatus() == PromotionStatus.ACTIVE) {
-            restoreOriginalPrices(existing.getBooks());
-            bookRepository.saveAll(existing.getBooks());
-        }
 
         existing.setName(request.getName());
         existing.setDescription(request.getDescription());
@@ -73,11 +62,6 @@ public class PromotionServiceImpl implements PromotionService {
         List<BookEntity> newBooks = bookRepository.findAllById(request.getBookIds());
         existing.setBooks(newBooks);
 
-        if (newStatus == PromotionStatus.ACTIVE) {
-            applyDiscountToBooks(newBooks, existing.getDiscountType(), existing.getDiscountValue());
-            bookRepository.saveAll(newBooks);
-        }
-
         return promotionMapper.toResponse(promotionRepository.save(existing));
     }
 
@@ -86,11 +70,6 @@ public class PromotionServiceImpl implements PromotionService {
     public PromotionResponse stopPromotion(String id) {
         PromotionEntity existing = promotionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
-
-        if (existing.getStatus() == PromotionStatus.ACTIVE) {
-            restoreOriginalPrices(existing.getBooks());
-            bookRepository.saveAll(existing.getBooks());
-        }
 
         existing.setStatus(PromotionStatus.PAUSED);
         return promotionMapper.toResponse(promotionRepository.save(existing));
@@ -113,11 +92,6 @@ public class PromotionServiceImpl implements PromotionService {
         PromotionStatus newStatus = determineStatus(existing.getStartDate(), existing.getEndDate());
         existing.setStatus(newStatus);
 
-        if (newStatus == PromotionStatus.ACTIVE) {
-            applyDiscountToBooks(existing.getBooks(), existing.getDiscountType(), existing.getDiscountValue());
-            bookRepository.saveAll(existing.getBooks());
-        }
-
         return promotionMapper.toResponse(promotionRepository.save(existing));
     }
 
@@ -126,11 +100,6 @@ public class PromotionServiceImpl implements PromotionService {
     public void softDeletePromotion(String id) {
         PromotionEntity existing = promotionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
-
-        if (existing.getStatus() == PromotionStatus.ACTIVE) {
-            restoreOriginalPrices(existing.getBooks());
-            bookRepository.saveAll(existing.getBooks());
-        }
 
         existing.setDeleted(true);
         existing.setStatus(PromotionStatus.PAUSED);
@@ -148,11 +117,6 @@ public class PromotionServiceImpl implements PromotionService {
         PromotionStatus newStatus = determineStatus(existing.getStartDate(), existing.getEndDate());
         existing.setStatus(newStatus);
 
-        if (newStatus == PromotionStatus.ACTIVE) {
-            applyDiscountToBooks(existing.getBooks(), existing.getDiscountType(), existing.getDiscountValue());
-            bookRepository.saveAll(existing.getBooks());
-        }
-
         return promotionMapper.toResponse(promotionRepository.save(existing));
     }
 
@@ -161,11 +125,6 @@ public class PromotionServiceImpl implements PromotionService {
     public void hardDeletePromotion(String id) {
         PromotionEntity existing = promotionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
-
-        if (existing.getStatus() == PromotionStatus.ACTIVE && !existing.isDeleted()) {
-            restoreOriginalPrices(existing.getBooks());
-            bookRepository.saveAll(existing.getBooks());
-        }
 
         promotionRepository.delete(existing);
     }
@@ -213,22 +172,6 @@ public class PromotionServiceImpl implements PromotionService {
         return PromotionStatus.ACTIVE;
     }
 
-    private void applyDiscountToBooks(List<BookEntity> books, DiscountType type, Double value) {
-        for (BookEntity book : books) {
-            if (book.getOriginalPrice() == null) continue;
-            double newPrice = type == DiscountType.PERCENTAGE
-                    ? book.getOriginalPrice() - (book.getOriginalPrice() * value / 100.0)
-                    : Math.max(0, book.getOriginalPrice() - value);
-            book.setSalePrice(newPrice);
-        }
-    }
-
-    private void restoreOriginalPrices(List<BookEntity> books) {
-        for (BookEntity book : books) {
-            book.setSalePrice(book.getOriginalPrice());
-        }
-    }
-
     private int getStatusPriority(PromotionStatus status) {
         if (status == null) return 3;
         return switch (status) {
@@ -237,5 +180,15 @@ public class PromotionServiceImpl implements PromotionService {
             case PAUSED, EXPIRED -> 2;
             default -> 3;
         };
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PromotionResponse getActiveFlashSale() {
+        List<PromotionEntity> activePromotions = promotionRepository.findActiveFlashSales();
+        if (activePromotions != null && !activePromotions.isEmpty()) {
+            return promotionMapper.toResponse(activePromotions.get(0));
+        }
+        return null;
     }
 }

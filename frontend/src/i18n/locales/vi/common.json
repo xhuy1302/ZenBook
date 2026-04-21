@@ -13,7 +13,13 @@
     "search": "Tìm kiếm",
     "filter": "Lọc",
     "sort": "Sắp xếp",
-    "more": "Xem thêm"
+    "more": "Xem thêm",
+    "change": "Thay đổi"
+  },
+  "search": {
+    "resultsFor": "KẾT QUẢ TÌM KIẾM:",
+    "vietnameseBooks": "Sách tiếng Việt",
+    "countUnit": "kết quả"
   },
   "nav": {
     "home": "Trang chủ",
@@ -53,5 +59,224 @@
   "datatableView": {
     "view": "Hiển thị",
     "toggleColumns": "Ẩn / hiện cột"
+  },
+  "header": {
+    "deliverTo": "Giao đến:",
+    "location": "Hà Nội 10000",
+    "trackOrder": "Theo dõi đơn hàng",
+    "newsletter": "Bản tin",
+    "searchPlaceholder": "Tìm kiếm theo tên sách, tác giả, ISBN...",
+    "search": "Tìm",
+    "account": "Tài khoản",
+    "wishlist": "Yêu thích",
+    "cart": "Giỏ hàng",
+    "allCategories": "Tất cả danh mục",
+    "flashSale": "Flash Sale",
+    "nav": {
+      "hot": "Sách Hot",
+      "newArrivals": "Mới về",
+      "bestSellers": "Bán chạy",
+      "promotion": "Khuyến mãi"
+    }
+  },
+  "hero": {
+    "categories": "Danh mục sách",
+    "bookOfMonth": "Sách của tháng",
+    "newArrivals": "Mới về",
+    "prevSlide": "Slide trước",
+    "nextSlide": "Slide sau",
+    "goToSlide": "Đến slide {index}"
+  },
+  "heroBanners": {
+    "1": {
+      "badge": "Bộ sưu tập mới 2025",
+      "title": "Khám phá cuốn sách\ntiếp theo của bạn",
+      "subtitle": "Hàng nghìn đầu sách thuộc mọi thể loại",
+      "cta": "Mua ngay"
+    },
+    "2": {
+      "badge": "Lựa chọn của biên tập",
+      "title": "Đọc nhiều hơn.\nSống tốt hơn.",
+      "subtitle": "Tuyển chọn từ các chuyên gia",
+      "cta": "Khám phá sách"
+    },
+    "3": {
+      "badge": "Ưu đãi sắp kết thúc",
+      "title": "Flash Sale\nGiảm đến 50%",
+      "subtitle": "Ưu đãi có thời hạn cho các sách bán chạy",
+      "cta": "Xem ưu đãi"
+    }
+  },
+  "categories": {
+    "1": "Công nghệ",
+    "2": "Văn học",
+    "3": "Kinh tế",
+    "4": "Kỹ năng sống",
+    "5": "Thiếu nhi",
+    "6": "Truyện tranh",
+    "7": "Lịch sử",
+    "8": "Khoa học",
+    "9": "Triết học",
+    "10": "Nghệ thuật & Thiết kế",
+    "11": "Tiểu sử",
+    "12": "Du lịch"
+  },
+  "trust": {
+    "shipping": { "title": "Miễn phí vận chuyển", "desc": "Đơn hàng trên 500.000đ" },
+    "returns": { "title": "Đổi trả dễ dàng", "desc": "Chính sách 30 ngày" },
+    "secure": { "title": "Thanh toán an toàn", "desc": "Bảo mật 100%" },
+    "support": { "title": "Hỗ trợ 24/7", "desc": "Chuyên gia sách tận tâm" }
+  },
+  "flashSale": {
+    "title": "Flash Sale",
+    "endsIn": "Kết thúc sau:",
+    "viewAll": "Xem tất cả",
+    "addToCart": "Thêm vào giỏ",
+    "almostGone": "Sắp hết!",
+    "left": "còn lại"
+  },
+  "bookCard": {
+    "quickAdd": "Thêm nhanh",
+    "new": "Mới",
+    "award": "Giải thưởng"
+  },
+  "bookGrid": {
+    "trending": "Đang thịnh hành",
+    "awards": "Sách giải thưởng",
+    "recent": "Đã xem gần đây",
+    "viewAll": "Xem tất cả"
+  },
+  "publishers": {
+    "title": "Nhà xuất bản uy tín",
+    "subtitle": "Chúng tôi hợp tác với các nhà xuất bản hàng đầu thế giới"
+  },
+  "testimonials": {
+    "title": "Bạn đọc nói gì",
+    "subtitle": "Tham gia cùng hơn 50.000 độc giả hài lòng trên toàn thế giới",
+    "items": {
+      "1": {
+        "name": "Nguyễn Minh Anh",
+        "location": "Hà Nội, Việt Nam",
+        "comment": "ZenBook đã thay đổi hoàn toàn cách tôi mua sách. Cách lựa chọn rất tuyệt và giao hàng luôn nhanh hơn mong đợi. Đây là hiệu sách yêu thích của tôi!"
+      },
+      "2": {
+        "name": "Trần Bảo Long",
+        "location": "TP. Hồ Chí Minh, Việt Nam",
+        "comment": "Tôi đã khám phá ra rất nhiều cuốn sách quý qua hệ thống gợi ý của ZenBook. Flash sale thật tuyệt — tôi đã tiết kiệm 40% cho đơn hàng gần nhất."
+      },
+      "3": {
+        "name": "Lê Thu Hà",
+        "location": "Đà Nẵng, Việt Nam",
+        "comment": "Kho sách đa dạng và giao diện rất gọn gàng. Tôi thích tính năng duyệt theo danh mục. Sách được đóng gói cẩn thận và giao hàng đúng hẹn."
+      }
+    }
+  },
+  "footer": {
+    "tagline": "Điểm đến hàng đầu cho sách thuộc mọi thể loại. Bộ sưu tập được tuyển chọn, giá cạnh tranh và giao hàng nhanh.",
+    "about": {
+      "title": "Về ZenBook",
+      "links": [
+        "Câu chuyện của chúng tôi",
+        "Tuyển dụng",
+        "Báo chí",
+        "Blog",
+        "Chương trình liên kết"
+      ]
+    },
+    "support": {
+      "title": "Hỗ trợ khách hàng",
+      "links": [
+        "Trung tâm trợ giúp",
+        "Liên hệ chúng tôi",
+        "Trạng thái đơn hàng",
+        "Đổi trả & Hoàn tiền",
+        "Thẻ quà tặng"
+      ]
+    },
+    "policies": {
+      "title": "Chính sách",
+      "links": [
+        "Chính sách bảo mật",
+        "Điều khoản dịch vụ",
+        "Chính sách cookie",
+        "Trợ năng",
+        "Sơ đồ trang"
+      ]
+    },
+    "paymentTitle": "Phương thức thanh toán",
+    "newsletterTitle": "Bản tin",
+    "newsletterDesc": "Nhận gợi ý sách tuyển chọn hàng tuần.",
+    "emailPlaceholder": "Email của bạn",
+    "copyright": "© {year} ZenBook. Tất cả quyền được bảo lưu.",
+    "madeWith": "Làm với tình yêu dành cho những người yêu sách."
+  },
+  "cart": {
+    "title": "Xem lại giỏ hàng.",
+    "selectAll": "Chọn tất cả sản phẩm",
+    "items": "sản phẩm",
+    "orderSummary": "Tóm tắt đơn hàng",
+    "subtotal": "Tạm tính",
+    "shipping": "Phí giao hàng",
+    "free": "Miễn phí",
+    "giftCardLabel": "Mã giảm giá / Thẻ quà tặng",
+    "giftCardPlaceholder": "VD: ZENBOOK2026",
+    "apply": "Áp dụng",
+    "includingVat": "Đã bao gồm VAT",
+    "total": "Tổng cộng",
+    "checkout": "Thanh toán an toàn",
+    "emptyTitle": "Giỏ hàng của bạn đang trống.",
+    "emptyDesc": "Có vẻ như bạn chưa thêm cuốn sách nào vào giỏ hàng.",
+    "continueShopping": "Tiếp tục mua sắm"
+  },
+  "product": {
+    "loading": "Đang tải thông tin sách...",
+    "notFound": "Không tìm thấy sản phẩm",
+    "deliveryInfo": "Thông tin vận chuyển",
+    "deliverTo": "Giao hàng đến",
+    "location": "Hà Nội, Việt Nam",
+    "standardDelivery": "Giao hàng tiêu chuẩn",
+    "estimatedDelivery": "Dự kiến giao trong 2-3 ngày làm việc",
+    "relatedOffers": "Ưu đãi liên quan",
+    "notFoundDesc": "Sách này có thể đã bị xóa hoặc đường dẫn không chính xác.",
+    "tabs": {
+      "description": "Mô tả sản phẩm",
+      "specification": "Thông tin chi tiết",
+      "reviews": "Đánh giá"
+    },
+    "author": "Tác giả",
+    "updating": "Đang cập nhật",
+    "reviews": "đánh giá",
+    "sold": "Đã bán",
+    "save": "Tiết kiệm",
+    "policy": {
+      "genuine": "Cam kết 100% sách chính hãng",
+      "freeship": "Miễn phí giao hàng toàn quốc cho đơn từ 200.000₫"
+    },
+    "quantity": "Số lượng",
+    "inStock": "sản phẩm có sẵn",
+    "outOfStock": "Hết hàng",
+    "addToCart": "Thêm vào giỏ hàng",
+    "buyNow": "Mua ngay",
+    "noDescription": "Chưa có thông tin mô tả cho sản phẩm này.",
+    "seeMore": "Xem thêm",
+    "collapse": "Thu gọn",
+    "specs": {
+      "sku": "Mã hàng",
+      "publisher": "Nhà xuất bản",
+      "publicationYear": "Năm xuất bản",
+      "author": "Tác giả",
+      "format": "Loại bìa",
+      "pages": "Số trang",
+      "dimensions": "Kích thước",
+      "language": "Ngôn ngữ"
+    },
+    "hardcover": "Bìa cứng",
+    "paperback": "Bìa mềm",
+    "pages": "trang",
+    "vietnamese": "Tiếng Việt",
+    "noReviews": "Chưa có đánh giá nào cho sản phẩm này.",
+    "beFirstReview": "Hãy là người đầu tiên mua và đánh giá nhé!",
+    "star": "sao",
+    "relatedBooks": "Sách cùng thể loại"
   }
 }

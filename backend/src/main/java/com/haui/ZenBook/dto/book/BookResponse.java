@@ -47,6 +47,13 @@ public class BookResponse {
     Integer weight;
     String language;
 
+
+    private Double rating;
+    private Integer reviews;
+    private Integer views;
+    private String award;
+    private Integer discount;
+
     // Danh sách ảnh phụ
     private List<BookImageResponse> images;
 }
