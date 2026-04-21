@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class'],
-  // content: [],
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     container: {
@@ -73,6 +72,24 @@ export default {
           3: 'hsl(var(--chart-3))',
           4: 'hsl(var(--chart-4))',
           5: 'hsl(var(--chart-5))'
+        },
+
+        // SỬA TẠI ĐÂY: Dùng hàm hsl() để bọc các biến màu
+        brand: {
+          green: 'hsl(var(--brand-green))',
+          'green-light': 'hsl(var(--brand-green-light))',
+          'green-dark': 'hsl(var(--brand-green-dark))',
+          red: 'hsl(var(--brand-red))',
+          'red-light': 'hsl(var(--brand-red-light))',
+          amber: 'hsl(var(--brand-amber))'
+        },
+        neutral: {
+          50: 'hsl(var(--neutral-50))',
+          100: 'hsl(var(--neutral-100))',
+          200: 'hsl(var(--neutral-200))',
+          600: 'hsl(var(--neutral-600))',
+          800: 'hsl(var(--neutral-800))',
+          900: 'hsl(var(--neutral-900))'
         }
       },
       backgroundImage: {
@@ -144,7 +161,9 @@ export default {
         'slide-up': 'slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
       },
       fontFamily: {
-        sans: ['var(--font-sans)']
+        // Đã mapping biến font này ở index.css
+        sans: ['var(--font-inter)'],
+        serif: ['var(--font-playfair)']
       }
     }
   },

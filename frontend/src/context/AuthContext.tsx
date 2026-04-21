@@ -1,13 +1,13 @@
-import React, { createContext, useState, type ReactNode } from 'react'
+import React, { createContext, useState, useContext, type ReactNode } from 'react'
 import axiosClient from '@/api/axiosClient'
 
-// 1. Khai báo khung dữ liệu của một User (Chấp nhận null cho các trường không bắt buộc)
+// 1. Khai báo khung dữ liệu của một User
 export interface User {
   id: string
   username: string
   email: string
   fullName: string | null
-  avatar: string | null
+  avatar: string | null // Tên trường là avatar
   phone?: string | null
   roles: string[]
   status: string
@@ -20,12 +20,23 @@ export interface AuthResponseData {
 
 interface AuthContextType {
   user: User | null
+  isAuthenticated: boolean // Thêm để Header nhận diện
+  isLoading: boolean // Thêm trạng thái loading
   login: (email: string, password: string) => Promise<AuthResponseData>
   logout: () => void
   updateUser: (userData: Partial<User>) => void
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null)
+
+// 👉 TẠO CUSTOM HOOK ĐỂ DÙNG NHANH
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
@@ -36,6 +47,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return null
     }
   })
+
+  // Vì lấy từ localStorage nên render ra là có luôn (chưa gọi API verify token)
+  const [isLoading] = useState(false)
+  const isAuthenticated = !!user
 
   const login = async (email: string, password: string): Promise<AuthResponseData> => {
     const response = await axiosClient.post<AuthResponseData, AuthResponseData>('/auth/login', {
@@ -66,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

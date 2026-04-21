@@ -1,0 +1,155 @@
+{
+  "list": "News Management",
+  "page": {
+    "title": "News / Blog Management"
+  },
+  "dialogTitle": {
+    "create": "Create New Post",
+    "view": "Post Details",
+    "delete": "Confirm Deletion",
+    "update": "Update Post",
+    "permanentDelete": "Permanent Deletion",
+    "restore": "Confirm Restoration"
+  },
+  "filters": {
+    "search": "Search post title...",
+    "reset": "Reset Filters",
+    "status": {
+      "label": "Status",
+      "all": "All Statuses",
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "HIDDEN": "Hidden"
+    }
+  },
+  "table": {
+    "noResults": "No posts found.",
+    "allStatus": "All Statuses",
+    "searchPlaceholder": "Search post title...",
+    "columns": {
+      "title": "Post Title",
+      "category": "Category",
+      "author": "Author",
+      "views": "Views",
+      "status": "Status",
+      "actions": "Actions"
+    }
+  },
+  "form": {
+    "sections": {
+      "basic": "1. Basic Information",
+      "content": "2. Post Content",
+      "classify": "3. Classification & Links",
+      "seo": "4. SEO Optimization (Optional)",
+      "media": "5. Cover Image"
+    }
+  },
+  "fields": {
+    "title": {
+      "label": "Post Title",
+      "placeholder": "Enter post title..."
+    },
+    "slug": {
+      "label": "Slug",
+      "placeholder": "Slug will be generated automatically"
+    },
+    "summary": {
+      "label": "Summary",
+      "placeholder": "Enter a short summary for the homepage..."
+    },
+    "content": {
+      "label": "Content"
+    },
+    "thumbnail": {
+      "label": "Cover Image",
+      "placeholder": "Drag & drop or click to upload image"
+    },
+    "category": {
+      "label": "Category",
+      "placeholder": "Select a category"
+    },
+    "tags": {
+      "label": "Tags",
+      "placeholder": "Select related tags"
+    },
+    "books": {
+      "label": "Attached Books",
+      "placeholder": "Select books related to this post"
+    },
+    "status": {
+      "label": "Status",
+      "options": {
+        "DRAFT": "Draft",
+        "PUBLISHED": "Publish Now",
+        "HIDDEN": "Hidden"
+      }
+    },
+    "seo": {
+      "metaTitle": {
+        "label": "SEO Title (Meta Title)",
+        "placeholder": "Title shown on Google (Max 60 chars)..."
+      },
+      "metaDescription": {
+        "label": "SEO Description (Meta Description)",
+        "placeholder": "Description shown on Google (Max 160 chars)..."
+      }
+    },
+    "createdAt": "Created At",
+    "updatedAt": "Last Updated",
+    "publishedAt": "Published At"
+  },
+  "validation": {
+    "titleRequired": "Post title is required.",
+    "titleMin": "Post title must be at least 5 characters.",
+    "titleMax": "Post title cannot exceed 255 characters.",
+    "contentRequired": "Post content is required.",
+    "summaryMax": "Summary cannot exceed 500 characters.",
+    "metaTitleMax": "SEO title should not exceed 100 characters.",
+    "metaDescMax": "SEO description should not exceed 255 characters.",
+    "thumbnailRequired": "Please upload a cover image.",
+    "thumbnailSize": "Cover image size cannot exceed 5MB.",
+    "thumbnailType": "Only .jpg, .jpeg, .png, and .webp formats are allowed."
+  },
+  "message": {
+    "success": {
+      "create": "Post created successfully!",
+      "update": "Post updated successfully!",
+      "delete": "Post moved to trash!",
+      "permanentDelete": "Post permanently deleted!",
+      "restore": "Post restored successfully!",
+      "deleteConfirm": "Are you sure you want to delete the post \"{{title}}\"? It will be moved to the trash."
+    },
+    "error": {
+      "create": "Failed to create post. Please try again!",
+      "update": "Failed to update post. Please try again!",
+      "delete": "Failed to delete post. Please try again!",
+      "restore": "Failed to restore post.",
+      "title_existed": "This post title already exists!",
+      "slug_existed": "This slug already exists!",
+      "upload_failed": "Failed to upload image. Please check again!"
+    },
+    "warning": {
+      "permanentDeleteConfirm": "This action cannot be undone. Are you sure you want to PERMANENTLY delete the post \"{{title}}\"?",
+      "restoreConfirm": "Are you sure you want to restore the post \"{{title}}\"?"
+    }
+  },
+  "actions": {
+    "create": "Publish Post",
+    "confirm": "Confirm Delete",
+    "close": "Close",
+    "edit": "Save Changes",
+    "cancel": "Cancel",
+    "deleteForever": "Delete Permanently",
+    "restore": "Restore",
+    "removeImage": "Remove Image"
+  },
+  "trash": {
+    "title": "News Trash",
+    "btnTrash": "Trash",
+    "trashEmpty": "News trash is currently empty."
+  },
+  "common": {
+    "noData": "No data available.",
+    "loading": "Loading data..."
+  }
+}

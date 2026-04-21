@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from '@/components/admin/datatable/DataTableCol
 import { OrderStatusBadge } from '@/components/admin/data/manage-order/OrderStatusBadge'
 import { PaymentStatusBadge } from '@/components/admin/data/manage-order/PaymentStatusBadge'
 import { OrderActionsCell } from '@/components/admin/action/OrderAction'
+import { Checkbox } from '@/components/ui/checkbox'
 import { format, isValid } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import i18n from '@/i18n/i18n'
@@ -25,6 +26,32 @@ const safeFormatDate = (dateString?: string | null) => {
 }
 
 export const columns: ColumnDef<OrderRow>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <div className='pl-2'>
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label='Select all'
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className='pl-2'>
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label='Select row'
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false
+  },
   {
     accessorKey: 'orderCode',
     header: ({ column }) => (
@@ -64,7 +91,7 @@ export const columns: ColumnDef<OrderRow>[] = [
       <DataTableColumnHeader
         column={column}
         title={i18n.t('order:table.columns.total')}
-        className='justify-center' // Căn giữa Header
+        className='justify-center'
       />
     ),
     cell: ({ row }) => {
@@ -73,13 +100,7 @@ export const columns: ColumnDef<OrderRow>[] = [
         style: 'currency',
         currency: 'VND'
       }).format(amount)
-      return (
-        <div className='text-center font-bold text-red-600'>
-          {' '}
-          {/* Căn giữa dữ liệu và màu đỏ */}
-          {formatted}
-        </div>
-      )
+      return <div className='text-center font-bold text-red-600'>{formatted}</div>
     }
   },
   {

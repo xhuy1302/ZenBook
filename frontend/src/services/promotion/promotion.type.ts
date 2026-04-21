@@ -1,6 +1,14 @@
 import type { DiscountType, PromotionStatus } from '@/defines/promotion.enum'
 
 /**
+ * Khớp với static class AuthorDto trong Java
+ */
+export interface AuthorDto {
+  id: string
+  name: string
+}
+
+/**
  * Khớp với static class PromotionBookDto trong Java
  */
 export interface PromotionBookDto {
@@ -9,6 +17,12 @@ export interface PromotionBookDto {
   thumbnail: string
   originalPrice: number
   salePrice: number
+
+  // 👉 THÊM MỚI 4 TRƯỜNG NÀY ĐỂ KHỚP VỚI BACKEND
+  stockQuantity: number
+  rating: number
+  reviews: number
+  authors: AuthorDto[]
 }
 
 /**

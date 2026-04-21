@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="017-add-gender-dob-users" author="xuanhuy">
+        <addColumn tableName="users">
+            <column name="gender" type="VARCHAR(10)"/>
+            <column name="date_of_birth" type="DATE"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="018-add-nationality-dob-users" author="xuanhuy">
+        <addColumn tableName="users">
+            <column name="nationality" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

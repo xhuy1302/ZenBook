@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="create-news-table" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="news"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="news" remarks="Bảng lưu trữ Bài viết/Tin tức">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="slug" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_news_slug"/>
+            </column>
+            <column name="summary" type="TEXT"/>
+
+            <column name="content" type="LONGTEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="thumbnail" type="VARCHAR(500)"/>
+
+            <column name="category_id" type="VARCHAR(36)"/>
+            <column name="author_id" type="VARCHAR(36)"/>
+
+            <column name="status" type="VARCHAR(20)" defaultValue="DRAFT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="view_count" type="INT" defaultValue="0"/>
+
+            <column name="meta_title" type="VARCHAR(255)"/>
+            <column name="meta_description" type="VARCHAR(500)"/>
+
+            <column name="published_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="news" indexName="idx_news_slug">
+            <column name="slug"/>
+        </createIndex>
+        <createIndex tableName="news" indexName="idx_news_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="news" indexName="idx_news_category">
+            <column name="category_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="news" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create-news-tags-table" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="news_tags"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="news_tags" remarks="Bảng trung gian News và Tags">
+            <column name="news_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tag_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="news_tags"
+                columnNames="news_id, tag_id"
+                constraintName="pk_news_tags"/>
+
+        <rollback>
+            <dropTable tableName="news_tags"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="create-news-books-table" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="news_books"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="news_books" remarks="Bảng trung gian News và Books">
+            <column name="news_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="book_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="news_books"
+                columnNames="news_id, book_id"
+                constraintName="pk_news_books"/>
+
+        <rollback>
+            <dropTable tableName="news_books"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

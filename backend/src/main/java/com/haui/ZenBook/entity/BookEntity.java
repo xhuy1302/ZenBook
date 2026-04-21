@@ -52,6 +52,18 @@ public class BookEntity extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "views")
+    private Integer views = 0; // Thêm trường này để tính sách thịnh hành
+
+    @Column(name = "average_rating")
+    private Double rating = 0.0; // Điểm đánh giá trung bình (1.0 -> 5.0)
+
+    @Column(name = "total_reviews")
+    private Integer reviews = 0; // Số lượng người đã đánh giá
+
+    @Column(name = "award")
+    private String award; // Tên giải thưởng (Nếu có) - Dùng cho tab Award Winners
+
     // 👉 THÊM MỚI: Mối quan hệ N-1 với Nhà xuất bản (Publisher)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "publisher_id")
@@ -96,4 +108,7 @@ public class BookEntity extends BaseEntity {
 
     @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
     private List<PromotionEntity> promotions;
+
+    @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
+    private Set<NewsEntity> relatedNews;
 }

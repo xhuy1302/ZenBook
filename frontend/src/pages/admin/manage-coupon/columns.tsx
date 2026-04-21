@@ -3,10 +3,37 @@ import { CouponStatusBadge } from '@/components/admin/data/manage-coupon/CouponS
 import { CouponActionsCell } from '@/components/admin/action/CouponAction'
 import type { CouponResponse } from '@/services/coupon/coupon.type'
 import { DataTableColumnHeader } from '@/components/admin/datatable/DataTableColumnHeader'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { TFunction } from 'i18next'
 import { format } from 'date-fns'
 
 export const getColumns = (t: TFunction<'coupon'>): ColumnDef<CouponResponse>[] => [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <div className='pl-2'>
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label='Select all'
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className='pl-2'>
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label='Select row'
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false
+  },
   {
     accessorKey: 'code',
     header: ({ column }) => (

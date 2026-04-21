@@ -30,6 +30,8 @@ public enum ErrorCode {
 
     USER_NOT_FOUND(4001, "user.not.found", HttpStatus.NOT_FOUND),
     CANNOT_DELETE_SELF(4002, "user.cannot.delete.self", HttpStatus.BAD_REQUEST),
+    // ================= Thêm mới cho ADDRESS =================
+    ADDRESS_NOT_FOUND(4008, "address.not.found", HttpStatus.NOT_FOUND),
 
     CATEGORY_NOT_FOUND(5000, "category.not.found", HttpStatus.NOT_FOUND),
     CATEGORY_NAME_NOTBLANK(5001, "category.name.not.blank", HttpStatus.BAD_REQUEST),
@@ -109,6 +111,13 @@ public enum ErrorCode {
 
     PROMOTION_NOT_FOUND(1100, "promotion.not.found",HttpStatus.BAD_REQUEST) ,
     PROMOTION_DATE_INVALID(1101, "promotion.date.invalid",HttpStatus.BAD_REQUEST),
+
+    // ================= LỖI NEWS / BLOG (1300x) =================
+    NEWS_NOT_FOUND(13000, "news.not.found", HttpStatus.NOT_FOUND),
+    NEWS_TITLE_EXISTED(13001, "news.title.exists", HttpStatus.BAD_REQUEST),
+    NEWS_SLUG_EXISTED(13002, "news.slug.exists", HttpStatus.BAD_REQUEST),
+    NEWS_RESTORE_FAILED_SLUG_EXISTED(13003, "news.restore.failed.slug.exists", HttpStatus.BAD_REQUEST),
+    NEWS_CATEGORY_NOT_FOUND(13004, "news.category.not.found", HttpStatus.BAD_REQUEST),
 
     // ================= LỖI COUPON (1200x) =================
     COUPON_NOT_FOUND(12000, "coupon.not.found", HttpStatus.NOT_FOUND),

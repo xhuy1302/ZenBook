@@ -33,7 +33,8 @@ export const getCouponSchema = (t: TValidator) =>
         (val) => (val === '' || val === null ? undefined : Number(val)),
         z
           .number({ message: t('validation.required', 'Vui lòng nhập đơn tối thiểu') })
-          .min(0, t('validation.min0', 'Không được âm'))
+          // SỬA Ở ĐÂY: Thay vì .min(0), hãy đổi thành .min(1) nếu bạn không muốn đơn hàng 0 đồng được áp dụng
+          .min(1, t('validation.min1', 'Đơn hàng tối thiểu phải lớn hơn 0'))
       ),
 
       // Optional, nếu không nhập là vô hạn

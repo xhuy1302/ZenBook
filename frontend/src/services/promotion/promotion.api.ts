@@ -1,6 +1,11 @@
 import { api } from '@/utils/axiosCustomize'
 import type { PromotionRequest, PromotionResponse } from '@/services/promotion/promotion.type'
 
+export const getActiveFlashSaleApi = async () => {
+  const res = await api.get('/promotions/flash-sale/active')
+  return res.data.data
+}
+
 // ==========================================
 // 📚 QUẢN LÝ CHUNG
 // ==========================================

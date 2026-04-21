@@ -19,4 +19,7 @@
     <include file="classpath:db/changelog/changes/012-create-table-order.xml"/>
     <include file="classpath:db/changelog/changes/013-create-table-promotions.xml"/>
     <include file="classpath:db/changelog/changes/014-create-table-coupons.xml"/>
+    <include file="classpath:db/changelog/changes/015-create-table-news.xml"/>
+    <include file="classpath:db/changelog/changes/016-create-table-user_address.xml"/>
+    <include file="classpath:db/changelog/changes/17-add-gender-dob-to-users.xml"/>
 </databaseChangeLog>

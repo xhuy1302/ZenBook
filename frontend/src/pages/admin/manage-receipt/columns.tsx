@@ -1,12 +1,13 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from '@/components/admin/datatable/DataTableColumnHeader'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { TFunction } from 'i18next'
 import type { ReceiptResponse } from '@/services/receipt/receipt.type'
 import { ReceiptStatusBadge } from '@/components/admin/data/manage-receipt/ReceiptStatusBadge'
 import { ReceiptActionsCell } from '@/components/admin/action/ReceiptAction'
 import { format, isValid } from 'date-fns'
 
-// Hàm helper để format ngày an toàn, tránh lỗi crash màn hình trắng
+// Hàm helper để format ngày an toàn
 const safeFormatDate = (dateString?: string | null) => {
   if (!dateString) return '---'
   if (dateString.includes('-') && !dateString.includes('T')) return dateString
@@ -15,6 +16,34 @@ const safeFormatDate = (dateString?: string | null) => {
 }
 
 export const getColumns = (t: TFunction<'receipt'>): ColumnDef<ReceiptResponse>[] => [
+  // 🟢 CỘT CHECKBOX (THÊM MỚI)
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <div className='pl-2'>
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label='Select all'
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className='pl-2'>
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label='Select row'
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false
+  },
+  // Các cột hiện có (giữ nguyên)
   {
     accessorKey: 'receiptCode',
     header: ({ column }) => (
@@ -31,7 +60,6 @@ export const getColumns = (t: TFunction<'receipt'>): ColumnDef<ReceiptResponse>[
     )
   },
   {
-    // 👉 Đã đổi từ supplierName sang publisherName
     accessorKey: 'publisherName',
     header: ({ column }) => (
       <DataTableColumnHeader

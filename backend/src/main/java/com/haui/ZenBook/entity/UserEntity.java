@@ -3,6 +3,7 @@ package com.haui.ZenBook.entity;
 import com.haui.ZenBook.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,8 +12,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,10 +46,19 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @Column(name = "avatar", length = 500)
     private String avatar;
+    @Column(name = "nationality", length = 100)
+    private String nationality;
+
+    // 👉 Đã thêm 2 trường cho trang Profile Khách hàng
+    @Column(name = "gender", length = 10)
+    private String gender;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private UserStatus status; // Bỏ gán trực tiếp ở đây để tránh lỗi Builder
+    private UserStatus status;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
@@ -58,9 +71,33 @@ public class UserEntity extends BaseEntity implements UserDetails {
     )
     private Set<RoleEntity> roles;
 
+    // mappedBy = "author" phải khớp chính xác với tên biến UserEntity author; trong NewsEntity
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private Set<NewsEntity> writtenNews;
+
+    // ==========================================
+    // 👉 QUAN HỆ ONE-TO-MANY VỚI ADDRESSES
+    // ==========================================
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<AddressEntity> addresses = new ArrayList<>();
+
+    // Các hàm Helper hỗ trợ Sổ địa chỉ
+    public void addAddress(AddressEntity address) {
+        addresses.add(address);
+        address.setUser(this);
+    }
+
+    public void removeAddress(AddressEntity address) {
+        addresses.remove(address);
+        address.setUser(null);
+    }
+
+    // ==========================================
+    // CÁC HÀM CỦA SPRING SECURITY (USERDETAILS)
+    // ==========================================
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Tránh lỗi NullPointerException nếu roles chưa được load
         if (roles == null) return java.util.Collections.emptyList();
 
         return roles.stream()
@@ -90,7 +127,6 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        // Nếu status null thì coi như ACTIVE để tránh bị chặn đăng nhập oan
         return status == null || status == UserStatus.ACTIVE;
     }
 }

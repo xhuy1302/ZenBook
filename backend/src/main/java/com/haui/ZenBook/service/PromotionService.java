@@ -15,5 +15,6 @@ public interface PromotionService {
     PromotionResponse stopPromotion(String id);
     List<PromotionResponse> getAllPromotions();
     PromotionResponse getPromotionById(String id);
+    PromotionResponse getActiveFlashSale();
 
 }
