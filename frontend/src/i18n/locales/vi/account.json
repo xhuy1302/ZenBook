@@ -1,4 +1,18 @@
 {
+  "common": {
+    "cancel": "Huỷ",
+    "saving": "Đang lưu...",
+    "update": "Cập nhật",
+    "add": "Thêm",
+    "edit": "Sửa",
+    "delete": "Xoá",
+    "confirm": "Xác nhận",
+    "saveChanges": "Lưu thay đổi",
+    "setup": "Thiết lập",
+    "enable": "Bật",
+    "link": "Liên kết",
+    "featureInDevelopment": "Tính năng đang phát triển"
+  },
   "address": {
     "title": "Sổ địa chỉ",
     "subtitle": "Quản lý danh sách địa chỉ giao hàng",
@@ -36,8 +50,8 @@
     "personalInfo": "Thông tin cá nhân",
     "fullName": "Họ & Tên",
     "fullNamePlaceholder": "Nguyễn Văn A",
-    "nickname": "Nickname",
-    "nicknamePlaceholder": "Thêm nickname",
+    "nickname": "Biệt danh",
+    "nicknamePlaceholder": "Thêm biệt danh",
     "dateOfBirth": "Ngày sinh",
     "day": "Ngày",
     "month": "Tháng",

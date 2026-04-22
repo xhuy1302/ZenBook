@@ -45,6 +45,7 @@ public interface UserMapper {
      * @Mapping avatarUrl ← avatar  vì tên field lệch nhau.
      */
     @Mapping(target = "avatarUrl", source = "avatar")
+    @Mapping(target = "username", source = "realUsername")
     @Mapping(target = "roles", expression = "java(mapRolesToList(entity.getRoles()))")
     UserProfileResponse toUserProfileResponse(UserEntity entity);
 
@@ -71,10 +72,10 @@ public interface UserMapper {
     @Mapping(target = "avatar",     ignore = true)  // avatar được cập nhật riêng qua uploadAvatar()
     @Mapping(target = "roles",      ignore = true)
     @Mapping(target = "addresses",  ignore = true)
-    @Mapping(target = "username",   ignore = true)  // username không đổi sau khi đăng ký
     @Mapping(target = "status",     ignore = true)
     @Mapping(target = "createdAt",  ignore = true)
     @Mapping(target = "deletedAt",  ignore = true)
+
     @Mapping(target = "phone",      ignore = true)  // phone cập nhật riêng qua updatePhone()
     void updateCustomerProfile(@MappingTarget UserEntity entity,
                                CustomerProfileUpdateRequest request);

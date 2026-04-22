@@ -109,7 +109,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
     public String getUsername() {
         return this.email; // Đăng nhập bằng Email
     }
-
+    public String getRealUsername() {
+        return this.username;
+    }
     @Override
     public boolean isAccountNonExpired() {
         return true;

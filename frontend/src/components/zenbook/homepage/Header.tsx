@@ -24,8 +24,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import LocaleSwitcher from './LocaleSwitcher'
 import { useAuth } from '@/context/AuthContext'
 import type { User as UserType } from '@/context/AuthContext'
-
-// ── User Section (Hover Menu) ─────────────────────────────────────────────────
+import { useQuery } from '@tanstack/react-query'
+import { getAddressesApi } from '@/services/customer/customer.api'
 
 interface UserSectionProps {
   authLoading: boolean
@@ -49,9 +49,8 @@ function UserSection({ authLoading, isAuthenticated, user, onLogout }: UserSecti
 
   return (
     <div className='relative group'>
-      {/* 👉 TRIGGER: Icon + Chữ nằm ngang */}
       <Link
-        to={isAuthenticated ? '/customer' : '/login'} // 👉 Sửa thành /customer theo App.tsx
+        to={isAuthenticated ? '/customer' : '/login'}
         className='flex items-center gap-2 px-2 py-2 rounded hover:bg-neutral-100 transition-colors cursor-pointer'
       >
         {isAuthenticated && user?.avatar ? (
@@ -69,7 +68,6 @@ function UserSection({ authLoading, isAuthenticated, user, onLogout }: UserSecti
         </span>
       </Link>
 
-      {/* 👉 DROPDOWN MENU */}
       <div className='absolute top-full right-0 pt-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50'>
         <div className='bg-white border border-gray-100 shadow-xl rounded-lg overflow-hidden flex flex-col'>
           {!isAuthenticated ? (
@@ -98,8 +96,6 @@ function UserSection({ authLoading, isAuthenticated, user, onLogout }: UserSecti
                 <p className='text-xs text-gray-500 truncate'>{user?.email}</p>
               </div>
               <div className='py-2 flex flex-col'>
-                {/* 👉 ĐÃ SỬA CÁC ĐƯỜNG LINK DƯỚI ĐÂY CHO KHỚP VỚI APP.TSX */}
-
                 <Link
                   to='/customer'
                   className='flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-green transition-colors'
@@ -135,8 +131,6 @@ function UserSection({ authLoading, isAuthenticated, user, onLogout }: UserSecti
   )
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
-
 export default function Header() {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
@@ -145,7 +139,6 @@ export default function Header() {
 
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  // Fake data for UI matching
   const cartCount = 3
   const wishlistCount = 7
 
@@ -157,6 +150,14 @@ export default function Header() {
     setPrevUrlQuery(queryFromUrl)
     setSearchQuery(queryFromUrl)
   }
+
+  const { data: addresses, isLoading: addressLoading } = useQuery({
+    queryKey: ['addresses'],
+    queryFn: getAddressesApi,
+    enabled: isAuthenticated
+  })
+
+  const defaultAddress = addresses?.find((addr) => addr.isDefault)
 
   const handleSearch = () => {
     const query = searchQuery.trim()
@@ -188,7 +189,7 @@ export default function Header() {
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/')
   }
 
   const navLinks = [
@@ -207,13 +208,33 @@ export default function Header() {
       <div className='bg-brand-green text-primary-foreground'>
         <div className='max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between text-xs'>
           <div className='flex items-center gap-4'>
-            <button className='flex items-center gap-1 hover:opacity-80 transition-opacity'>
-              <MapPin className='w-3 h-3' />
-              <span>
-                {t('header.deliverTo')} {t('header.location')}
+            <Link
+              to={isAuthenticated ? '/customer/address' : '/login'}
+              className='flex items-center gap-1 hover:opacity-80 transition-opacity max-w-[300px]'
+            >
+              <MapPin className='w-3 h-3 shrink-0' />
+              <span className='truncate text-xs'>
+                {!isAuthenticated ? (
+                  <>
+                    Giao đến: <strong>Chọn địa chỉ</strong>
+                  </>
+                ) : addressLoading ? (
+                  <>Đang tải...</>
+                ) : defaultAddress ? (
+                  <>
+                    Giao đến:{' '}
+                    <strong>
+                      {defaultAddress.ward}, {defaultAddress.district}, {defaultAddress.city}
+                    </strong>
+                  </>
+                ) : (
+                  <>
+                    Giao đến: <strong>Thêm địa chỉ ngay</strong>
+                  </>
+                )}
               </span>
-              <ChevronDown className='w-3 h-3' />
-            </button>
+              <ChevronDown className='w-3 h-3 shrink-0' />
+            </Link>
           </div>
           <div className='flex items-center gap-4'>
             <button className='flex items-center gap-1 hover:opacity-80 transition-opacity'>
@@ -263,9 +284,7 @@ export default function Header() {
             </Button>
           </div>
 
-          {/* 👉 KHU VỰC ACTION BAR 👈 */}
           <div className='flex items-center gap-1 shrink-0 ml-2'>
-            {/* Nút Tài khoản */}
             <UserSection
               authLoading={authLoading}
               isAuthenticated={isAuthenticated}
@@ -273,7 +292,6 @@ export default function Header() {
               onLogout={handleLogout}
             />
 
-            {/* ZenBook VIP */}
             {isAuthenticated && (
               <div className='hidden lg:flex items-center gap-2 px-2 py-2 rounded hover:bg-neutral-100 transition-colors cursor-pointer shrink-0'>
                 <Crown className='w-6 h-6 text-[#d48806]' strokeWidth={1.5} />
@@ -281,7 +299,6 @@ export default function Header() {
               </div>
             )}
 
-            {/* Nút Yêu thích */}
             <button className='flex items-center gap-2 px-2 py-2 rounded hover:bg-neutral-100 transition-colors group shrink-0'>
               <div className='relative'>
                 <Heart
@@ -297,7 +314,6 @@ export default function Header() {
               <span className='text-sm font-medium text-gray-700 hidden sm:block'>Yêu thích</span>
             </button>
 
-            {/* Nút Giỏ hàng */}
             <Link
               to='/cart'
               className='flex items-center justify-center px-2 py-2 rounded hover:bg-neutral-100 transition-colors group shrink-0'

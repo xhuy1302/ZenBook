@@ -1,9 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// services/customer/customer.type.ts
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ── User ──────────────────────────────────────────────────────────────────────
-
 export interface UserProfile {
   id: string
   username: string
@@ -11,8 +5,9 @@ export interface UserProfile {
   fullName?: string // thêm — từ UserProfileResponse.fullName
   phone?: string
   gender?: 'male' | 'female' | 'other'
-  dateOfBirth?: string // thêm — "YYYY-MM-DD" (LocalDate từ backend)
-  avatarUrl?: string // mapped từ "avatar" qua @Mapping trong UserMapper
+  dateOfBirth?: string
+  nationality?: string
+  avatarUrl?: string
   roles: string[]
 }
 
@@ -20,7 +15,7 @@ export interface UserProfile {
 
 export interface CustomerProfileUpdateRequest {
   fullName?: string
-  nickname?: string
+  username?: string
   gender?: 'male' | 'female' | 'other'
   dateOfBirth?: string // "YYYY-MM-DD"
   nationality?: string
@@ -56,9 +51,14 @@ export interface Address {
   ward: string
   district: string
   city: string
-  isDefault: boolean
-}
 
+  default?: boolean
+  isDefault?: boolean
+}
+export interface UserProfile {
+  // Thêm dòng này vào
+  nationality?: string
+}
 export type AddressPayload = Omit<Address, 'id' | 'isDefault'>
 
 // ── Tab ───────────────────────────────────────────────────────────────────────
