@@ -17,6 +17,7 @@ public interface AddressRepository extends JpaRepository<AddressEntity, String> 
 
     // Tìm 1 địa chỉ cụ thể của 1 user (để đảm bảo tính bảo mật khi sửa/xóa)
     Optional<AddressEntity> findByIdAndUserId(String addressId, String userId);
+    Optional<AddressEntity> findFirstByUserIdAndIdNotOrderByCreatedAtDesc(String userId, String id);
 
     // Reset tất cả địa chỉ của user này về false (Dùng khi người dùng chọn 1 địa chỉ khác làm mặc định)
     @Modifying

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, type ReactNode } from 'react'
+import React, { createContext, useState, useContext, useEffect, type ReactNode } from 'react'
 import axiosClient from '@/api/axiosClient'
 
 // 1. Khai báo khung dữ liệu của một User
@@ -20,8 +20,8 @@ export interface AuthResponseData {
 
 interface AuthContextType {
   user: User | null
-  isAuthenticated: boolean // Thêm để Header nhận diện
-  isLoading: boolean // Thêm trạng thái loading
+  isAuthenticated: boolean
+  isLoading: boolean
   login: (email: string, password: string) => Promise<AuthResponseData>
   logout: () => void
   updateUser: (userData: Partial<User>) => void
@@ -48,7 +48,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   })
 
-  // Vì lấy từ localStorage nên render ra là có luôn (chưa gọi API verify token)
   const [isLoading] = useState(false)
   const isAuthenticated = !!user
 
@@ -65,20 +64,61 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return response
   }
 
+  // 👉 ĐÃ TỐI ƯU: Sử dụng callback của setUser để luôn lấy data mới nhất
   const updateUser = (userData: Partial<User>) => {
-    if (user) {
-      const updatedUser = { ...user, ...userData }
-      setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-    }
+    setUser((prevUser) => {
+      if (!prevUser) return null
+      const updatedUser = { ...prevUser, ...userData }
+      localStorage.setItem('user', JSON.stringify(updatedUser)) // Cập nhật luôn LocalStorage
+      return updatedUser
+    })
   }
 
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setUser(null)
-    window.location.href = '/login'
   }
+
+  // =======================================================================
+  // 👉 BỘ LẮNG NGHE SỰ KIỆN TOÀN CỤC (GLOBAL EVENT LISTENERS)
+  // =======================================================================
+  useEffect(() => {
+    // 1. Lắng nghe khi Upload Avatar thành công
+    const handleAvatarUpdate = (event: Event) => {
+      // Ép kiểu về CustomEvent chứa string (URL ảnh)
+      const customEvent = event as CustomEvent<string>
+      const newAvatarUrl = customEvent.detail
+      updateUser({ avatar: newAvatarUrl })
+    }
+
+    // 2. Lắng nghe khi Lưu Profile thành công (Đổi tên, biệt danh...)
+    const handleProfileUpdate = (event: Event) => {
+      // Ép kiểu về CustomEvent chứa Object thông tin user
+      const customEvent = event as CustomEvent<{
+        fullName?: string | null
+        username?: string
+        phone?: string | null
+      }>
+      const updatedProfile = customEvent.detail
+
+      updateUser({
+        fullName: updatedProfile.fullName,
+        username: updatedProfile.username,
+        phone: updatedProfile.phone
+      })
+    }
+
+    // Đăng ký bộ thu sóng
+    window.addEventListener('onAvatarUpdated', handleAvatarUpdate)
+    window.addEventListener('onProfileUpdated', handleProfileUpdate)
+
+    // Gỡ bộ thu sóng khi component unmount
+    return () => {
+      window.removeEventListener('onAvatarUpdated', handleAvatarUpdate)
+      window.removeEventListener('onProfileUpdated', handleProfileUpdate)
+    }
+  }, [])
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout, updateUser }}>

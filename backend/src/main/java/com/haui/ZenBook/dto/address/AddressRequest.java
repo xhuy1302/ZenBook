@@ -32,7 +32,5 @@ public class AddressRequest {
     @NotBlank(message = "Tỉnh/Thành phố không được để trống")
     private String city;
 
-    // Tùy chọn: Khách hàng có muốn đặt làm địa chỉ mặc định ngay khi tạo không
-    @Builder.Default
-    private boolean isDefault = false;
+    private Boolean isDefault = false;
 }

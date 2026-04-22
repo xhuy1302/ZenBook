@@ -37,7 +37,7 @@ public class AddressEntity extends BaseEntity {
 
     @Column(name = "is_default")
     @Builder.Default
-    private boolean isDefault = false;
+    private Boolean isDefault = false;
 
     // ==========================================
     // 👉 QUAN HỆ MANY-TO-ONE VỀ PHÍA USER

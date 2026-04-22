@@ -28,11 +28,10 @@ public class UserProfileResponse {
 
     private LocalDate dateOfBirth;
 
-    // Tên trường ở đây là avatarUrl để khớp với Frontend TypeScript
-    // (Trong UserMapper mình đã có dòng @Mapping(target = "avatarUrl", source = "avatar") để xử lý)
+    private String nationality;
+
     private String avatarUrl;
 
-    // Danh sách quyền của user (ví dụ: ["USER", "ADMIN"])
     private List<String> roles;
 
 }

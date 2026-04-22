@@ -1,26 +1,12 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// components/zenbook/account/AddressTab.tsx
-// ─────────────────────────────────────────────────────────────────────────────
+// Đường dẫn: src/components/zenbook/account/AddressTab.tsx
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2, MapPin, Home, Phone, Star } from 'lucide-react'
+import { Plus, Pencil, Trash2, MapPin, Home, Phone, CheckCircle2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +19,9 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 
-// 👉 IMPORT CÁC HÀM API MỚI (đã sửa thành các hàm riêng lẻ)
+// 👉 Import Dialog chúng ta vừa tách ra
+import AddressDialog from './modals/AddressDialog'
+
 import {
   getAddressesApi,
   createAddressApi,
@@ -41,179 +29,9 @@ import {
   deleteAddressApi,
   setDefaultAddressApi
 } from '@/services/customer/customer.api'
-
 import type { Address, AddressPayload } from '@/services/customer/customer.type'
 
-// ── Schema ────────────────────────────────────────────────────────────────────
-
-const schema = z.object({
-  recipientName: z.string().min(2, 'validation.nameMinLength'), // Sẽ dùng t() bên trong component
-  phone: z.string().regex(/^(0|\+84)[0-9]{9}$/, 'validation.phoneInvalid'),
-  street: z.string().min(5, 'validation.streetMinLength'),
-  ward: z.string().min(1, 'validation.wardRequired'),
-  district: z.string().min(1, 'validation.districtRequired'),
-  city: z.string().min(1, 'validation.cityRequired')
-})
-
-type FormValues = z.infer<typeof schema>
-
-// ── Address Form Dialog ───────────────────────────────────────────────────────
-
-interface AddressDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  initialData?: Address
-  onSave: (data: AddressPayload) => Promise<void>
-}
-
-function AddressDialog({ open, onOpenChange, initialData, onSave }: AddressDialogProps) {
-  const { t } = useTranslation('account')
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting }
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: initialData
-      ? {
-          recipientName: initialData.recipientName,
-          phone: initialData.phone,
-          street: initialData.street,
-          ward: initialData.ward,
-          district: initialData.district,
-          city: initialData.city
-        }
-      : {
-          recipientName: '',
-          phone: '',
-          street: '',
-          ward: '',
-          district: '',
-          city: ''
-        }
-  })
-
-  useEffect(() => {
-    if (open) {
-      reset(
-        initialData
-          ? {
-              recipientName: initialData.recipientName,
-              phone: initialData.phone,
-              street: initialData.street,
-              ward: initialData.ward,
-              district: initialData.district,
-              city: initialData.city
-            }
-          : {
-              recipientName: '',
-              phone: '',
-              street: '',
-              ward: '',
-              district: '',
-              city: ''
-            }
-      )
-    }
-  }, [open, initialData, reset])
-
-  const onSubmit = async (data: FormValues) => {
-    await onSave(data)
-    onOpenChange(false)
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[520px]'>
-        <DialogHeader>
-          <DialogTitle>{initialData ? t('address.editTitle') : t('address.addTitle')}</DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 pt-1'>
-          <div className='grid grid-cols-2 gap-4'>
-            <div className='space-y-1.5'>
-              <Label>{t('address.recipientName')}</Label>
-              <Input
-                placeholder={t('address.recipientNamePlaceholder')}
-                {...register('recipientName')}
-              />
-              {errors.recipientName && (
-                <p className='text-destructive text-xs'>
-                  {t(errors.recipientName.message as string)}
-                </p>
-              )}
-            </div>
-            <div className='space-y-1.5'>
-              <Label>{t('address.phone')}</Label>
-              <Input placeholder={t('address.phonePlaceholder')} {...register('phone')} />
-              {errors.phone && (
-                <p className='text-destructive text-xs'>{t(errors.phone.message as string)}</p>
-              )}
-            </div>
-          </div>
-
-          <div className='space-y-1.5'>
-            <Label>{t('address.street')}</Label>
-            <Input placeholder={t('address.streetPlaceholder')} {...register('street')} />
-            {errors.street && (
-              <p className='text-destructive text-xs'>{t(errors.street.message as string)}</p>
-            )}
-          </div>
-
-          <div className='grid grid-cols-3 gap-3'>
-            <div className='space-y-1.5'>
-              <Label>{t('address.ward')}</Label>
-              <Input placeholder={t('address.wardPlaceholder')} {...register('ward')} />
-              {errors.ward && (
-                <p className='text-destructive text-xs'>{t(errors.ward.message as string)}</p>
-              )}
-            </div>
-            <div className='space-y-1.5'>
-              <Label>{t('address.district')}</Label>
-              <Input placeholder={t('address.districtPlaceholder')} {...register('district')} />
-              {errors.district && (
-                <p className='text-destructive text-xs'>{t(errors.district.message as string)}</p>
-              )}
-            </div>
-            <div className='space-y-1.5'>
-              <Label>{t('address.city')}</Label>
-              <Input placeholder={t('address.cityPlaceholder')} {...register('city')} />
-              {errors.city && (
-                <p className='text-destructive text-xs'>{t(errors.city.message as string)}</p>
-              )}
-            </div>
-          </div>
-
-          <DialogFooter className='pt-2'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              type='submit'
-              disabled={isSubmitting}
-              className='bg-brand-green hover:bg-brand-green-dark text-primary-foreground'
-            >
-              {isSubmitting
-                ? t('common.saving')
-                : initialData
-                  ? t('common.update')
-                  : t('common.add')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-// ── Address Card ──────────────────────────────────────────────────────────────
-
+// ── Address Card Component ────────────────────────────────────────────────────
 interface AddressCardProps {
   address: Address
   onEdit: () => void
@@ -224,57 +42,71 @@ interface AddressCardProps {
 
 function AddressCard({ address, onEdit, onDelete, onSetDefault, isDeleting }: AddressCardProps) {
   const { t } = useTranslation('account')
+
+  const isDefault = address.default === true || address.isDefault === true
+
   return (
     <div
-      className={`relative rounded-xl border bg-card p-5 transition-all ${
-        address.isDefault
-          ? 'border-brand-green/50 bg-brand-green/5'
-          : 'border-border hover:border-brand-green/30'
-      }`}
+      className={`relative rounded-xl border p-5 transition-all bg-card ${isDefault ? 'border-brand-green shadow-sm' : 'border-border'}`}
     >
-      {address.isDefault && (
-        <span className='absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-full border border-brand-green/20'>
-          <Star className='w-2.5 h-2.5 fill-brand-green' />
-          {t('address.default')}
-        </span>
-      )}
-
-      <div className='flex items-start gap-3 mb-3'>
-        <div className='w-8 h-8 rounded-lg bg-brand-green/10 flex items-center justify-center shrink-0 mt-0.5'>
-          <Home className='w-4 h-4 text-brand-green' />
+      {/* ── KHU VỰC TRÊN: THÔNG TIN ── */}
+      <div className='flex items-start gap-4'>
+        {/* Icon Home nền xám giống ảnh */}
+        <div className='w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0 text-muted-foreground'>
+          <Home className='w-5 h-5' />
         </div>
-        <div>
-          <p className='font-semibold text-sm text-foreground'>{address.recipientName}</p>
-          <p className='text-xs text-muted-foreground flex items-center gap-1 mt-0.5'>
-            <Phone className='w-3 h-3' />
-            {address.phone}
+
+        {/* Nội dung text */}
+        <div className='flex-1'>
+          <div className='flex items-center gap-2 mb-2'>
+            <span className='font-bold text-base text-foreground'>{address.recipientName}</span>
+            <span className='text-muted-foreground/40'>|</span>
+            <span className='text-sm text-muted-foreground flex items-center gap-1'>
+              <Phone className='w-3.5 h-3.5' />
+              {address.phone}
+            </span>
+          </div>
+
+          <p className='text-sm text-foreground mt-1'>{address.street}</p>
+          <p className='text-sm text-muted-foreground mt-1'>
+            {address.ward}, {address.district}, {address.city}
           </p>
         </div>
       </div>
 
-      <p className='text-sm text-muted-foreground leading-relaxed ml-11'>
-        {address.street}, {address.ward}, {address.district}, {address.city}
-      </p>
+      {/* ── KHU VỰC DƯỚI: NÚT BẤM (GIỐNG HỆT ẢNH) ── */}
+      <div className='flex items-center justify-between mt-5 pt-4 border-t border-border'>
+        {/* Trái: Trạng thái Mặc định */}
+        <div>
+          {isDefault ? (
+            // Nếu LÀ mặc định: Hiện icon tích xanh và chữ (Giống ảnh 1)
+            <div className='flex items-center gap-1.5 text-brand-green text-sm font-medium'>
+              <CheckCircle2 className='w-4 h-4' strokeWidth={2} />
+              <span>{t('address.defaultText', 'Địa chỉ mặc định')}</span>
+            </div>
+          ) : (
+            // Nếu KHÔNG LÀ mặc định: Hiện nút bấm (Giống ảnh 2)
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={onSetDefault}
+              className='h-8 text-xs font-medium border-border hover:border-brand-green hover:text-brand-green transition-colors'
+            >
+              {t('address.setDefault', 'Đặt mặc định')}
+            </Button>
+          )}
+        </div>
 
-      <div className='flex items-center gap-2 mt-4 pt-3 border-t border-border'>
-        {!address.isDefault && (
-          <button
-            onClick={onSetDefault}
-            className='text-xs text-muted-foreground hover:text-brand-green transition-colors underline underline-offset-2'
-          >
-            {t('address.setDefault')}
-          </button>
-        )}
-
-        <div className='flex items-center gap-1 ml-auto'>
+        {/* Phải: Sửa / Xóa */}
+        <div className='flex items-center gap-2'>
           <Button
             variant='ghost'
             size='sm'
             onClick={onEdit}
-            className='h-7 px-2.5 text-xs hover:text-brand-green hover:bg-brand-green/10 gap-1.5'
+            className='h-8 px-3 text-xs hover:text-brand-green hover:bg-brand-green/10 gap-1.5'
           >
-            <Pencil className='w-3 h-3' />
-            {t('common.edit')}
+            <Pencil className='w-3.5 h-3.5' />
+            {t('common.edit', 'Sửa')}
           </Button>
 
           <AlertDialog>
@@ -283,24 +115,26 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault, isDeleting }: Ad
                 variant='ghost'
                 size='sm'
                 disabled={isDeleting}
-                className='h-7 px-2.5 text-xs hover:text-destructive hover:bg-destructive/10 gap-1.5'
+                className='h-8 px-3 text-xs text-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5'
               >
-                <Trash2 className='w-3 h-3' />
-                {t('common.delete')}
+                <Trash2 className='w-3.5 h-3.5' />
+                {t('common.delete', 'Xoá')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>{t('address.deleteTitle')}</AlertDialogTitle>
-                <AlertDialogDescription>{t('address.deleteDescription')}</AlertDialogDescription>
+                <AlertDialogTitle>{t('address.deleteTitle', 'Xóa địa chỉ')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('address.deleteDescription', 'Bạn có chắc chắn muốn xóa địa chỉ này?')}
+                </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                <AlertDialogCancel>{t('common.cancel', 'Hủy')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={onDelete}
                   className='bg-destructive hover:bg-destructive/90 text-destructive-foreground'
                 >
-                  {t('common.delete')}
+                  {t('common.delete', 'Xóa')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -311,8 +145,7 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault, isDeleting }: Ad
   )
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
+// ── Main Tab Component ────────────────────────────────────────────────────────
 export default function AddressTab() {
   const { t } = useTranslation('account')
   const queryClient = useQueryClient()
@@ -329,6 +162,7 @@ export default function AddressTab() {
     onSuccess: () => {
       toast.success(t('address.deleteSuccess'))
       queryClient.invalidateQueries({ queryKey: ['addresses'] })
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
     },
     onError: () => toast.error(t('address.deleteError'))
   })
@@ -421,6 +255,7 @@ export default function AddressTab() {
         </div>
       )}
 
+      {/* Gọi file Modal vừa tách */}
       <AddressDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}

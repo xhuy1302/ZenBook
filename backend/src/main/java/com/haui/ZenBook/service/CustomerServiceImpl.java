@@ -81,20 +81,29 @@ public class CustomerServiceImpl implements CustomerService {
         userRepository.save(user);
     }
 
-    // 👉 ĐÃ SỬA: SỬ DỤNG S3Service VÀ TRY-CATCH NHƯ UserServiceImpl
     @Override
     @Transactional
     public String uploadAvatar(String email, MultipartFile file) {
         try {
             UserEntity user = getUserByEmail(email);
+            String oldAvatarUrl = user.getAvatar();
 
-            // Gọi S3Service upload vào thư mục "avatars"
-            String avatarUrl = s3Service.uploadFile(file, "avatars");
 
-            user.setAvatar(avatarUrl);
+            if (oldAvatarUrl != null && !oldAvatarUrl.trim().isEmpty()) {
+                try {
+                    s3Service.deleteFile(oldAvatarUrl);
+                } catch (Exception e) {
+                    System.err.println("Không thể xóa avatar cũ: " + oldAvatarUrl);
+                }
+            }
+
+            // 👉 BƯỚC 2: Upload ảnh mới
+            String newAvatarUrl = s3Service.uploadFile(file, "avatars");
+
+            user.setAvatar(newAvatarUrl);
             userRepository.save(user);
 
-            return avatarUrl;
+            return newAvatarUrl;
         } catch (IOException e) {
             throw new AppException(ErrorCode.UPLOAD_FAILED);
         }
@@ -127,7 +136,7 @@ public class CustomerServiceImpl implements CustomerService {
         boolean isFirstAddress = user.getAddresses().isEmpty();
 
         // Nếu có địa chỉ rồi và request muốn set default → reset cũ trước
-        if (!isFirstAddress && request.isDefault()) {
+        if (!isFirstAddress && request.getIsDefault()) {
             addressRepository.resetDefaultAddressByUserId(user.getId());
         }
 
@@ -138,7 +147,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .ward(request.getWard())
                 .district(request.getDistrict())
                 .city(request.getCity())
-                .isDefault(isFirstAddress || request.isDefault()) // địa chỉ đầu tiên luôn là default
+                .isDefault(isFirstAddress || request.getIsDefault()) // địa chỉ đầu tiên luôn là default
                 .user(user)
                 .build();
 
@@ -153,7 +162,7 @@ public class CustomerServiceImpl implements CustomerService {
         AddressEntity address = addressRepository.findByIdAndUserId(addressId, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND, addressId));
 
-        if (request.isDefault() && !address.isDefault()) {
+        if (request.getIsDefault() && !address.getIsDefault()) {
             addressRepository.resetDefaultAddressByUserId(user.getId());
         }
 
@@ -164,8 +173,8 @@ public class CustomerServiceImpl implements CustomerService {
         address.setDistrict(request.getDistrict());
         address.setCity(request.getCity());
 
-        if (request.isDefault()) {
-            address.setDefault(true);
+        if (request.getIsDefault()) {
+            address.setIsDefault(true);
         }
 
         return addressMapper.toAddressResponse(addressRepository.save(address));
@@ -179,7 +188,17 @@ public class CustomerServiceImpl implements CustomerService {
         AddressEntity address = addressRepository.findByIdAndUserId(addressId, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND, addressId));
 
+        boolean wasDefault = address.getIsDefault();
+
         addressRepository.delete(address);
+
+        if (wasDefault) {
+            addressRepository.findFirstByUserIdAndIdNotOrderByCreatedAtDesc(user.getId(), addressId)
+                    .ifPresent(newDefaultAddress -> {
+                        newDefaultAddress.setIsDefault(true);
+                        addressRepository.save(newDefaultAddress);
+                    });
+        }
     }
 
     @Override
@@ -187,11 +206,26 @@ public class CustomerServiceImpl implements CustomerService {
     public void setDefaultAddress(String email, String addressId) {
         UserEntity user = getUserByEmail(email);
 
-        AddressEntity address = addressRepository.findByIdAndUserId(addressId, user.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND, addressId));
+        // 1. Lấy TẤT CẢ địa chỉ của user này lên
+        List<AddressEntity> addresses = addressRepository.findByUserIdOrderByIsDefaultDesc(user.getId());
 
-        addressRepository.resetDefaultAddressByUserId(user.getId());
-        address.setDefault(true);
-        addressRepository.save(address);
+        boolean found = false;
+
+        // 2. Lặp qua danh sách: Cái nào đúng ID thì bật true, còn lại tắt false hết
+        for (AddressEntity addr : addresses) {
+            if (addr.getId().equals(addressId)) {
+                addr.setIsDefault(true);
+                found = true;
+            } else {
+                addr.setIsDefault(false);
+            }
+        }
+
+        if (!found) {
+            throw new AppException(ErrorCode.ADDRESS_NOT_FOUND, addressId);
+        }
+
+        // 3. Lưu toàn bộ danh sách đã cập nhật xuống DB
+        addressRepository.saveAll(addresses);
     }
 }

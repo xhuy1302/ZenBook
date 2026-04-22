@@ -1,13 +1,10 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// components/account/SecurityPanel.tsx
-// Right column: phone, email, security, social links (Tiki-style)
-// ─────────────────────────────────────────────────────────────────────────────
-
+import PinSetupModal from './modals/PinSetupModal'
+import TwoFactorSetupModal from './modals/TwoFactorSetupModal'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import {
@@ -153,6 +150,7 @@ function PhoneModal({
   onOpenChange: (v: boolean) => void
   currentPhone?: string
 }) {
+  const queryClient = useQueryClient()
   const { t } = useTranslation('account')
   const {
     register,
@@ -167,6 +165,7 @@ function PhoneModal({
     mutationFn: updateCustomerPhoneApi,
     onSuccess: () => {
       toast.success(t('security.phoneUpdateSuccess'))
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
       onOpenChange(false)
     },
     onError: () => toast.error(t('security.phoneUpdateError'))
@@ -392,7 +391,8 @@ export default function SecurityPanel({ user, isLoading }: SecurityPanelProps) {
   const { t } = useTranslation('account')
   const [phoneOpen, setPhoneOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
-
+  const [pinOpen, setPinOpen] = useState(false)
+  const [twoFactorOpen, setTwoFactorOpen] = useState(false)
   if (isLoading) {
     return (
       <div className='space-y-6'>
@@ -453,17 +453,17 @@ export default function SecurityPanel({ user, isLoading }: SecurityPanelProps) {
         />
         <InfoRow
           icon={<KeyRound className='w-4 h-4 text-muted-foreground' />}
-          label={t('security.pinCode')}
-          placeholder={t('security.notSet')}
-          actionLabel={t('common.setup')}
-          onAction={() => toast.info(t('common.featureInDevelopment'))}
+          label={t('security.pinCode', 'Mã PIN')}
+          placeholder={t('security.notSet', 'Chưa thiết lập')}
+          actionLabel={t('common.setup', 'Thiết lập')}
+          onAction={() => setPinOpen(true)} // Đổi từ toast thành set state
         />
         <InfoRow
           icon={<ShieldCheck className='w-4 h-4 text-muted-foreground' />}
-          label={t('security.twoFactor')}
-          placeholder={t('security.disabled')}
-          actionLabel={t('common.enable')}
-          onAction={() => toast.info(t('common.featureInDevelopment'))}
+          label={t('security.twoFactor', 'Xác thực 2 lớp (2FA)')}
+          placeholder={t('security.disabled', 'Chưa bật')}
+          actionLabel={t('common.enable', 'Bật')}
+          onAction={() => setTwoFactorOpen(true)} // Đổi từ toast thành set state
         />
       </div>
 
@@ -536,6 +536,12 @@ export default function SecurityPanel({ user, isLoading }: SecurityPanelProps) {
 
       <PhoneModal open={phoneOpen} onOpenChange={setPhoneOpen} currentPhone={user?.phone} />
       <ChangePasswordModal open={passwordOpen} onOpenChange={setPasswordOpen} />
+      <PinSetupModal open={pinOpen} onOpenChange={setPinOpen} />
+      <TwoFactorSetupModal
+        open={twoFactorOpen}
+        onOpenChange={setTwoFactorOpen}
+        userEmail={user?.email}
+      />
     </div>
   )
 }

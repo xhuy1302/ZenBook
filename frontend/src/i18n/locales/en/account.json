@@ -1,4 +1,18 @@
 {
+  "common": {
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "update": "Update",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "saveChanges": "Save Changes",
+    "setup": "Set up",
+    "enable": "Enable",
+    "link": "Link",
+    "featureInDevelopment": "Feature in development"
+  },
   "address": {
     "title": "Address Book",
     "subtitle": "Manage your delivery addresses",

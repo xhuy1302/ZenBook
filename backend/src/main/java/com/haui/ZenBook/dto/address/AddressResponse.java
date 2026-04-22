@@ -1,5 +1,6 @@
 package com.haui.ZenBook.dto.address;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,5 +26,5 @@ public class AddressResponse {
 
     private String city;
 
-    private boolean isDefault;
+    private Boolean isDefault;
 }
