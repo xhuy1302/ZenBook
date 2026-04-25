@@ -16,10 +16,11 @@ export default function ReceiptPage() {
 
   const [date, setDate] = useState<DateRange | undefined>()
 
-  const fromStr = date?.from ? format(date.from, 'yyyy-MM-dd') : ''
-  const toStr = date?.to ? format(date.to, 'yyyy-MM-dd') : ''
+  // 👉 SỬA: Sử dụng undefined thay vì chuỗi rỗng '' để tránh lỗi 400 Bad Request ở Backend
+  const fromStr = date?.from ? format(date.from, 'yyyy-MM-dd') : undefined
+  const toStr = date?.to ? format(date.to, 'yyyy-MM-dd') : undefined
 
-  // 👉 QUAN TRỌNG: Dùng Array Key để React Query quản lý phân cấp
+  // 👉 Cập nhật QueryKey để React Query theo dõi sự thay đổi của ngày lọc
   const queryKey = ['receipts', 'list', { from: fromStr, to: toStr }]
 
   const { data, isLoading } = useFetchData<ReceiptResponse[]>(queryKey, () =>

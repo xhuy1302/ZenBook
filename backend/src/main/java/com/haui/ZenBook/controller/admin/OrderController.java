@@ -4,10 +4,12 @@ import com.haui.ZenBook.dto.order.OrderCreateRequest;
 import com.haui.ZenBook.dto.order.OrderResponse;
 import com.haui.ZenBook.dto.order.OrderStatusUpdateRequest;
 import com.haui.ZenBook.dto.order.OrderUpdateRequest;
+import com.haui.ZenBook.entity.UserEntity;
 import com.haui.ZenBook.enums.ActionRole;
 import com.haui.ZenBook.enums.OrderStatus;
 import com.haui.ZenBook.exception.AppException;
 import com.haui.ZenBook.exception.ErrorCode;
+import com.haui.ZenBook.repository.UserRepository;
 import com.haui.ZenBook.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +26,16 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
-
+    private final UserRepository userRepository;
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(request, getUsername(), getRole(), getUsername()));
+        String email = getUsername();
+        System.out.println("👉 [DEBUG] Giá trị lấy từ Token là: '" + email + "'");
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        OrderResponse response = orderService.createOrder(request, email, getRole(), user.getId());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
@@ -54,9 +62,21 @@ public class OrderController {
     }
 
     @GetMapping("/my-orders")
-    public ResponseEntity<Page<OrderResponse>> getMy(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
-        if (getUsername() == null) throw new AppException(ErrorCode.UNAUTHENTICATED);
-        return ResponseEntity.ok(orderService.getMyOrders(getUsername(), PageRequest.of(page, size, Sort.by("createdAt").descending())));
+    public ResponseEntity<Page<OrderResponse>> getMy(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) OrderStatus status) {
+
+        String email = getUsername();
+        if (email == null) throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        // 👉 BƯỚC QUAN TRỌNG: Tìm User để lấy ID (UUID)
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // Truyền user.getId() (cái UUID) vào service thay vì truyền email
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return ResponseEntity.ok(orderService.getMyOrders(user.getId(), status, pageable));
     }
 
     @GetMapping("/{id}")

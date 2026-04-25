@@ -5,7 +5,18 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Loader2, UploadCloud, X, Plus } from 'lucide-react'
+import {
+  Loader2,
+  UploadCloud,
+  X,
+  Plus,
+  Info,
+  Image as ImageIcon,
+  Tag as TagIcon,
+  LayoutList,
+  DollarSign,
+  BarChart3
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -20,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 
 import { getBookSchema, type BookFormValues } from '../schema/book.schema'
 import { createBookApi } from '@/services/book/book.api'
@@ -29,69 +41,66 @@ import type { BookRequest } from '@/services/book/book.type'
 import { getAllCategoriesApi } from '@/services/category/category.api'
 import { getAllAuthorsApi } from '@/services/author/author.api'
 import { getAllPublishersApi } from '@/services/publisher/publisher.api'
-// 👉 THÊM MỚI: Import API Tag
 import { getAllTagsApi } from '@/services/tag/tag.api'
 
-import type { CategoryResponse } from '@/services/category/category.type'
-import type { AuthorResponse } from '@/services/author/author.type'
-import type { PublisherResponse } from '@/services/publisher/publisher.type'
-// 👉 THÊM MỚI: Import Type Tag
-import type { TagResponse } from '@/services/tag/tag.type'
+interface CreateBookFormProps {
+  onSuccess: () => void
+  onCancel: () => void
+}
 
-export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
+export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
   const { t } = useTranslation('product')
   const queryClient = useQueryClient()
 
   const [previewThumb, setPreviewThumb] = useState<string>('')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_galleryFiles, setGalleryFiles] = useState<File[]>([])
+  const [, setGalleryFiles] = useState<File[]>([])
   const [previewGallery, setPreviewGallery] = useState<string[]>([])
 
-  const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
+  const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => getAllCategoriesApi()
+    queryFn: getAllCategoriesApi
   })
-  const { data: authorsData, isLoading: isAuthorsLoading } = useQuery({
+  const { data: authors = [], isLoading: isAuthorsLoading } = useQuery({
     queryKey: ['authors'],
-    queryFn: () => getAllAuthorsApi()
+    queryFn: getAllAuthorsApi
   })
-  const { data: publishersData, isLoading: isPublishersLoading } = useQuery({
+  const { data: publishers = [], isLoading: isPublishersLoading } = useQuery({
     queryKey: ['publishers'],
-    queryFn: () => getAllPublishersApi()
+    queryFn: getAllPublishersApi
   })
-  // 👉 THÊM MỚI: Lấy danh sách Tag
-  const { data: tagsData, isLoading: isTagsLoading } = useQuery({
+  const { data: tags = [], isLoading: isTagsLoading } = useQuery({
     queryKey: ['tags'],
-    queryFn: () => getAllTagsApi()
+    queryFn: getAllTagsApi
   })
-
-  const categories = categoriesData || []
-  const authors = authorsData || []
-  const publishers = publishersData || []
-  const tags = tagsData || [] // 👉 Khởi tạo mảng tags
 
   const form = useForm<BookFormValues>({
-    resolver: zodResolver(
-      getBookSchema(t as unknown as (key: string) => string)
-    ) as unknown as import('react-hook-form').Resolver<BookFormValues>,
+    resolver: zodResolver(getBookSchema((key: string) => t(key))) as never,
     defaultValues: {
       title: '',
+      isbn: '',
+      description: '',
       originalPrice: undefined,
       salePrice: undefined,
       pageCount: undefined,
       publicationYear: undefined,
+      dimensions: '',
       weight: undefined,
       stockQuantity: 0,
       status: BookStatus.ACTIVE,
+      format: BookFormat.PAPERBACK,
       language: 'Tiếng Việt',
       publisherId: '',
       categoryIds: [],
       authorIds: [],
-      tagIds: []
+      tagIds: [],
+      award: '',
+      rating: 0.0,
+      reviews: 0,
+      views: 0
     }
   })
 
-  const { errors } = form.formState
+  const { errors, isSubmitting } = form.formState
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -126,434 +135,604 @@ export function CreateBookForm({ onSuccess }: { onSuccess: () => void }) {
   const mutation = useMutation({
     mutationFn: (values: BookFormValues) => createBookApi(values as unknown as BookRequest),
     onSuccess: () => {
-      toast.success(t('book.messages.createSuccess'))
+      toast.success(t('book.messages.createSuccess', 'Thêm sách thành công!'))
       queryClient.invalidateQueries({ queryKey: ['books'] })
       onSuccess()
     },
-    onError: (error: unknown) => {
-      const msg =
-        (error as { response?: { data?: { message?: string } } }).response?.data?.message ||
-        t('book.messages.createError')
+    onError: (error: { response?: { data?: { message?: string } } }) => {
+      const msg = error.response?.data?.message || t('book.messages.createError', 'Có lỗi xảy ra')
       toast.error(msg)
     }
   })
 
   return (
-    <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))} className='space-y-6'>
-      <div className='border rounded-lg p-4 space-y-4 bg-card'>
-        <h3 className='font-semibold text-lg border-b pb-2'>{t('book.form.section1')}</h3>
-        <div className='grid grid-cols-2 gap-4'>
-          <div className='col-span-2 space-y-2'>
-            <Label className={errors.title ? 'text-red-500' : ''}>
-              {t('book.form.title')} <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              {...form.register('title')}
-              placeholder={t('book.form.titlePlaceholder')}
-              className={errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}
-            />
-            {errors.title && (
-              <p className='text-xs text-red-500 font-medium'>{errors.title.message}</p>
-            )}
-          </div>
-          <div className='col-span-2 space-y-2'>
-            <Label>{t('book.form.isbn')}</Label>
-            <Input {...form.register('isbn')} placeholder={t('book.form.isbnPlaceholder')} />
-          </div>
-          <div className='col-span-2 space-y-2'>
-            <Label>{t('book.form.description')}</Label>
-            <Textarea
-              {...form.register('description')}
-              rows={4}
-              placeholder={t('book.form.descPlaceholder')}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className='border rounded-lg p-4 space-y-4 bg-card'>
-        <h3 className='font-semibold text-lg border-b pb-2'>{t('book.form.section2')}</h3>
-        <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-2'>
-            <Label className={errors.salePrice ? 'text-red-500' : ''}>
-              {t('book.form.salePrice')} <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              type='number'
-              {...form.register('salePrice', { valueAsNumber: true })}
-              className={errors.salePrice ? 'border-red-500 focus-visible:ring-red-500' : ''}
-            />
-            {errors.salePrice && (
-              <p className='text-xs text-red-500 font-medium'>{errors.salePrice.message}</p>
-            )}
-          </div>
-          <div className='space-y-2'>
-            <Label>{t('book.form.originalPrice')}</Label>
-            <Input
-              type='number'
-              {...form.register('originalPrice', { valueAsNumber: true })}
-              className={errors.originalPrice ? 'border-red-500 focus-visible:ring-red-500' : ''}
-            />
-            {errors.originalPrice && (
-              <p className='text-xs text-red-500 font-medium'>{errors.originalPrice.message}</p>
-            )}
-          </div>
-          <div className='space-y-2'>
-            <Label>
-              {t('book.form.stockQuantity')} <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              type='number'
-              disabled
-              {...form.register('stockQuantity', { valueAsNumber: true })}
-              className='bg-muted cursor-not-allowed'
-            />
-            <p className='text-[10px] text-muted-foreground italic mt-1'>
-              {t('book.form.stockNote')}
-            </p>
-          </div>
-          <div className='space-y-2'>
-            <Label>{t('common.status')}</Label>
-            <Controller
-              control={form.control}
-              name='status'
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(BookStatus)
-                      .filter((s) => s !== BookStatus.DELETED)
-                      .map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {t(`fields.status.options.${s}`, s)}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className='border rounded-lg p-4 space-y-4 bg-card'>
-        <h3 className='font-semibold text-lg border-b pb-2'>{t('book.form.section3')}</h3>
-        <div className='grid grid-cols-2 gap-6'>
-          <div className='col-span-2 space-y-3'>
-            <Label>{t('book.form.publisher', 'Nhà xuất bản')}</Label>
-            <Controller
-              control={form.control}
-              name='publisherId'
-              render={({ field }) => (
-                <Select
-                  value={field.value || ''}
-                  onValueChange={field.onChange}
-                  disabled={isPublishersLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={t('book.form.publisherPlaceholder', 'Chọn nhà xuất bản...')}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {publishers.map((p: PublisherResponse) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-
-          <div className='space-y-3'>
-            <Label>{t('book.form.category')}</Label>
-            <Controller
-              control={form.control}
-              name='categoryIds'
-              render={({ field }) => {
-                const currentValues = (field.value as string[]) || []
-                return (
-                  <div className='flex flex-wrap gap-2 p-3 border rounded-md min-h-[80px] bg-muted/20'>
-                    {isCategoriesLoading ? (
-                      <Loader2 className='h-4 w-4 animate-spin text-muted-foreground m-auto' />
-                    ) : categories.length === 0 ? (
-                      <span className='text-xs text-muted-foreground m-auto'>
-                        {t('book.form.noCategory')}
-                      </span>
-                    ) : (
-                      categories.map((c: CategoryResponse) => {
-                        const isSelected = currentValues.includes(c.id)
-                        return (
-                          <Badge
-                            key={c.id}
-                            variant={isSelected ? 'default' : 'outline'}
-                            className={`cursor-pointer hover:opacity-80 transition-all ${isSelected ? 'shadow-sm' : ''}`}
-                            onClick={() => {
-                              const newValue = isSelected
-                                ? currentValues.filter((id: string) => id !== c.id)
-                                : [...currentValues, c.id]
-                              field.onChange(newValue)
-                            }}
-                          >
-                            {c.categoryName}
-                          </Badge>
-                        )
-                      })
-                    )}
-                  </div>
-                )
-              }}
-            />
-          </div>
-
-          <div className='space-y-3'>
-            <Label>{t('book.form.author')}</Label>
-            <Controller
-              control={form.control}
-              name='authorIds'
-              render={({ field }) => {
-                const currentValues = (field.value as string[]) || []
-                return (
-                  <div className='flex flex-wrap gap-2 p-3 border rounded-md min-h-[80px] bg-muted/20'>
-                    {isAuthorsLoading ? (
-                      <Loader2 className='h-4 w-4 animate-spin text-muted-foreground m-auto' />
-                    ) : authors.length === 0 ? (
-                      <span className='text-xs text-muted-foreground m-auto'>
-                        {t('book.form.noAuthor')}
-                      </span>
-                    ) : (
-                      authors.map((a: AuthorResponse) => {
-                        const isSelected = currentValues.includes(a.id)
-                        return (
-                          <Badge
-                            key={a.id}
-                            variant={isSelected ? 'default' : 'outline'}
-                            className={`cursor-pointer hover:opacity-80 transition-all ${isSelected ? 'shadow-sm' : ''}`}
-                            onClick={() => {
-                              const newValue = isSelected
-                                ? currentValues.filter((id: string) => id !== a.id)
-                                : [...currentValues, a.id]
-                              field.onChange(newValue)
-                            }}
-                          >
-                            {a.name}
-                          </Badge>
-                        )
-                      })
-                    )}
-                  </div>
-                )
-              }}
-            />
-          </div>
-
-          {/* 👉 THÊM MỚI: Khối Chọn Nhãn (Tags) */}
-          <div className='col-span-2 space-y-3'>
-            <Label>{t('book.form.tag', 'Nhãn hiển thị')}</Label>
-            <Controller
-              control={form.control}
-              name='tagIds'
-              render={({ field }) => {
-                const currentValues = (field.value as string[]) || []
-                return (
-                  <div className='flex flex-wrap gap-2 p-3 border rounded-md min-h-[60px] bg-muted/20'>
-                    {isTagsLoading ? (
-                      <Loader2 className='h-4 w-4 animate-spin text-muted-foreground m-auto' />
-                    ) : tags.length === 0 ? (
-                      <span className='text-xs text-muted-foreground m-auto'>
-                        {t('book.form.noTag', 'Chưa có nhãn nào')}
-                      </span>
-                    ) : (
-                      tags.map((tItem: TagResponse) => {
-                        const isSelected = currentValues.includes(tItem.id)
-                        // Lấy màu nền khi được chọn, hoặc màu viền/chữ khi chưa chọn
-                        const badgeStyle = isSelected
-                          ? {
-                              backgroundColor: tItem.color || 'var(--primary)',
-                              color: '#fff',
-                              borderColor: tItem.color || 'var(--primary)'
-                            }
-                          : {
-                              borderColor: tItem.color || 'var(--primary)',
-                              color: tItem.color || 'var(--primary)',
-                              backgroundColor: 'transparent'
-                            }
-
-                        return (
-                          <Badge
-                            key={tItem.id}
-                            variant={isSelected ? 'default' : 'outline'}
-                            style={badgeStyle}
-                            className={`cursor-pointer hover:opacity-80 transition-all ${isSelected ? 'shadow-sm' : ''}`}
-                            onClick={() => {
-                              const newValue = isSelected
-                                ? currentValues.filter((id: string) => id !== tItem.id)
-                                : [...currentValues, tItem.id]
-                              field.onChange(newValue)
-                            }}
-                          >
-                            {tItem.name}
-                          </Badge>
-                        )
-                      })
-                    )}
-                  </div>
-                )
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className='border rounded-lg p-4 space-y-4 bg-card'>
-        <h3 className='font-semibold text-lg border-b pb-2'>{t('book.form.section4')}</h3>
-        <div className='grid grid-cols-3 gap-4'>
-          <div className='space-y-2'>
-            <Label>{t('book.form.format')}</Label>
-            <Controller
-              control={form.control}
-              name='format'
-              render={({ field }) => (
-                <Select value={field.value || ''} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('book.form.formatPlaceholder')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(BookFormat).map((f) => (
-                      <SelectItem key={f} value={f}>
-                        {t(`fields.format.options.${f}`, f)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-          <div className='space-y-2'>
-            <Label>{t('book.form.language')}</Label>
-            <Input {...form.register('language')} />
-          </div>
-          <div className='space-y-2'>
-            <Label className={errors.pageCount ? 'text-red-500' : ''}>
-              {t('book.form.pageCount')}
-            </Label>
-            <Input
-              type='number'
-              {...form.register('pageCount', { valueAsNumber: true })}
-              className={errors.pageCount ? 'border-red-500' : ''}
-            />
-            {errors.pageCount && (
-              <p className='text-[10px] text-red-500'>{errors.pageCount.message}</p>
-            )}
-          </div>
-          <div className='space-y-2'>
-            <Label className={errors.publicationYear ? 'text-red-500' : ''}>
-              {t('book.form.publicationYear')}
-            </Label>
-            <Input
-              type='number'
-              {...form.register('publicationYear', { valueAsNumber: true })}
-              className={errors.publicationYear ? 'border-red-500' : ''}
-            />
-            {errors.publicationYear && (
-              <p className='text-[10px] text-red-500'>{errors.publicationYear.message}</p>
-            )}
-          </div>
-          <div className='space-y-2'>
-            <Label>{t('book.form.dimensions')}</Label>
-            <Input {...form.register('dimensions')} />
-          </div>
-          <div className='space-y-2'>
-            <Label className={errors.weight ? 'text-red-500' : ''}>{t('book.form.weight')}</Label>
-            <Input
-              type='number'
-              {...form.register('weight', { valueAsNumber: true })}
-              className={errors.weight ? 'border-red-500' : ''}
-            />
-            {errors.weight && <p className='text-[10px] text-red-500'>{errors.weight.message}</p>}
-          </div>
-        </div>
-      </div>
-
-      <div className='border rounded-lg p-4 space-y-4 bg-card'>
-        <h3 className='font-semibold text-lg border-b pb-2'>{t('book.form.section5')}</h3>
-        <div className='flex flex-col md:flex-row gap-8 items-start'>
-          <div className='space-y-3 shrink-0'>
-            <Label className='font-semibold'>
-              {t('book.form.mainImage')} <span className='text-red-500'>*</span>
-            </Label>
-            <div
-              className='h-48 w-36 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer overflow-hidden relative group hover:bg-accent/50 transition-colors'
-              onClick={() => document.getElementById('thumb-create')?.click()}
-            >
-              {previewThumb ? (
-                <img src={previewThumb} alt='thumbnail' className='w-full h-full object-cover' />
-              ) : (
-                <div className='text-center text-muted-foreground p-2'>
-                  <UploadCloud className='mx-auto h-8 w-8 mb-2' />
-                  <span className='text-xs'>{t('book.form.uploadCover')}</span>
-                </div>
-              )}
-            </div>
-            <input
-              id='thumb-create'
-              type='file'
-              className='hidden'
-              accept='image/*'
-              onChange={handleThumbnailChange}
-            />
-          </div>
-          <div className='space-y-3 flex-1'>
-            <Label className='font-semibold'>{t('book.form.gallery')}</Label>
-            <div className='flex flex-wrap gap-4 items-start'>
-              <div
-                className='h-24 w-24 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-accent/50 transition-colors shrink-0'
-                onClick={() => document.getElementById('gallery-create')?.click()}
-              >
-                <Plus className='h-6 w-6 text-muted-foreground mb-1' />
-                <span className='text-[10px] text-muted-foreground'>
-                  {t('book.form.addGallery')}
-                </span>
+    <form
+      onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+      className='flex flex-col h-full bg-white'
+    >
+      {/* VÙNG CUỘN NỘI DUNG - Solid bg-slate-50 để che khuất phía dưới */}
+      <div className='flex-1 overflow-y-auto p-5 sm:p-6 custom-scrollbar bg-slate-50'>
+        <div className='grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6'>
+          {/* ========================================== */}
+          {/* CỘT TRÁI: THÔNG TIN CƠ BẢN, ẢNH & THÔNG SỐ (7 Cột) */}
+          {/* ========================================== */}
+          <div className='lg:col-span-7 space-y-5'>
+            {/* 1. THÔNG TIN CHUNG */}
+            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+              <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
+                <Info className='w-5 h-5 text-brand-green' />
+                <h3 className='font-bold text-slate-800'>
+                  {t('book.form.section1', 'Thông tin cơ bản')}
+                </h3>
               </div>
-              <input
-                id='gallery-create'
-                type='file'
-                multiple
-                className='hidden'
-                accept='image/*'
-                onChange={handleGalleryChange}
-              />
-              {previewGallery.map((src, idx) => (
-                <div
-                  key={idx}
-                  className='relative h-24 w-24 border rounded-md overflow-hidden group shadow-sm shrink-0'
-                >
-                  <img src={src} alt={`gallery-${idx}`} className='w-full h-full object-cover' />
-                  <button
-                    type='button'
-                    onClick={() => removeGalleryItem(idx)}
-                    className='absolute top-1 right-1 bg-red-500/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity'
+              <div className='space-y-4'>
+                <div className='space-y-1.5'>
+                  <Label
+                    className={`text-sm ${errors.title ? 'text-destructive' : 'text-slate-700'}`}
                   >
-                    <X className='h-3 w-3' />
-                  </button>
+                    {t('book.form.title', 'Tên sách')} <span className='text-destructive'>*</span>
+                  </Label>
+                  <Input
+                    {...form.register('title')}
+                    placeholder={t('book.form.titlePlaceholder', 'Nhập tên sách...')}
+                    className={errors.title ? 'border-destructive' : ''}
+                  />
+                  {errors.title && (
+                    <p className='text-xs text-destructive'>{errors.title.message}</p>
+                  )}
                 </div>
-              ))}
+
+                <div className='space-y-1.5'>
+                  <Label className='text-sm text-slate-700'>{t('book.form.isbn', 'Mã ISBN')}</Label>
+                  <Input
+                    {...form.register('isbn')}
+                    className='font-mono bg-white'
+                    placeholder='VD: 9786041130000'
+                  />
+                </div>
+
+                <div className='space-y-1.5'>
+                  <Label className='text-sm text-slate-700'>
+                    {t('book.form.description', 'Mô tả sách')}
+                  </Label>
+                  <Textarea
+                    {...form.register('description')}
+                    rows={6}
+                    placeholder='Viết nội dung giới thiệu về cuốn sách...'
+                    className='resize-none bg-white'
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 2. HÌNH ẢNH */}
+            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+              <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
+                <ImageIcon className='w-5 h-5 text-brand-green' />
+                <h3 className='font-bold text-slate-800'>
+                  {t('book.form.section5', 'Hình ảnh sản phẩm')}
+                </h3>
+              </div>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-6'>
+                <div className='space-y-2'>
+                  <Label className='text-sm font-semibold text-slate-700'>
+                    Ảnh bìa chính <span className='text-destructive'>*</span>
+                  </Label>
+                  <div
+                    className='h-[200px] w-full border-2 border-dashed border-slate-300 bg-slate-50 rounded-lg flex flex-col items-center justify-center cursor-pointer overflow-hidden group hover:bg-slate-100 transition-colors'
+                    onClick={() => document.getElementById('thumb-create')?.click()}
+                  >
+                    {previewThumb ? (
+                      <img
+                        src={previewThumb}
+                        alt='thumbnail'
+                        className='w-full h-full object-contain p-2'
+                      />
+                    ) : (
+                      <div className='text-center text-slate-500'>
+                        <UploadCloud className='mx-auto h-8 w-8 mb-2 opacity-50 group-hover:opacity-100 transition-opacity text-brand-green' />
+                        <span className='text-xs font-medium'>Click tải ảnh lên</span>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    id='thumb-create'
+                    type='file'
+                    className='hidden'
+                    accept='image/*'
+                    onChange={handleThumbnailChange}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <Label className='text-sm font-semibold text-slate-700'>
+                    Ảnh bộ sưu tập (Gallery)
+                  </Label>
+                  <div className='grid grid-cols-3 gap-2'>
+                    <div
+                      className='aspect-square border-2 border-dashed border-slate-300 bg-slate-50 rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors'
+                      onClick={() => document.getElementById('gallery-create')?.click()}
+                    >
+                      <Plus className='h-5 w-5 text-slate-400' />
+                    </div>
+                    <input
+                      id='gallery-create'
+                      type='file'
+                      multiple
+                      className='hidden'
+                      accept='image/*'
+                      onChange={handleGalleryChange}
+                    />
+
+                    {previewGallery.map((src, idx) => (
+                      <div
+                        key={idx}
+                        className='relative aspect-square border border-slate-200 rounded-md overflow-hidden group bg-white'
+                      >
+                        <img
+                          src={src}
+                          alt={`gallery-${idx}`}
+                          className='w-full h-full object-cover'
+                        />
+                        <button
+                          type='button'
+                          onClick={() => removeGalleryItem(idx)}
+                          className='absolute top-1 right-1 bg-black/60 hover:bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all'
+                        >
+                          <X className='h-3 w-3' />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. THÔNG SỐ KỸ THUẬT */}
+            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+              <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
+                <LayoutList className='w-5 h-5 text-brand-green' />
+                <h3 className='font-bold text-slate-800'>
+                  {t('book.form.section4', 'Thông số kỹ thuật')}
+                </h3>
+              </div>
+              <div className='grid grid-cols-2 sm:grid-cols-3 gap-4'>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs text-slate-600'>
+                    {t('book.form.format', 'Định dạng')}
+                  </Label>
+                  <Controller
+                    control={form.control}
+                    name='format'
+                    render={({ field }) => (
+                      <Select value={field.value || ''} onValueChange={field.onChange}>
+                        <SelectTrigger className='h-9 text-sm bg-white'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(BookFormat).map((f) => (
+                            <SelectItem key={f} value={f}>
+                              {t(`fields.format.options.${f}`, f)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs text-slate-600'>
+                    {t('book.form.language', 'Ngôn ngữ')}
+                  </Label>
+                  <Input {...form.register('language')} className='h-9 text-sm bg-white' />
+                </div>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs text-slate-600'>
+                    {t('book.form.pageCount', 'Số trang')}
+                  </Label>
+                  <Input
+                    type='number'
+                    {...form.register('pageCount', { valueAsNumber: true })}
+                    className='h-9 text-sm bg-white'
+                  />
+                </div>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs text-slate-600'>
+                    {t('book.form.publicationYear', 'Năm XB')}
+                  </Label>
+                  <Input
+                    type='number'
+                    {...form.register('publicationYear', { valueAsNumber: true })}
+                    className='h-9 text-sm bg-white'
+                  />
+                </div>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs text-slate-600'>
+                    {t('book.form.dimensions', 'Kích thước')}
+                  </Label>
+                  <Input
+                    {...form.register('dimensions')}
+                    placeholder='14x20 cm'
+                    className='h-9 text-sm bg-white'
+                  />
+                </div>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs text-slate-600'>
+                    {t('book.form.weight', 'Khối lượng (g)')}
+                  </Label>
+                  <Input
+                    type='number'
+                    {...form.register('weight', { valueAsNumber: true })}
+                    className='h-9 text-sm bg-white'
+                    placeholder='300'
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ========================================== */}
+          {/* CỘT PHẢI: GIÁ, PHÂN LOẠI & THỐNG KÊ (5 Cột)*/}
+          {/* ========================================== */}
+          <div className='lg:col-span-5 space-y-5'>
+            {/* 4. KINH DOANH & TỒN KHO */}
+            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+              <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
+                <DollarSign className='w-5 h-5 text-brand-green' />
+                <h3 className='font-bold text-slate-800'>
+                  {t('book.form.section2', 'Giá bán & Trạng thái')}
+                </h3>
+              </div>
+              <div className='space-y-4'>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label
+                      className={`text-sm ${errors.salePrice ? 'text-destructive' : 'text-slate-700'}`}
+                    >
+                      Giá bán (đ) *
+                    </Label>
+                    <Input
+                      type='number'
+                      {...form.register('salePrice', { valueAsNumber: true })}
+                      className={`font-bold text-emerald-600 bg-white ${errors.salePrice ? 'border-destructive' : ''}`}
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-sm text-slate-700'>Giá bìa (đ)</Label>
+                    <Input
+                      type='number'
+                      {...form.register('originalPrice', { valueAsNumber: true })}
+                      className='text-slate-500 line-through decoration-slate-300 bg-white'
+                    />
+                  </div>
+                </div>
+                <Separator className='my-1' />
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='space-y-1.5'>
+                    <Label className='text-sm text-slate-700'>Trạng thái</Label>
+                    <Controller
+                      control={form.control}
+                      name='status'
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger className='bg-white'>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={BookStatus.ACTIVE}>Đang bán</SelectItem>
+                            <SelectItem value={BookStatus.INACTIVE}>Ngừng bán</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  <div className='space-y-1.5'>
+                    <Label className='text-sm text-slate-700'>Tồn kho ban đầu</Label>
+                    <Input
+                      disabled
+                      value={0}
+                      className='bg-slate-100 font-semibold text-center text-slate-500'
+                    />
+                    <p className='text-[10px] text-slate-400 mt-1 text-center'>
+                      Tự động qua phiếu nhập
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. PHÂN LOẠI & GẮN NHÃN (Select Dạng Mới) */}
+            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+              <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
+                <TagIcon className='w-5 h-5 text-brand-green' />
+                <h3 className='font-bold text-slate-800'>
+                  {t('book.form.section3', 'Phân loại sản phẩm')}
+                </h3>
+              </div>
+
+              <div className='space-y-4'>
+                {/* Nhà xuất bản */}
+                <div className='space-y-1.5'>
+                  <Label className='text-sm text-slate-700'>Nhà xuất bản</Label>
+                  <Controller
+                    control={form.control}
+                    name='publisherId'
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || ''}
+                        onValueChange={field.onChange}
+                        disabled={isPublishersLoading}
+                      >
+                        <SelectTrigger className='bg-white'>
+                          <SelectValue placeholder='Chọn nhà xuất bản...' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {publishers.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+
+                {/* Danh mục (Multi-select faked) */}
+                <div className='space-y-1.5'>
+                  <Label className='text-sm text-slate-700'>Danh mục</Label>
+                  <Controller
+                    control={form.control}
+                    name='categoryIds'
+                    render={({ field }) => {
+                      const currentValues = (field.value as string[]) || []
+                      const selectedOptions = categories.filter((c) => currentValues.includes(c.id))
+                      const unselectedOptions = categories.filter(
+                        (c) => !currentValues.includes(c.id)
+                      )
+
+                      return (
+                        <div className='space-y-2'>
+                          <Select
+                            disabled={isCategoriesLoading || unselectedOptions.length === 0}
+                            value='' // Always empty to act as a dropdown trigger
+                            onValueChange={(val) => field.onChange([...currentValues, val])}
+                          >
+                            <SelectTrigger className='bg-white text-slate-500'>
+                              <SelectValue
+                                placeholder={
+                                  unselectedOptions.length === 0
+                                    ? 'Đã chọn hết'
+                                    : 'Thêm danh mục...'
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {unselectedOptions.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.categoryName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          {/* Badges hiển thị */}
+                          {selectedOptions.length > 0 && (
+                            <div className='flex flex-wrap gap-1.5 p-2 bg-slate-50 border rounded-md min-h-[40px]'>
+                              {selectedOptions.map((c) => (
+                                <Badge
+                                  key={c.id}
+                                  variant='secondary'
+                                  className='flex items-center gap-1 pr-1.5 bg-white border-slate-200 text-slate-700'
+                                >
+                                  {c.categoryName}
+                                  <button
+                                    type='button'
+                                    onClick={() =>
+                                      field.onChange(currentValues.filter((id) => id !== c.id))
+                                    }
+                                    className='hover:bg-red-100 hover:text-red-600 rounded-full p-0.5 transition-colors'
+                                  >
+                                    <X className='w-3 h-3' />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    }}
+                  />
+                </div>
+
+                {/* Tác giả (Multi-select faked) */}
+                <div className='space-y-1.5'>
+                  <Label className='text-sm text-slate-700'>Tác giả</Label>
+                  <Controller
+                    control={form.control}
+                    name='authorIds'
+                    render={({ field }) => {
+                      const currentValues = (field.value as string[]) || []
+                      const selectedOptions = authors.filter((a) => currentValues.includes(a.id))
+                      const unselectedOptions = authors.filter((a) => !currentValues.includes(a.id))
+
+                      return (
+                        <div className='space-y-2'>
+                          <Select
+                            disabled={isAuthorsLoading || unselectedOptions.length === 0}
+                            value=''
+                            onValueChange={(val) => field.onChange([...currentValues, val])}
+                          >
+                            <SelectTrigger className='bg-white text-slate-500'>
+                              <SelectValue
+                                placeholder={
+                                  unselectedOptions.length === 0 ? 'Đã chọn hết' : 'Thêm tác giả...'
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {unselectedOptions.map((a) => (
+                                <SelectItem key={a.id} value={a.id}>
+                                  {a.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          {selectedOptions.length > 0 && (
+                            <div className='flex flex-wrap gap-1.5 p-2 bg-slate-50 border rounded-md min-h-[40px]'>
+                              {selectedOptions.map((a) => (
+                                <Badge
+                                  key={a.id}
+                                  variant='secondary'
+                                  className='flex items-center gap-1 pr-1.5 bg-white border-slate-200 text-slate-700'
+                                >
+                                  {a.name}
+                                  <button
+                                    type='button'
+                                    onClick={() =>
+                                      field.onChange(currentValues.filter((id) => id !== a.id))
+                                    }
+                                    className='hover:bg-red-100 hover:text-red-600 rounded-full p-0.5 transition-colors'
+                                  >
+                                    <X className='w-3 h-3' />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    }}
+                  />
+                </div>
+
+                {/* Tags */}
+                <div className='space-y-1.5'>
+                  <Label className='text-sm text-slate-700'>Nhãn nổi bật (Tùy chọn)</Label>
+                  <Controller
+                    control={form.control}
+                    name='tagIds'
+                    render={({ field }) => {
+                      const currentValues = (field.value as string[]) || []
+                      const selectedOptions = tags.filter((tItem) =>
+                        currentValues.includes(tItem.id)
+                      )
+                      const unselectedOptions = tags.filter(
+                        (tItem) => !currentValues.includes(tItem.id)
+                      )
+
+                      return (
+                        <div className='space-y-2'>
+                          <Select
+                            disabled={isTagsLoading || unselectedOptions.length === 0}
+                            value=''
+                            onValueChange={(val) => field.onChange([...currentValues, val])}
+                          >
+                            <SelectTrigger className='bg-white text-slate-500'>
+                              <SelectValue placeholder='Chọn nhãn đính kèm...' />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {unselectedOptions.map((tItem) => (
+                                <SelectItem key={tItem.id} value={tItem.id}>
+                                  <div className='flex items-center gap-2'>
+                                    <div
+                                      className='w-3 h-3 rounded-full'
+                                      style={{ backgroundColor: tItem.color }}
+                                    ></div>
+                                    {tItem.name}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          {selectedOptions.length > 0 && (
+                            <div className='flex flex-wrap gap-1.5 p-2 bg-slate-50 border rounded-md min-h-[40px]'>
+                              {selectedOptions.map((tItem) => (
+                                <Badge
+                                  key={tItem.id}
+                                  variant='outline'
+                                  className='flex items-center gap-1 pr-1.5'
+                                  style={{
+                                    borderColor: tItem.color,
+                                    color: tItem.color,
+                                    backgroundColor: `${tItem.color}10`
+                                  }}
+                                >
+                                  {tItem.name}
+                                  <button
+                                    type='button'
+                                    onClick={() =>
+                                      field.onChange(currentValues.filter((id) => id !== tItem.id))
+                                    }
+                                    className='hover:bg-red-100 hover:text-red-600 rounded-full p-0.5 transition-colors'
+                                  >
+                                    <X className='w-3 h-3' />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 6. THÔNG KÊ (LÀM NHẠT MÀU) */}
+            <div className='bg-slate-50 border border-slate-200 text-slate-600 rounded-xl p-5 shadow-sm opacity-90'>
+              <div className='flex items-center gap-2 border-b border-slate-200 pb-3 mb-4'>
+                <BarChart3 className='w-4 h-4 text-slate-400' />
+                <h3 className='font-bold text-sm text-slate-500 uppercase tracking-wider'>
+                  Thông tin hệ thống
+                </h3>
+              </div>
+              <div className='space-y-4'>
+                <div className='space-y-1.5'>
+                  <Label className='text-xs text-slate-500'>
+                    Thành tích / Giải thưởng (Nếu có)
+                  </Label>
+                  <Input
+                    {...form.register('award')}
+                    placeholder='VD: Bestseller 2025'
+                    className='h-9 bg-white border-slate-200 placeholder:text-slate-300'
+                  />
+                </div>
+                <div className='grid grid-cols-3 gap-2 pt-2'>
+                  <div className='text-center bg-white border border-slate-100 rounded-lg p-2'>
+                    <p className='text-[10px] text-slate-400 mb-1'>Đánh giá</p>
+                    <div className='text-sm font-semibold text-slate-400'>0.0</div>
+                  </div>
+                  <div className='text-center bg-white border border-slate-100 rounded-lg p-2'>
+                    <p className='text-[10px] text-slate-400 mb-1'>Lượt mua</p>
+                    <div className='text-sm font-semibold text-slate-400'>0</div>
+                  </div>
+                  <div className='text-center bg-white border border-slate-100 rounded-lg p-2'>
+                    <p className='text-[10px] text-slate-400 mb-1'>Lượt xem</p>
+                    <div className='text-sm font-semibold text-slate-400'>0</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className='flex justify-end gap-3 border-t pt-4 sticky bottom-0 bg-background py-4 z-10'>
-        <Button type='button' variant='ghost' onClick={onSuccess}>
-          {t('common.cancel')}
+      {/* FOOTER CỐ ĐỊNH */}
+      <div className='px-6 py-4 border-t border-slate-200 bg-white flex justify-end gap-3 shrink-0 z-10 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]'>
+        <Button type='button' variant='outline' onClick={onCancel} className='px-6 text-slate-600'>
+          {t('common.cancel', 'Hủy')}
         </Button>
-        <Button type='submit' disabled={mutation.isPending}>
+        <Button
+          type='submit'
+          disabled={mutation.isPending || isSubmitting}
+          className='px-8 bg-brand-green hover:bg-brand-green-dark text-white'
+        >
           {mutation.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-          {t('book.form.btnCreate')}
+          {t('book.form.btnCreate', 'Lưu Sản Phẩm')}
         </Button>
       </div>
     </form>

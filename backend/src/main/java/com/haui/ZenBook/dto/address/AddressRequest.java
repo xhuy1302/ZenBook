@@ -1,6 +1,7 @@
 package com.haui.ZenBook.dto.address;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +32,13 @@ public class AddressRequest {
 
     @NotBlank(message = "Tỉnh/Thành phố không được để trống")
     private String city;
+
+    // 👉 THÊM MỚI: Bắt buộc phải có để truyền cho GHN tính phí
+    @NotNull(message = "Mã Quận/Huyện không được để trống")
+    private Integer districtId;
+
+    @NotBlank(message = "Mã Phường/Xã không được để trống")
+    private String wardCode;
 
     private Boolean isDefault = false;
 }

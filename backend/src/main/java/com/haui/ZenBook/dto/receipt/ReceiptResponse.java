@@ -15,12 +15,12 @@ public class ReceiptResponse {
     private String id;
     private String receiptCode;
 
-    // 👉 Đã đổi biến
-    private String publisherId;
-    private String publisherName; // Tiện cho Frontend đỡ phải gọi API phụ
+    // 👉 Đã đổi biến sang supplier
+    private String supplierId;
+    private String supplierName; // Tiện cho Frontend hiển thị tên NCC
 
     private String creatorId;
-    private String creatorName; // Sẽ map từ UserEntity sang
+    private String creatorName; // Sẽ map từ UserEntity sang (đã xử lý ở Service)
     private String attachmentUrl;
     private Double totalAmount;
     private String note;

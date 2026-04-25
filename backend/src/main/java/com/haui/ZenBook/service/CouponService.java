@@ -2,6 +2,7 @@ package com.haui.ZenBook.service;
 
 import com.haui.ZenBook.dto.coupon.CouponRequest;
 import com.haui.ZenBook.dto.coupon.CouponResponse;
+import com.haui.ZenBook.enums.CouponType;
 
 import java.util.List;
 
@@ -20,4 +21,7 @@ public interface CouponService {
     void softDeleteCoupon(String id);
     void restoreCoupon(String id);
     void hardDeleteCoupon(String id);
+    double calculateDiscount(String code, double targetAmount, double orderTotal, CouponType expectedType);
+
+    void incrementUsedCount(String code);
 }

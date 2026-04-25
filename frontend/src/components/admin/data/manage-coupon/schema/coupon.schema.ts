@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { DiscountType, CouponStatus } from '@/defines/coupon.enum'
+import { DiscountType, CouponStatus, CouponType } from '@/defines/coupon.enum'
 
 // Cập nhật type để hỗ trợ fallback message cho hàm t()
 type TValidator = (key: string, fallback?: string) => string
@@ -15,6 +15,8 @@ export const getCouponSchema = (t: TValidator) =>
         .toUpperCase(),
 
       discountType: z.nativeEnum(DiscountType),
+
+      couponType: z.nativeEnum(CouponType),
 
       discountValue: z.preprocess(
         (val) => (val === '' || val === null ? undefined : Number(val)),

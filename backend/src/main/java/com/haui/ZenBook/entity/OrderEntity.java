@@ -76,6 +76,9 @@ public class OrderEntity {
     @Column(name = "coupon_id")
     private String couponId;
 
+    @Column(name = "coupon_code")
+    private String couponCode;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderDetailEntity> details = new ArrayList<>();

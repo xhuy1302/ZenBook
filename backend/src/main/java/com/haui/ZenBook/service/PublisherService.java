@@ -1,5 +1,7 @@
 package com.haui.ZenBook.service;
 
+import com.haui.ZenBook.dto.author.AuthorFilterResponse;
+import com.haui.ZenBook.dto.publisher.PublisherFilterResponse;
 import com.haui.ZenBook.dto.publisher.PublisherResponse;
 import com.haui.ZenBook.dto.publisher.PublisherCreationRequest;
 import com.haui.ZenBook.dto.publisher.PublisherUpdateRequest;
@@ -15,4 +17,5 @@ public interface PublisherService {
     void hardDeletePublisher(String id);
     List<PublisherResponse> getAllPublishersSD(); // Soft deleted
     void restorePublisher(String id);
+    List<PublisherFilterResponse> getPublishersForFilter();
 }

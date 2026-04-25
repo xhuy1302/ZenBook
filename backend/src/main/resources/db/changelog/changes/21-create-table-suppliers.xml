@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="004-create-suppliers-table" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="suppliers"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="suppliers" remarks="Bảng nhà cung cấp">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(100)"/>
+            <column name="phone" type="VARCHAR(20)"/>
+            <column name="address" type="VARCHAR(500)"/>
+            <column name="tax_code" type="VARCHAR(50)" remarks="Mã số thuế"/>
+            <column name="contact_name" type="VARCHAR(100)" remarks="Tên người liên hệ trực tiếp"/>
+            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="suppliers" indexName="idx_supplier_status">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005-add-supplier-id-nullable" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="receipts"/>
+        </preConditions>
+        <addColumn tableName="receipts">
+            <column name="supplier_id" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="006-migrate-publisher-to-supplier-data" author="xuanhuy">
+        <sql>
+            INSERT INTO suppliers (id, name, email, phone, address, tax_code, status, created_at, updated_at)
+            SELECT DISTINCT p.id, p.name, p.email, p.phone, p.address, p.tax_code, 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            FROM publishers p
+            INNER JOIN receipts r ON r.publisher_id = p.id;
+        </sql>
+
+        <sql>
+            UPDATE receipts SET supplier_id = publisher_id;
+        </sql>
+    </changeSet>
+
+    <changeSet id="007-finalize-supplier-migration" author="xuanhuy">
+        <dropForeignKeyConstraint baseTableName="receipts" constraintName="fk_receipt_publisher"/>
+        <dropColumn tableName="receipts" columnName="publisher_id"/>
+
+        <addNotNullConstraint tableName="receipts" columnName="supplier_id" columnDataType="VARCHAR(255)"/>
+
+        <addForeignKeyConstraint baseTableName="receipts" baseColumnNames="supplier_id"
+                                 constraintName="fk_receipt_supplier_new"
+                                 referencedTableName="suppliers" referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -39,10 +39,17 @@ public class AddressEntity extends BaseEntity {
     @Builder.Default
     private Boolean isDefault = false;
 
+    @Column(name = "district_id")
+    private Integer districtId; // Mã Quận/Huyện của GHN
+
+    @Column(name = "ward_code")
+    private String wardCode;   // Mã Phường/Xã của GHN
+
     // ==========================================
     // 👉 QUAN HỆ MANY-TO-ONE VỀ PHÍA USER
     // ==========================================
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
+
 }

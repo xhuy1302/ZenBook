@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   type ColumnDef,
@@ -14,10 +14,6 @@ import {
   useReactTable,
   type VisibilityState
 } from '@tanstack/react-table'
-
-import { toast } from 'sonner'
-import { isAxiosError } from 'axios'
-import { useQueryClient } from '@tanstack/react-query'
 
 import {
   Table,
@@ -42,10 +38,10 @@ import { DataTablePagination } from '@/components/admin/datatable/DataTablePagin
 import { DataTableViewOptions } from '@/components/admin/datatable/DataTableViewOptions'
 import { ReceiptStatus } from '@/defines/receipt.enum'
 import { CreateReceiptDialog } from '@/components/admin/data/manage-receipt/create/CreateReceiptDialog'
-import { importReceiptExcelApi } from '@/services/receipt/receipt.api'
 import { DateRangePicker } from './DateRangePicker'
 import type { DateRange } from 'react-day-picker'
 import { Separator } from '@/components/ui/separator'
+import { ImportReceiptDialog } from '@/components/admin/data/manage-receipt/create/ImportReceiptDialog'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -61,13 +57,14 @@ export function DataTable<TData, TValue>({
   setDateRange
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation('receipt')
-  const queryClient = useQueryClient()
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+
+  // States mở Dialog
   const [openCreate, setOpenCreate] = useState(false)
+  const [openImportDialog, setOpenImportDialog] = useState(false) // 👉 THÊM MỚI
 
   const table = useReactTable({
     data,
@@ -87,28 +84,6 @@ export function DataTable<TData, TValue>({
   const handleReset = () => {
     table.resetColumnFilters()
     setDateRange(undefined)
-  }
-
-  const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    try {
-      toast.info(t('receipt.message.importing', 'Đang import dữ liệu...'))
-      await importReceiptExcelApi(file)
-      toast.success(t('receipt.message.importSuccess', 'Import Excel thành công!'))
-      queryClient.invalidateQueries({
-        predicate: (query) => JSON.stringify(query.queryKey).includes('receipts')
-      })
-    } catch (error: unknown) {
-      if (isAxiosError(error)) {
-        toast.error(error.response?.data?.message || t('common.error', 'Lỗi import!'))
-      } else {
-        toast.error(t('common.error', 'Có lỗi hệ thống!'))
-      }
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    }
   }
 
   return (
@@ -149,7 +124,6 @@ export function DataTable<TData, TValue>({
             </SelectContent>
           </Select>
 
-          {/* Date Picker nằm giữa các bộ lọc */}
           <DateRangePicker date={dateRange} setDate={setDateRange} />
 
           {isFiltered && (
@@ -170,17 +144,11 @@ export function DataTable<TData, TValue>({
 
           <Separator orientation='vertical' className='h-6 hidden md:block' />
 
-          <input
-            type='file'
-            accept='.xlsx, .xls'
-            className='hidden'
-            ref={fileInputRef}
-            onChange={handleImportExcel}
-          />
+          {/* 👉 ĐÃ SỬA: Nút này giờ sẽ mở một Dialog thay vì trigger input type file */}
           <Button
             variant='outline'
             className='gap-2 bg-green-50/50 text-green-700 hover:bg-green-100 hover:text-green-800 border-green-200/60 shadow-sm'
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setOpenImportDialog(true)}
           >
             <FileSpreadsheet className='h-4 w-4' />
             <span className='hidden sm:inline font-medium'>Import Excel</span>
@@ -198,6 +166,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       <CreateReceiptDialog open={openCreate} onOpenChange={setOpenCreate} />
+      <ImportReceiptDialog open={openImportDialog} onOpenChange={setOpenImportDialog} />
 
       <div className='rounded-xl border bg-card shadow-sm overflow-hidden'>
         <Table>

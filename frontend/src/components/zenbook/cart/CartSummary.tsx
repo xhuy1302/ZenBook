@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { Loader2, Tag } from 'lucide-react'
+import { Loader2, Truck, ShieldCheck, ChevronRight, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 
 interface CartSummaryProps {
   subtotal: number
@@ -11,8 +11,11 @@ interface CartSummaryProps {
   formatCurrency: (amount: number) => string
   onCheckout: () => void
   isCheckingOut: boolean
-  t: (key: string) => string // Truyền hàm dịch vào
+  t: (key: string) => string
 }
+
+// Ngưỡng freeship thực tế hơn cho nhà sách (Ví dụ: 300k hoặc 500k)
+const FREE_SHIPPING_THRESHOLD = 500000
 
 export function CartSummary({
   subtotal,
@@ -22,105 +25,114 @@ export function CartSummary({
   isCheckingOut,
   t
 }: CartSummaryProps) {
-  const [couponCode, setCouponCode] = useState('')
-  const [discount, setDiscount] = useState(0)
+  // Ở trang Giỏ hàng, chúng ta chưa có địa chỉ nên KHÔNG cộng 30k vào finalTotal.
+  // Phí ship thực tế sẽ được tính và cộng ở trang Checkout sau khi gọi API GHN.
+  const finalTotal = subtotal
 
-  const shippingFee = subtotal > 0 && subtotal < 5000000 ? 30000 : 0
-  const finalTotal = subtotal + shippingFee - discount
-
-  const handleApplyCoupon = () => {
-    if (couponCode.toUpperCase() === 'ZENBOOK') {
-      setDiscount(100000)
-    } else {
-      setDiscount(0)
-    }
-  }
+  const freeShipRemaining = FREE_SHIPPING_THRESHOLD - subtotal
+  const isEligibleForFreeShip = subtotal >= FREE_SHIPPING_THRESHOLD
+  const freeShipPct = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100)
 
   return (
-    <Card className='rounded-2xl border-neutral-200/80 shadow-lg shadow-neutral-200/30 p-6 md:p-8 sticky top-24 bg-white'>
-      <h2 className='text-xl font-bold text-foreground mb-6'>{t('cart.orderSummary')}</h2>
+    <Card className='rounded-2xl border border-emerald-100 shadow-md bg-white overflow-hidden'>
+      {/* ── Header ── */}
+      <div className='bg-emerald-600 px-6 py-4'>
+        <h2 className='text-base font-bold text-white tracking-wide uppercase'>
+          {t('cart.orderSummary')}
+        </h2>
+      </div>
 
-      <div className='space-y-3.5 text-sm text-muted-foreground'>
-        <div className='flex justify-between items-center'>
-          <span>
-            {t('cart.subtotal')} ({totalItems} {t('cart.items')})
-          </span>
-          <span className='font-semibold text-foreground'>{formatCurrency(subtotal)}</span>
-        </div>
-
-        {discount > 0 && (
-          <div className='flex justify-between items-center text-brand-green'>
-            <span>Discount</span>
-            <span className='font-semibold'>-{formatCurrency(discount)}</span>
+      <div className='p-6 space-y-5'>
+        {/* ── Freeship progress (Thanh tiến trình) ── */}
+        {subtotal > 0 && (
+          <div className='space-y-1.5'>
+            <div className='flex justify-between text-xs text-gray-500'>
+              <span className='flex items-center gap-1'>
+                <Truck className='h-3.5 w-3.5 text-emerald-600' />
+                {isEligibleForFreeShip
+                  ? 'Đơn hàng của bạn đủ điều kiện Miễn phí vận chuyển!'
+                  : `Mua thêm ${formatCurrency(freeShipRemaining)} để được Freeship`}
+              </span>
+              <span className='font-medium text-emerald-700'>{Math.round(freeShipPct)}%</span>
+            </div>
+            <div className='h-1.5 w-full rounded-full bg-emerald-100 overflow-hidden'>
+              <div
+                className='h-full rounded-full bg-emerald-500 transition-all duration-500'
+                style={{ width: `${freeShipPct}%` }}
+              />
+            </div>
           </div>
         )}
 
-        <div className='flex justify-between items-center'>
-          <span>{t('cart.shipping')}</span>
-          <span className='font-semibold text-foreground'>
-            {shippingFee === 0 ? (
-              <span className='text-brand-green'>{t('cart.free')}</span>
-            ) : (
-              formatCurrency(shippingFee)
-            )}
-          </span>
-        </div>
-      </div>
+        <Separator className='bg-emerald-50' />
 
-      <Separator className='my-6 bg-neutral-100' />
-
-      {/* Coupon Section */}
-      <div className='mb-6'>
-        <label className='text-sm font-semibold text-foreground mb-2.5 block'>
-          {t('cart.giftCardLabel')}
-        </label>
-        <div className='flex gap-2'>
-          <div className='relative flex-1'>
-            <Tag className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-            <Input
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value)}
-              placeholder={t('cart.giftCardPlaceholder')}
-              className='pl-9 h-11 bg-neutral-50 border-neutral-200 focus-visible:ring-brand-green'
-            />
+        {/* ── Breakdown (Chi tiết tiền) ── */}
+        <div className='space-y-3'>
+          <div className='flex justify-between text-sm text-gray-600'>
+            <span>
+              {t('cart.subtotal')} ({totalItems} {t('cart.items')})
+            </span>
+            <span className='font-medium text-gray-800'>{formatCurrency(subtotal)}</span>
           </div>
-          <Button
-            variant='outline'
-            onClick={handleApplyCoupon}
-            disabled={!couponCode}
-            className='h-11 px-6 font-semibold border-neutral-200 text-foreground hover:bg-neutral-50'
-          >
-            {t('cart.apply')}
-          </Button>
+
+          <div className='flex justify-between text-sm'>
+            <span className='flex items-center gap-1.5 text-gray-600'>
+              <Truck className='h-3.5 w-3.5' />
+              {t('cart.shipping')}
+            </span>
+            <span className='text-xs text-gray-400 italic'>Tính ở bước thanh toán</span>
+          </div>
+
+          {/* Note nhỏ để khách yên tâm */}
+          <div className='flex gap-1.5 p-2 rounded-lg bg-blue-50 text-[11px] text-blue-600 border border-blue-100'>
+            <Info className='h-3 w-3 shrink-0 mt-0.5' />
+            <span>Phí vận chuyển thực tế sẽ được tính dựa trên địa chỉ nhận hàng của bạn.</span>
+          </div>
+        </div>
+
+        <Separator className='bg-emerald-50' />
+
+        {/* ── Total (Tổng tiền tạm tính) ── */}
+        <div className='rounded-xl bg-emerald-50 border border-emerald-100 px-5 py-4 flex justify-between items-center'>
+          <span className='text-sm font-bold text-gray-700'>Tạm tính</span>
+          <div className='text-right'>
+            <span className='text-2xl font-black text-emerald-700 leading-none block'>
+              {formatCurrency(finalTotal)}
+            </span>
+            <span className='text-[10px] text-gray-400 mt-1 block'>(Chưa bao gồm phí ship)</span>
+          </div>
+        </div>
+
+        {/* ── CTA ── */}
+        <Button
+          onClick={onCheckout}
+          disabled={subtotal === 0 || isCheckingOut}
+          className={cn(
+            'w-full h-12 text-base font-bold tracking-wide transition-all duration-200',
+            'bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl',
+            'shadow-md shadow-emerald-200 active:scale-[0.98]',
+            'disabled:bg-gray-200 disabled:shadow-none disabled:text-gray-400'
+          )}
+        >
+          {isCheckingOut ? (
+            <span className='flex items-center gap-2'>
+              <Loader2 className='h-4 w-4 animate-spin' />
+              Đang xử lý...
+            </span>
+          ) : (
+            <span className='flex items-center justify-center gap-1.5'>
+              Tiến hành thanh toán
+              <ChevronRight className='h-4 w-4' />
+            </span>
+          )}
+        </Button>
+
+        {/* ── Trust badges ── */}
+        <div className='flex items-center justify-center gap-1.5 text-xs text-gray-400 pt-1'>
+          <ShieldCheck className='h-3.5 w-3.5 text-emerald-400' />
+          <span>Thanh toán an toàn & bảo mật</span>
         </div>
       </div>
-
-      <div className='flex justify-between items-end mb-8 bg-neutral-50 p-4 rounded-xl border border-neutral-100'>
-        <span className='text-base font-bold text-foreground'>{t('cart.total')}</span>
-        <div className='text-right'>
-          <span className='text-[10px] uppercase tracking-wider text-muted-foreground block mb-0.5 font-semibold'>
-            {t('cart.includingVat')}
-          </span>
-          <span className='text-2xl font-bold text-brand-red tracking-tight'>
-            {formatCurrency(finalTotal)}
-          </span>
-        </div>
-      </div>
-
-      <Button
-        onClick={onCheckout}
-        disabled={subtotal === 0 || isCheckingOut}
-        className='w-full h-14 rounded-xl bg-brand-green hover:bg-brand-green-dark text-primary-foreground font-bold text-base transition-all shadow-md shadow-brand-green/20'
-      >
-        {isCheckingOut ? (
-          <>
-            <Loader2 className='mr-2 h-5 w-5 animate-spin' />
-            Processing...
-          </>
-        ) : (
-          t('cart.checkout')
-        )}
-      </Button>
     </Card>
   )
 }

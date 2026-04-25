@@ -1,22 +1,22 @@
+// ── User Profile ─────────────────────────────────────────────────────────────
 export interface UserProfile {
   id: string
   username: string
   email: string
-  fullName?: string // thêm — từ UserProfileResponse.fullName
+  fullname?: string // Khớp với UserEntity/Mapper
   phone?: string
-  gender?: 'male' | 'female' | 'other'
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' // Nên để chữ HOA khớp với Enum Java
   dateOfBirth?: string
   nationality?: string
-  avatarUrl?: string
+  avatar?: string // Backend dùng 'avatar', FE mapping là 'avatarUrl' nếu cần
   roles: string[]
 }
 
 // ── Update requests ───────────────────────────────────────────────────────────
-
 export interface CustomerProfileUpdateRequest {
-  fullName?: string
+  fullname?: string
   username?: string
-  gender?: 'male' | 'female' | 'other'
+  gender?: 'MALE' | 'FEMALE' | 'OTHER'
   dateOfBirth?: string // "YYYY-MM-DD"
   nationality?: string
 }
@@ -30,15 +30,24 @@ export interface PhoneUpdateRequest {
   phone: string
 }
 
-// ── Order ─────────────────────────────────────────────────────────────────────
+// ── Order & Order Details (XÓA BỎ ANY) ────────────────────────────────────────
+
+export interface OrderDetail {
+  id: string
+  bookId: string
+  bookTitle: string
+  bookImage: string // Khớp với Mapping: book.thumbnail -> bookImage
+  quantity: number
+  price: number // Giá lúc mua
+}
 
 export interface Order {
   id: string
-  code: string
-  date: string
-  total: number
-  status: 'pending' | 'shipping' | 'completed' | 'cancelled'
-  itemCount: number
+  orderCode: string // Khớp với OrderResponse.orderCode
+  createdAt: string // Khớp với OrderResponse.createdAt
+  finalTotal: number // Khớp với OrderResponse.finalTotal
+  status: 'PENDING' | 'CONFIRMED' | 'PACKING' | 'SHIPPING' | 'COMPLETED' | 'CANCELLED' | 'RETURNED'
+  details: OrderDetail[] // Đã thay thế any[] bằng interface cụ thể
 }
 
 // ── Address ───────────────────────────────────────────────────────────────────
@@ -51,16 +60,23 @@ export interface Address {
   ward: string
   district: string
   city: string
-
-  default?: boolean
-  isDefault?: boolean
+  districtId: number // 👉 Thêm mã Quận/Huyện từ API GHN
+  wardCode: string // 👉 Thêm mã Phường/Xã từ API GHN
+  isDefault: boolean // Thống nhất dùng isDefault giống Backend
 }
-export interface UserProfile {
-  // Thêm dòng này vào
-  nationality?: string
-}
-export type AddressPayload = Omit<Address, 'id' | 'isDefault'>
 
+// Dùng cho API thêm mới/cập nhật địa chỉ
+export interface AddressRequest {
+  recipientName: string
+  phone: string
+  street: string
+  ward: string
+  district: string
+  city: string
+  districtId?: number // Dùng optional (?) vì trong form lúc mới khởi tạo có thể chưa có
+  wardCode?: string // Dùng optional (?) vì trong form lúc mới khởi tạo có thể chưa có
+  isDefault: boolean
+}
 // ── Tab ───────────────────────────────────────────────────────────────────────
 
 export type AccountTab = 'profile' | 'orders' | 'address' | 'password'

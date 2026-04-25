@@ -52,11 +52,14 @@ export interface OrderItemRequest {
 export type OrderCountResponse = number
 
 export interface OrderCreateRequest {
+  addressId: string
   customerName: string
   customerPhone: string
   customerEmail: string
   shippingAddress: string
   paymentMethod: string
+  orderCouponCode?: string
+  shippingCouponCode?: string
   note?: string
   items: OrderItemRequest[]
 }

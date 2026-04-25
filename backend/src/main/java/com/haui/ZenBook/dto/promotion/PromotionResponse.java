@@ -29,12 +29,10 @@ public class PromotionResponse {
         private String thumbnail;
         private Double originalPrice;
         private Double salePrice;
+        private Double soldQuantity;
         private Integer stockQuantity;
-
         private Double rating;
         private Integer reviews;
-
-        // 👉 ĐÃ THÊM: Trường này để lưu phần trăm giảm giá gửi cho Frontend hiển thị Badge đỏ
         private Integer discount;
 
         private List<AuthorDto> authors;

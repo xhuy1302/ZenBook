@@ -25,7 +25,13 @@ export interface GetBooksParams {
   keyword?: string
   minPrice?: number
   maxPrice?: number
+
   categoryIds?: string[] // Mảng ID danh mục
+  authorIds?: string[] // Mảng ID tác giả
+  publisherIds?: string[] // Mảng ID NXB
+  formats?: string[] // Mảng Format (Bìa mềm, cứng...)
+  languages?: string[] // Mảng Ngôn ngữ
+  minRating?: number // Lọc theo sao đánh giá
 }
 
 // 3. CẬP NHẬT LẠI BOOK RESPONSE
@@ -92,3 +98,8 @@ export interface BookRequest {
 }
 
 export type { TagResponse }
+
+export interface PriceRangeResponse {
+  minPrice: number
+  maxPrice: number
+}

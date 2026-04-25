@@ -14,7 +14,7 @@ public interface OrderService {
     OrderResponse updateOrder(String orderId, OrderUpdateRequest request, String actionBy, ActionRole role);
     OrderResponse updateOrderStatus(String orderId, OrderStatus newStatus, String note, String actionBy, ActionRole role);
     Page<OrderResponse> getAllOrders(OrderStatus status, String startDate, String endDate, Pageable pageable);
-    Page<OrderResponse> getMyOrders(String userId, Pageable pageable);
+    Page<OrderResponse> getMyOrders(String userId, OrderStatus status, Pageable p);
     OrderResponse getOrderById(String orderId);
     long countPendingOrders();
 }

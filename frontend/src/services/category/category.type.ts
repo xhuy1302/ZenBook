@@ -69,3 +69,9 @@ export type CategoryUpdateResponse = {
   status: CategoryStatus
   updatedAt: string
 }
+
+export interface CategoryFilterResponse {
+  id: string
+  name: string
+  count: number
+}

@@ -1,6 +1,7 @@
 package com.haui.ZenBook.dto.coupon;
 
 import com.haui.ZenBook.enums.CouponStatus;
+import com.haui.ZenBook.enums.CouponType;
 import com.haui.ZenBook.enums.DiscountType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,6 +16,9 @@ public class CouponRequest {
 
     @NotNull(message = "Loại giảm giá là bắt buộc")
     private DiscountType discountType;
+
+    @NotNull(message = "Loại Coupon (Hàng/Ship) không được để trống")
+    private CouponType couponType;
 
     @Positive(message = "Giá trị giảm phải lớn hơn 0")
     private Double discountValue;

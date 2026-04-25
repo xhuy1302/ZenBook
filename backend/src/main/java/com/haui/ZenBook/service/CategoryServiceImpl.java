@@ -1,10 +1,7 @@
 package com.haui.ZenBook.service;
 
 import com.haui.ZenBook.S3Client.S3Service;
-import com.haui.ZenBook.dto.category.CategoryCreationRequest;
-import com.haui.ZenBook.dto.category.CategoryResponse;
-import com.haui.ZenBook.dto.category.CategoryUpdateRequest;
-import com.haui.ZenBook.dto.category.CategoryUpdateResponse;
+import com.haui.ZenBook.dto.category.*;
 import com.haui.ZenBook.entity.BookEntity;
 import com.haui.ZenBook.entity.CategoryEntity;
 import com.haui.ZenBook.enums.CategoryStatus;
@@ -224,6 +221,11 @@ public class CategoryServiceImpl implements CategoryService {
         }
     }
 
+    @Override
+    public List<CategoryFilterResponse> getCategoriesForFilter() {
+        return categoryRepository.getCategoriesForFilter();
+    }
+
     private boolean isCircularReference(String currentCategoryId, String newParentId) {
         String checkId = newParentId;
 
@@ -252,4 +254,6 @@ public class CategoryServiceImpl implements CategoryService {
         }
         return (maxOrder == null) ? 0 : maxOrder + 1;
     }
+
+
 }

@@ -14,13 +14,13 @@ const menuItems = [
   },
   {
     label: 'Đơn hàng của tôi',
-    href: '/customer/orders', // Sửa đường dẫn
+    href: '/customer/orders',
     exact: false,
     icon: <ShoppingBag className='w-4 h-4' />
   },
   {
     label: 'Sổ địa chỉ',
-    href: '/customer/address', // Sửa đường dẫn
+    href: '/customer/address',
     exact: false,
     icon: <MapPin className='w-4 h-4' />
   }
@@ -54,9 +54,8 @@ export default function Sidebar() {
     exact ? location.pathname === href : location.pathname.startsWith(href)
 
   return (
-    <aside className='w-full md:w-[250px] shrink-0'>
+    <aside className='w-full md:w-[250px] shrink-0 md:sticky md:top-28 h-fit z-10'>
       <div className='rounded-2xl border border-border bg-card overflow-hidden'>
-        {/* ── User info block ── */}
         <div className='flex flex-col items-center gap-3 px-6 py-8 bg-brand-green/5 border-b border-border'>
           {isLoading ? (
             <>

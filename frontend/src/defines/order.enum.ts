@@ -11,7 +11,8 @@ export const OrderStatus = {
 export const PaymentStatus = {
   UNPAID: 'UNPAID',
   PAID: 'PAID',
-  REFUNDED: 'REFUNDED'
+  REFUNDED: 'REFUNDED',
+  FAILED: 'FAILED'
 } as const
 
 export const ActionRole = {

@@ -1,18 +1,21 @@
 import { useTranslation } from 'react-i18next'
 import { Star, ShoppingCart, Award, Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner' // 👉 Import toast để thông báo
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { BookResponse } from '@/services/book/book.type'
+import { useCart } from '@/context/CartContext' // 👉 Import useCart
 
 interface BookCardProps {
   book: BookResponse
-  viewMode?: 'grid' | 'list' // Thêm prop này, mặc định là 'grid'
+  viewMode?: 'grid' | 'list'
 }
 
 export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
   const { t } = useTranslation('common')
+  const { addItem } = useCart() // 👉 Lấy hàm addItem từ Context
 
   const salePrice = book.salePrice || 0
   const rating = book.rating || 0
@@ -22,6 +25,22 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
       ? Math.round(((book.originalPrice - salePrice) / book.originalPrice) * 100)
       : null
 
+  // 👉 Hàm xử lý Thêm vào giỏ hàng
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault() // Ngăn chặn sự kiện click lan ra ngoài (nếu có thẻ Link bọc ngoài)
+    e.stopPropagation()
+
+    addItem({
+      id: book.id,
+      title: book.title,
+      thumbnail: book.thumbnail || '/images/placeholder-book.jpg',
+      price: salePrice,
+      stock: book.stockQuantity || 0
+    })
+
+    toast.success(t('cart.addSuccess', 'Đã thêm vào giỏ hàng!'))
+  }
+
   // ==========================================
   // GIAO DIỆN DẠNG LIST (Dành cho trang Product List)
   // ==========================================
@@ -30,7 +49,7 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
       <div className='flex gap-4 bg-white rounded-xl border border-gray-100 hover:border-brand-green/40 hover:shadow-md transition-all duration-200 group p-4'>
         {/* Image */}
         <Link
-          to={`/product/${book.slug || book.id}`}
+          to={`/products/${book.slug || book.id}`}
           className='relative w-28 h-40 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden'
         >
           <img
@@ -50,7 +69,7 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
 
         {/* Details */}
         <div className='flex flex-1 flex-col gap-1.5 min-w-0'>
-          <Link to={`/product/${book.slug || book.id}`}>
+          <Link to={`/products/${book.slug || book.id}`}>
             <h3 className='font-semibold text-gray-800 line-clamp-2 leading-snug hover:text-brand-green transition-colors'>
               {book.title}
             </h3>
@@ -101,8 +120,10 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
               <button className='w-9 h-9 border border-gray-200 rounded-lg flex items-center justify-center hover:border-brand-red hover:text-brand-red transition-colors'>
                 <Heart className='w-4 h-4' />
               </button>
+              {/* 👉 Nút bấm 1: Thêm sự kiện onClick */}
               <Button
                 size='sm'
+                onClick={handleAddToCart}
                 disabled={book.stockQuantity === 0}
                 className='h-9 px-4 text-sm font-semibold gap-1.5 bg-brand-green hover:bg-brand-green/90 text-white border-0 rounded-lg'
               >
@@ -123,7 +144,7 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
     <div className='bg-white rounded-xl border border-gray-100 hover:border-brand-green/40 hover:shadow-md transition-all duration-200 group flex flex-col overflow-hidden h-full'>
       {/* Image area */}
       <div className='relative w-full aspect-[3/4] bg-gray-50 overflow-hidden'>
-        <Link to={`/product/${book.slug || book.id}`}>
+        <Link to={`/products/${book.slug || book.id}`}>
           <img
             src={book.thumbnail || '/images/placeholder-book.jpg'}
             alt={book.title}
@@ -134,7 +155,7 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
           />
         </Link>
 
-        {/* Badges (Kết hợp cả 2 file) */}
+        {/* Badges */}
         <div className='absolute top-2 left-2 flex flex-col gap-1'>
           {book.award && (
             <Badge className='bg-brand-amber text-neutral-900 text-[9px] font-bold border-0 px-1 py-0 flex items-center w-max gap-0.5 shadow-sm'>
@@ -163,8 +184,10 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
 
         {/* Add to cart on hover */}
         <div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-200'>
+          {/* 👉 Nút bấm 2: Thêm sự kiện onClick */}
           <Button
             size='sm'
+            onClick={handleAddToCart}
             disabled={book.stockQuantity === 0}
             className='w-full h-8 text-xs font-semibold gap-1.5 bg-brand-green hover:bg-brand-green/90 text-white border-0 rounded-lg'
           >
@@ -176,7 +199,7 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
 
       {/* Info */}
       <div className='p-3 flex flex-col gap-1 flex-1'>
-        <Link to={`/product/${book.slug || book.id}`}>
+        <Link to={`/products/${book.slug || book.id}`}>
           <h3
             className='text-sm font-semibold text-gray-800 line-clamp-2 leading-snug hover:text-brand-green transition-colors'
             title={book.title}

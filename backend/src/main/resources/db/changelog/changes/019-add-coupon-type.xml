@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="add-coupon-type-to-coupons" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="coupons" columnName="coupon_type"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="coupons">
+            <column name="coupon_type" type="VARCHAR(20)" defaultValue="ORDER">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <rollback>
+            <dropColumn tableName="coupons" columnName="coupon_type"/>
+        </rollback>
+    </changeSet>
+    <changeSet id="add-coupon-code-to-orders" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="orders" columnName="coupon_code"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="orders">
+            <column name="coupon_code" type="VARCHAR(50)" remarks="Mã giảm giá đã áp dụng cho đơn hàng"/>
+        </addColumn>
+
+        <rollback>
+            <dropColumn tableName="orders" columnName="coupon_code"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

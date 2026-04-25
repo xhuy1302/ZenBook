@@ -25,10 +25,10 @@ public class ReceiptEntity {
     @Column(name = "receipt_code", unique = true, nullable = false)
     private String receiptCode;
 
-    // 👉 Đã đổi cột join và tên biến sang publisher
+    // 👉 THAY ĐỔI: Chuyển từ publisher sang supplier
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "publisher_id", nullable = false)
-    private PublisherEntity publisher;
+    @JoinColumn(name = "supplier_id", nullable = false)
+    private SupplierEntity supplier;
 
     @Column(name = "creator_id")
     private String creatorId;
@@ -54,7 +54,7 @@ public class ReceiptEntity {
     @Column(name = "attachment_url")
     private String attachmentUrl;
 
-    // Quan hệ 1-N với bảng chi tiết
+    // Quan hệ 1-N với bảng chi tiết (Giữ nguyên)
     @OneToMany(mappedBy = "receipt", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReceiptDetailEntity> details;
 }

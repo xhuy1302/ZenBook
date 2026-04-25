@@ -1,13 +1,14 @@
-import { Minus, Plus, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { Minus, Plus, Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
+import { Link } from 'react-router-dom'
 import type { CartItemType } from '@/services/cart/cart.type'
 
 interface CartItemProps {
   item: CartItemType
-  onUpdateQuantity: (id: string, delta: number) => void
-  onRemove: (id: string) => void
+  onUpdateQuantity: (id: string, delta: number) => Promise<void>
+  onRemove: (id: string) => Promise<void>
   onToggleSelect: (id: string) => void
   formatCurrency: (amount: number) => string
 }
@@ -19,82 +20,145 @@ export function CartItem({
   onToggleSelect,
   formatCurrency
 }: CartItemProps) {
+  const [isPending, setIsPending] = useState(false)
+
+  const handleQtyChange = async (delta: number) => {
+    if (isPending) return
+    setIsPending(true)
+    try {
+      await onUpdateQuantity(item.id, delta)
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  const handleRemoveClick = async () => {
+    if (isPending) return
+    setIsPending(true)
+    try {
+      await onRemove(item.id)
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  const displayPrice = item.price
+  const originalPrice = item.originalPrice || item.price
+  const hasDiscount = originalPrice > displayPrice
+
   return (
-    <div className='group flex flex-col sm:flex-row gap-4 p-4 md:p-5 bg-white rounded-2xl border border-neutral-200/60 shadow-sm hover:shadow-md transition-all duration-200'>
-      {/* Selection & Image */}
-      <div className='flex items-center gap-4'>
-        {/* FIX LỖI ĐEN XÌ: Thêm text-white và chuyển màu bg sang brand-green */}
+    <div
+      className={`
+        group relative flex flex-col sm:flex-row items-start sm:items-center
+        gap-4 px-5 py-5
+        bg-white border-b border-slate-100 last:border-0
+        transition-all duration-200
+        ${item.selected ? 'bg-green-50/30' : 'hover:bg-slate-50/60'}
+        ${isPending ? 'opacity-60 pointer-events-none' : ''}
+      `}
+    >
+      {item.selected && (
+        <div className='absolute left-0 top-0 bottom-0 w-0.5 bg-green-500 rounded-r' />
+      )}
+
+      <div className='flex items-center gap-4 flex-1 min-w-0'>
         <Checkbox
           checked={item.selected}
           onCheckedChange={() => onToggleSelect(item.id)}
-          className='w-5 h-5 rounded-[4px] border-neutral-300 text-white data-[state=checked]:bg-brand-green data-[state=checked]:border-brand-green'
+          disabled={isPending}
+          className='shrink-0 w-[18px] h-[18px] rounded-[4px] border-2 border-slate-300 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 transition-colors text-white'
         />
-        <div className='relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-xl bg-neutral-50 border border-neutral-100'>
-          <img
-            src={item.image}
-            alt={item.name}
-            className='h-full w-full object-cover object-center mix-blend-multiply'
-          />
+
+        <Link to={`/products/${item.slug}`} className='shrink-0 block'>
+          <div className='relative w-[72px] h-[90px] rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shadow-sm group-hover:shadow-md transition-shadow'>
+            <img
+              src={item.thumbnail || '/images/placeholder-book.jpg'}
+              alt={item.title}
+              className='w-full h-full object-contain p-1.5'
+            />
+          </div>
+        </Link>
+
+        <div className='flex flex-col gap-1 min-w-0'>
+          <Link to={`/products/${item.slug}`}>
+            <h3 className='text-sm font-semibold text-slate-800 line-clamp-2 leading-snug hover:text-green-600 transition-colors'>
+              {item.title}
+            </h3>
+          </Link>
+          {item.author && <p className='text-xs text-slate-400 line-clamp-1'>{item.author}</p>}
+
+          <div className='flex items-baseline gap-1.5 sm:hidden mt-1.5'>
+            <span className='text-sm font-bold text-green-600'>{formatCurrency(displayPrice)}</span>
+            {hasDiscount && (
+              <span className='text-xs text-slate-400 line-through'>
+                {formatCurrency(originalPrice)}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Details */}
-      <div className='flex flex-1 flex-col justify-between py-1'>
-        <div className='flex flex-col sm:flex-row sm:justify-between gap-2'>
-          <div className='space-y-1.5 pr-4'>
-            <h3 className='font-semibold text-foreground line-clamp-2 leading-snug'>{item.name}</h3>
-            {item.variant && (
-              <Badge
-                variant='secondary'
-                className='bg-neutral-100 text-neutral-600 font-medium px-2 py-0.5'
-              >
-                {item.variant}
-              </Badge>
+      <div className='flex items-center gap-4 sm:gap-6 w-full sm:w-auto pl-[calc(18px+16px+72px+16px)] sm:pl-0'>
+        <div className='hidden sm:flex flex-col items-end min-w-[90px]'>
+          <span className='text-sm font-bold text-green-600'>{formatCurrency(displayPrice)}</span>
+          {hasDiscount && (
+            <span className='text-[11px] text-slate-400 line-through leading-none mt-0.5'>
+              {formatCurrency(originalPrice)}
+            </span>
+          )}
+        </div>
+
+        <div className='flex items-center rounded-lg border border-slate-200 overflow-hidden bg-white shadow-xs h-8'>
+          <button
+            onClick={() => handleQtyChange(-1)}
+            disabled={isPending || item.quantity <= 1}
+            className='w-8 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-30'
+          >
+            <Minus className='w-3 h-3' />
+          </button>
+
+          <div className='w-10 h-full flex items-center justify-center border-x border-slate-200'>
+            {isPending ? (
+              <Loader2 className='w-3 h-3 animate-spin text-green-500' />
+            ) : (
+              <span className='text-[13px] font-semibold text-slate-700'>{item.quantity}</span>
             )}
           </div>
-          <div className='text-right'>
-            <p className='font-bold text-foreground text-lg'>{formatCurrency(item.price)}</p>
-          </div>
+
+          <button
+            onClick={() => handleQtyChange(1)}
+            disabled={isPending || (item.stock !== undefined && item.quantity >= item.stock)}
+            className='w-8 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-30'
+          >
+            <Plus className='w-3 h-3' />
+          </button>
         </div>
 
-        {/* Controls & Subtotal */}
-        <div className='flex items-center justify-between mt-4 pt-4 border-t border-neutral-100/80'>
-          <div className='flex items-center gap-3'>
-            <div className='flex items-center rounded-lg border border-neutral-200 bg-white overflow-hidden h-9'>
-              <button
-                className='w-9 h-full flex items-center justify-center text-muted-foreground hover:bg-neutral-100 hover:text-foreground transition-colors disabled:opacity-50'
-                onClick={() => onUpdateQuantity(item.id, -1)}
-                disabled={item.quantity <= 1}
-              >
-                <Minus className='h-3.5 w-3.5' />
-              </button>
-              <div className='flex h-full w-10 items-center justify-center text-sm font-semibold text-foreground border-x border-neutral-200'>
-                {item.quantity}
-              </div>
-              <button
-                className='w-9 h-full flex items-center justify-center text-muted-foreground hover:bg-neutral-100 hover:text-foreground transition-colors'
-                onClick={() => onUpdateQuantity(item.id, 1)}
-              >
-                <Plus className='h-3.5 w-3.5' />
-              </button>
-            </div>
-
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-9 w-9 text-neutral-400 hover:text-brand-red hover:bg-brand-red-light transition-colors rounded-lg'
-              onClick={() => onRemove(item.id)}
-            >
-              <Trash2 className='h-4 w-4' />
-            </Button>
-          </div>
-
-          <div className='text-right sm:hidden'>
-            <p className='text-sm font-bold text-foreground'>
-              {formatCurrency(item.price * item.quantity)}
-            </p>
-          </div>
+        <div className='hidden sm:block min-w-[100px] text-right'>
+          <span className='text-sm font-bold text-red-600'>
+            {formatCurrency(displayPrice * item.quantity)}
+          </span>
         </div>
+
+        <div className='sm:hidden flex-1 text-right'>
+          <span className='text-sm font-bold text-red-600'>
+            {formatCurrency(displayPrice * item.quantity)}
+          </span>
+        </div>
+
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={handleRemoveClick}
+          disabled={isPending}
+          className='h-8 w-8 rounded-lg shrink-0 text-slate-300 hover:text-green-500 hover:bg-green-50 transition-all'
+        >
+          {isPending ? (
+            <Loader2 className='w-4 h-4 animate-spin' />
+          ) : (
+            <Trash2 className='w-4 h-4' />
+          )}
+        </Button>
       </div>
     </div>
   )

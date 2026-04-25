@@ -1,28 +1,15 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// components/zenbook/account/AccountLayout.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-
-import { Outlet, Link } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
+import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
+// Nhớ điều chỉnh lại đường dẫn import này cho đúng với thư mục của bạn nhé
+import BreadcrumbHeader from '@/components/zenbook/breadcrumb/BreadCrumbHeader'
 
-/**
- * Two-column layout: Sidebar (fixed 250 px) + <Outlet /> content area.
- * Rendered by AccountPage which wraps all /account/* nested routes.
- */
 export default function AccountLayout() {
   return (
     <div className='min-h-screen bg-background'>
-      <div className='max-w-7xl mx-auto px-4 py-8'>
-        {/* Breadcrumb */}
-        <nav className='flex items-center gap-2 text-sm text-muted-foreground mb-6'>
-          <Link to='/' className='hover:text-brand-green transition-colors'>
-            Trang chủ
-          </Link>
-          <ChevronRight className='w-3.5 h-3.5' />
-          <span className='text-foreground font-medium'>Tài khoản của tôi</span>
-        </nav>
+      {/* 1. Thay thế phần <nav> code cứng bằng component BreadcrumbHeader */}
+      <BreadcrumbHeader />
 
+      <div className='max-w-7xl mx-auto px-4 py-8'>
         {/* Grid */}
         <div className='flex flex-col md:flex-row gap-6 items-start'>
           <Sidebar />

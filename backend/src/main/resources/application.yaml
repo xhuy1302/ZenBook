@@ -68,3 +68,13 @@ cleanup-data:
 #    get-endpoints:
 #      - /api/v1/categories/**
 #      - /api/v1/brands/**
+
+ghn:
+  token: ${GHN_TOKEN}
+  shop-id: ${GHN_SHOP_ID}
+
+vnpay:
+  tmnCode: ${VNPAY_TMN_CODE}
+  hashSecret: ${VNPAY_HASH_SECRET}
+  payUrl: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+  returnUrl: ${VNPAY_RETURN_URL:http://localhost:5173/payment/vnpay-return}

@@ -7,9 +7,11 @@ import { Zap, ChevronRight, ChevronLeft, ShoppingCart, Loader2 } from 'lucide-re
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { getActiveFlashSaleApi } from '@/services/promotion/promotion.api'
 import type { BookResponse } from '@/services/book/book.type'
+import { useCart } from '@/context/CartContext'
 
 function useCountdown(endDateString?: string) {
   const [timeLeft, setTimeLeft] = useState(0)
@@ -38,6 +40,7 @@ const ITEMS_PER_PAGE = 5
 export default function FlashSale() {
   const { t } = useTranslation('common')
   const [page, setPage] = useState(0)
+  const { addItem } = useCart()
 
   const { data: promotion, isLoading } = useQuery({
     queryKey: ['promotion', 'active-flash-sale'],
@@ -53,6 +56,23 @@ export default function FlashSale() {
 
   const canPrev = page > 0
   const canNext = page < totalPages - 1
+
+  const handleAddToCart = (e: React.MouseEvent, book: BookResponse) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    addItem({
+      id: book.id || '',
+      title: book.title || '',
+      thumbnail: book.thumbnail || '/images/placeholder-book.jpg',
+      price: book.salePrice || 0,
+      stock: book.stockQuantity || 0,
+      originalPrice: book.originalPrice,
+      author: book.authors?.[0]?.name
+    })
+
+    toast.success(t('cart.addSuccess', 'Đã thêm vào giỏ hàng!'))
+  }
 
   if (isLoading) {
     return (
@@ -79,7 +99,7 @@ export default function FlashSale() {
             {/* Countdown */}
             <div className='flex items-center gap-2'>
               <span className='text-sm font-medium text-neutral-700 hidden sm:block'>
-                {t('flashSale.endsIn')}
+                {t('flashSale.endsIn', 'Kết thúc sau:')}
               </span>
               <div className='flex items-center gap-1.5'>
                 <div className='bg-black text-white font-mono font-bold text-base px-2.5 py-1 rounded'>
@@ -97,15 +117,15 @@ export default function FlashSale() {
             </div>
           </div>
 
-          {/* ✅ Đổi text-blue-600 → text-brand-red cho đồng nhất giao diện */}
-
           <Button
             variant='ghost'
             size='sm'
             className='text-brand-green hover:text-brand-green-dark hover:bg-brand-green-light text-sm gap-1'
+            asChild
           >
-            <Link to='/flash-sale'> {t('bookGrid.viewAll')}</Link>
-            <ChevronRight className='w-4 h-4' />
+            <Link to='/flash-sale'>
+              {t('bookGrid.viewAll', 'Xem tất cả')} <ChevronRight className='w-4 h-4' />
+            </Link>
           </Button>
         </div>
 
@@ -137,9 +157,15 @@ export default function FlashSale() {
           <div className='grid grid-cols-5 gap-4 mx-4'>
             {visibleBooks.map((book) => {
               const salePrice = book.salePrice || 0
-              const currentStock = book.stockQuantity || 0
-              const soldQuantity = Math.max(50 - currentStock, 0)
-              const stockPercent = Math.max(Math.min(Math.round((soldQuantity / 50) * 100), 100), 5)
+
+              // 👉 LOGIC TÍNH TOÁN MỚI: Dựa vào tồn kho và số lượng đã bán
+              const soldQty = book.soldQuantity || 0
+              const stockQty = book.stockQuantity || 0
+              const totalQty = soldQty + stockQty
+
+              // Tính % thanh tiến trình (tối thiểu để 5% để thanh có một dải màu nhỏ cho đẹp mắt)
+              const stockPercent =
+                totalQty > 0 ? Math.max(Math.round((soldQty / totalQty) * 100), 5) : 5
 
               const discountPercent =
                 book.originalPrice && book.originalPrice > salePrice
@@ -154,8 +180,7 @@ export default function FlashSale() {
                 >
                   {/* Image Container */}
                   <div className='relative w-full aspect-[3/4] mb-2 flex justify-center'>
-                    {/* THẺ LINK BỌC ẢNH SÁCH */}
-                    <Link to={`/product/${book.slug || book.id}`}>
+                    <Link to={`/products/${book.slug || book.id}`}>
                       <img
                         src={book.thumbnail || '/images/placeholder-book.jpg'}
                         alt={book.title}
@@ -172,13 +197,11 @@ export default function FlashSale() {
                       )}
                     </Link>
 
-                    {/* NÚT THÊM GIỎ HÀNG (Sửa lại pointer-events)
-        Lớp nền đen mờ này KHÔNG ĐƯỢC cản trở click (pointer-events-none), 
-        nhưng riêng nút Button bên trong thì VẪN PHẢI click được (pointer-events-auto).
-      */}
                     <div className='absolute inset-0 bg-black/5 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
                       <Button
                         size='sm'
+                        onClick={(e) => handleAddToCart(e, book)}
+                        disabled={stockQty === 0}
                         className='h-8 px-3 text-xs bg-brand-green hover:bg-brand-green-dark text-primary-foreground gap-1.5 shadow-lg rounded-md pointer-events-auto'
                       >
                         <ShoppingCart className='w-3.5 h-3.5' />
@@ -189,41 +212,40 @@ export default function FlashSale() {
 
                   {/* Info Container */}
                   <div className='flex flex-col flex-1'>
-                    {/* THẺ LINK BỌC TÊN SÁCH (Đã thêm) */}
-                    <Link to={`/product/${book.slug || book.id}`} className='mb-1'>
+                    <Link to={`/products/${book.slug || book.id}`} className='mb-1'>
                       <h3
-                        className='text-sm font-semibold text-neutral-800 line-clamp-2 leading-snug hover:text-brand-red transition-colors cursor-pointer'
+                        className='text-[13px] font-bold text-slate-800 line-clamp-2 leading-snug hover:text-brand-red transition-colors cursor-pointer'
                         title={book.title}
                       >
                         {book.title}
                       </h3>
                     </Link>
 
-                    <div className='mt-auto flex flex-col gap-1'>
-                      {/* Original Price */}
-                      <div className='h-4'>
+                    <div className='mt-auto flex flex-col gap-1.5'>
+                      <div className='h-4 flex items-end'>
                         {book.originalPrice && book.originalPrice > salePrice && (
-                          <span className='text-xs text-neutral-400 line-through'>
+                          <span className='text-[12px] font-semibold text-slate-400 line-through'>
                             {new Intl.NumberFormat('vi-VN').format(book.originalPrice)} ₫
                           </span>
                         )}
                       </div>
 
-                      {/* Sale Price */}
-                      <span className='text-lg font-bold text-brand-red leading-none mb-1.5'>
+                      <span className='text-[16px] font-black text-brand-red leading-none mb-1.5'>
                         {new Intl.NumberFormat('vi-VN').format(salePrice)} ₫
                       </span>
 
-                      {/* Progress bar */}
-                      <div className='relative w-full h-5 bg-neutral-200 rounded-full overflow-hidden flex items-center justify-center'>
+                      {/* 👉 THANH TIẾN TRÌNH (PROGRESS BAR) */}
+                      <div className='relative w-full h-[18px] bg-red-100 rounded-full overflow-hidden flex items-center justify-center border border-red-200/50'>
                         <div
-                          className='absolute left-0 top-0 bottom-0 bg-gradient-to-r from-green-500 to-brand-green rounded-full transition-all duration-500'
+                          className='absolute left-0 top-0 bottom-0 bg-gradient-to-r from-red-400 to-brand-red rounded-full transition-all duration-500'
                           style={{ width: `${stockPercent}%` }}
                         />
-                        <span className='relative z-10 text-[10px] text-white font-bold tracking-wide uppercase drop-shadow-md'>
+                        <span className='relative z-10 text-[10px] text-white font-bold tracking-widest uppercase drop-shadow-md mt-px'>
                           {stockPercent >= 90
                             ? 'Sắp cháy hàng'
-                            : `Đã bán ${soldQuantity > 0 ? soldQuantity : 1}`}
+                            : soldQty === 0
+                              ? 'Vừa mở bán'
+                              : `Đã bán ${soldQty}`}
                         </span>
                       </div>
                     </div>
@@ -232,7 +254,6 @@ export default function FlashSale() {
               )
             })}
 
-            {/* Placeholder */}
             {visibleBooks.length < ITEMS_PER_PAGE &&
               Array.from({ length: ITEMS_PER_PAGE - visibleBooks.length }).map((_, i) => (
                 <div key={`empty-${i}`} className='bg-transparent' />

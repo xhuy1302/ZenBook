@@ -1,5 +1,3 @@
-// Đường dẫn: src/components/zenbook/account/modals/AddressDialog.tsx
-
 import { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,30 +23,27 @@ import {
   SelectValue
 } from '@/components/ui/select'
 
-import type { Address, AddressPayload } from '@/services/customer/customer.type'
+import type { Address, AddressRequest } from '@/services/customer/customer.type'
 
-// ── Định nghĩa Kiểu dữ liệu cho API Hành chính ────────────────────────────────
+// Cấu trúc chuẩn trả về từ Backend (bê nguyên từ GHN sang)
 interface ProvinceData {
-  code: number
-  name: string
-  districts?: DistrictData[]
+  ProvinceID: number
+  ProvinceName: string
 }
 
 interface DistrictData {
-  code: number
-  name: string
-  wards?: WardData[]
+  DistrictID: number
+  DistrictName: string
 }
 
 interface WardData {
-  code: number
-  name: string
+  WardCode: string
+  WardName: string
 }
 
-// ── Schema Validation ─────────────────────────────────────────────────────────
 const schema = z.object({
   recipientName: z.string().min(2, 'Vui lòng nhập tên người nhận'),
-  phone: z.string().regex(/^(0|\+84)[0-9]{9}$/, 'Số điện thoại không hợp lệ'),
+  phone: z.string().regex(/^(0|\+84)[0-9]{8,9}$/, 'Số điện thoại không hợp lệ'),
   street: z.string().min(5, 'Vui lòng nhập số nhà, tên đường chi tiết'),
   ward: z.string().min(1, 'Vui lòng chọn Phường/Xã'),
   district: z.string().min(1, 'Vui lòng chọn Quận/Huyện'),
@@ -61,8 +56,11 @@ interface AddressDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   initialData?: Address
-  onSave: (data: AddressPayload) => Promise<void>
+  onSave: (data: AddressRequest) => Promise<void>
 }
+
+// 📌 THAY ĐỔI URL BACKEND CỦA BẠN TẠI ĐÂY (NẾU CẦN)
+const API_BASE_URL = 'http://localhost:8080/api/v1/address'
 
 export default function AddressDialog({
   open,
@@ -72,7 +70,6 @@ export default function AddressDialog({
 }: AddressDialogProps) {
   const { t } = useTranslation('account')
 
-  // 👉 ĐÃ FIX: Thay 'any[]' bằng các interface cụ thể
   const [provinces, setProvinces] = useState<ProvinceData[]>([])
   const [districts, setDistricts] = useState<DistrictData[]>([])
   const [wards, setWards] = useState<WardData[]>([])
@@ -100,7 +97,7 @@ export default function AddressDialog({
   const selectedCity = watch('city')
   const selectedDistrict = watch('district')
 
-  // Lấy Tỉnh/Thành phố khi mở Modal
+  // 1. Lấy danh sách Tỉnh/Thành từ BACKEND
   useEffect(() => {
     if (open) {
       reset(
@@ -114,33 +111,36 @@ export default function AddressDialog({
         }
       )
       axios
-        .get<ProvinceData[]>('https://provinces.open-api.vn/api/p/')
-        .then((res) => setProvinces(res.data))
+        .get(`${API_BASE_URL}/provinces`)
+        .then((res) => setProvinces(res.data.data || []))
+        .catch(() => console.error('Lỗi lấy danh sách tỉnh từ Backend'))
     }
   }, [open, initialData, reset])
 
-  // Lấy Quận/Huyện khi Tỉnh/Thành phố thay đổi
+  // 2. Lấy danh sách Quận/Huyện từ BACKEND khi chọn Tỉnh
   useEffect(() => {
     if (selectedCity && provinces.length > 0) {
-      const province = provinces.find((p) => p.name === selectedCity)
+      const province = provinces.find((p) => p.ProvinceName === selectedCity)
       if (province) {
         axios
-          .get<ProvinceData>(`https://provinces.open-api.vn/api/p/${province.code}?depth=2`)
-          .then((res) => setDistricts(res.data.districts || []))
+          .get(`${API_BASE_URL}/districts?province_id=${province.ProvinceID}`)
+          .then((res) => setDistricts(res.data.data || []))
+          .catch(() => console.error('Lỗi lấy danh sách Quận/Huyện'))
       }
     } else {
       setDistricts([])
     }
   }, [selectedCity, provinces])
 
-  // Lấy Phường/Xã khi Quận/Huyện thay đổi
+  // 3. Lấy danh sách Phường/Xã từ BACKEND khi chọn Quận
   useEffect(() => {
     if (selectedDistrict && districts.length > 0) {
-      const district = districts.find((d) => d.name === selectedDistrict)
+      const district = districts.find((d) => d.DistrictName === selectedDistrict)
       if (district) {
         axios
-          .get<DistrictData>(`https://provinces.open-api.vn/api/d/${district.code}?depth=2`)
-          .then((res) => setWards(res.data.wards || []))
+          .get(`${API_BASE_URL}/wards?district_id=${district.DistrictID}`)
+          .then((res) => setWards(res.data.data || []))
+          .catch(() => console.error('Lỗi lấy danh sách Phường/Xã'))
       }
     } else {
       setWards([])
@@ -148,7 +148,18 @@ export default function AddressDialog({
   }, [selectedDistrict, districts])
 
   const onSubmit = async (data: FormValues) => {
-    await onSave(data)
+    // Tìm ra ID để gửi về Backend lưu lại
+    const districtObj = districts.find((d) => d.DistrictName === data.district)
+    const wardObj = wards.find((w) => w.WardName === data.ward)
+
+    const payload: AddressRequest = {
+      ...data,
+      districtId: districtObj?.DistrictID,
+      wardCode: wardObj?.WardCode,
+      isDefault: initialData ? initialData.isDefault : false
+    }
+
+    await onSave(payload)
     onOpenChange(false)
   }
 
@@ -164,118 +175,124 @@ export default function AddressDialog({
             <div className='space-y-1.5'>
               <Label>{t('address.recipientName')}</Label>
               <Input
-                placeholder={t('address.recipientNamePlaceholder')}
+                placeholder={t('address.recipientNamePlaceholder', 'Họ và tên')}
                 {...register('recipientName')}
               />
               {errors.recipientName && (
                 <p className='text-destructive text-xs'>{errors.recipientName.message}</p>
               )}
             </div>
+
             <div className='space-y-1.5'>
               <Label>{t('address.phone')}</Label>
-              <Input placeholder={t('address.phonePlaceholder')} {...register('phone')} />
+              <Input
+                placeholder={t('address.phonePlaceholder', 'Số điện thoại')}
+                {...register('phone')}
+              />
               {errors.phone && <p className='text-destructive text-xs'>{errors.phone.message}</p>}
             </div>
           </div>
 
-          <div className='grid grid-cols-3 gap-3'>
-            <div className='space-y-1.5'>
-              <Label>{t('address.city')}</Label>
-              <Controller
-                name='city'
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={(val) => {
-                      field.onChange(val)
-                      setValue('district', '')
-                      setValue('ward', '')
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='Chọn Tỉnh' />
-                    </SelectTrigger>
-                    <SelectContent className='max-h-56'>
-                      {provinces.map((p) => (
-                        <SelectItem key={p.code} value={p.name}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.city && <p className='text-destructive text-xs'>{errors.city.message}</p>}
-            </div>
+          <div className='pt-2'>
+            <div className='grid grid-cols-3 gap-3'>
+              <div className='space-y-1.5'>
+                <Label>{t('address.city')}</Label>
+                <Controller
+                  name='city'
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(val) => {
+                        field.onChange(val)
+                        setValue('district', '')
+                        setValue('ward', '')
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder='Chọn Tỉnh' />
+                      </SelectTrigger>
+                      <SelectContent className='max-h-56'>
+                        {provinces.map((p) => (
+                          <SelectItem key={p.ProvinceID} value={p.ProvinceName}>
+                            {p.ProvinceName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.city && <p className='text-destructive text-xs'>{errors.city.message}</p>}
+              </div>
 
-            <div className='space-y-1.5'>
-              <Label>{t('address.district')}</Label>
-              <Controller
-                name='district'
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={(val) => {
-                      field.onChange(val)
-                      setValue('ward', '')
-                    }}
-                    disabled={!selectedCity || districts.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='Chọn Quận' />
-                    </SelectTrigger>
-                    <SelectContent className='max-h-56'>
-                      {districts.map((d) => (
-                        <SelectItem key={d.code} value={d.name}>
-                          {d.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className='space-y-1.5'>
+                <Label>{t('address.district')}</Label>
+                <Controller
+                  name='district'
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(val) => {
+                        field.onChange(val)
+                        setValue('ward', '')
+                      }}
+                      disabled={!selectedCity || districts.length === 0}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder='Chọn Quận' />
+                      </SelectTrigger>
+                      <SelectContent className='max-h-56'>
+                        {districts.map((d) => (
+                          <SelectItem key={d.DistrictID} value={d.DistrictName}>
+                            {d.DistrictName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.district && (
+                  <p className='text-destructive text-xs'>{errors.district.message}</p>
                 )}
-              />
-              {errors.district && (
-                <p className='text-destructive text-xs'>{errors.district.message}</p>
-              )}
-            </div>
+              </div>
 
-            <div className='space-y-1.5'>
-              <Label>{t('address.ward')}</Label>
-              <Controller
-                name='ward'
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={!selectedDistrict || wards.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='Chọn Phường' />
-                    </SelectTrigger>
-                    <SelectContent className='max-h-56'>
-                      {wards.map((w) => (
-                        <SelectItem key={w.code} value={w.name}>
-                          {w.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.ward && <p className='text-destructive text-xs'>{errors.ward.message}</p>}
+              <div className='space-y-1.5'>
+                <Label>{t('address.ward')}</Label>
+                <Controller
+                  name='ward'
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={!selectedDistrict || wards.length === 0}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder='Chọn Phường' />
+                      </SelectTrigger>
+                      <SelectContent className='max-h-56'>
+                        {wards.map((w) => (
+                          <SelectItem key={w.WardCode} value={w.WardName}>
+                            {w.WardName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.ward && <p className='text-destructive text-xs'>{errors.ward.message}</p>}
+              </div>
             </div>
           </div>
 
-          <div className='space-y-1.5'>
+          <div className='space-y-1.5 pt-2'>
             <Label>{t('address.street')}</Label>
             <Input placeholder='Nhập số nhà, tên đường...' {...register('street')} />
             {errors.street && <p className='text-destructive text-xs'>{errors.street.message}</p>}
           </div>
 
-          <DialogFooter className='pt-2'>
+          <DialogFooter className='pt-4'>
             <Button
               type='button'
               variant='outline'

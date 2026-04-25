@@ -25,7 +25,7 @@ function getInitials(name?: string) {
     .toUpperCase()
 }
 
-export default function AvatarUpload({ avatarUrl, fullName, size = 80 }: AvatarUploadProps) {
+export default function AvatarUpload({ avatarUrl, fullName, size = 88 }: AvatarUploadProps) {
   const { t } = useTranslation('account')
   const inputRef = useRef<HTMLInputElement>(null)
   const queryClient = useQueryClient()
@@ -73,7 +73,6 @@ export default function AvatarUpload({ avatarUrl, fullName, size = 80 }: AvatarU
         setModalOpen(true)
       }
       reader.readAsDataURL(file)
-
       e.target.value = ''
     },
     [t]
@@ -87,7 +86,7 @@ export default function AvatarUpload({ avatarUrl, fullName, size = 80 }: AvatarU
     <>
       <div className='relative group inline-block' style={{ width: size, height: size }}>
         <div
-          className='w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md bg-brand-green flex items-center justify-center cursor-pointer transition-all duration-200 group-hover:brightness-75'
+          className='w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md bg-brand-green/90 flex items-center justify-center cursor-pointer transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg'
           onClick={() => !isPending && inputRef.current?.click()}
           style={{ width: size, height: size }}
         >
@@ -100,8 +99,8 @@ export default function AvatarUpload({ avatarUrl, fullName, size = 80 }: AvatarU
             />
           ) : (
             <span
-              className='text-primary-foreground font-bold select-none'
-              style={{ fontSize: size * 0.3 }}
+              className='text-white font-bold select-none tracking-wider'
+              style={{ fontSize: size * 0.35 }}
             >
               {getInitials(fullName)}
             </span>
@@ -109,7 +108,7 @@ export default function AvatarUpload({ avatarUrl, fullName, size = 80 }: AvatarU
         </div>
 
         <div
-          className='absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer'
+          className='absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer'
           onClick={() => !isPending && inputRef.current?.click()}
         >
           {isPending ? (
@@ -119,8 +118,8 @@ export default function AvatarUpload({ avatarUrl, fullName, size = 80 }: AvatarU
             />
           ) : (
             <Camera
-              className='text-white drop-shadow'
-              style={{ width: size * 0.28, height: size * 0.28 }}
+              className='text-white drop-shadow-md'
+              style={{ width: size * 0.3, height: size * 0.3 }}
             />
           )}
         </div>
@@ -129,9 +128,9 @@ export default function AvatarUpload({ avatarUrl, fullName, size = 80 }: AvatarU
           <button
             type='button'
             onClick={() => inputRef.current?.click()}
-            className='absolute bottom-0 right-0 w-7 h-7 rounded-full bg-white border border-border shadow-sm flex items-center justify-center hover:bg-muted transition-colors'
+            className='absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center hover:bg-slate-50 hover:text-brand-green transition-colors text-slate-500 z-10'
           >
-            <Camera className='w-3.5 h-3.5 text-muted-foreground' />
+            <Camera className='w-4 h-4' />
           </button>
         )}
 

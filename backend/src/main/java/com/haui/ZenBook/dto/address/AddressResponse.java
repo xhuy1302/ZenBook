@@ -26,5 +26,9 @@ public class AddressResponse {
 
     private String city;
 
+    // 👉 THÊM MỚI: Trả về cho Frontend
+    private Integer districtId;
+    private String wardCode;
+
     private Boolean isDefault;
 }

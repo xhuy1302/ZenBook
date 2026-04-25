@@ -58,21 +58,29 @@ export const orderService = {
     }
 
     if (pageObj) {
+      // Hỗ trợ format mới của Spring Boot (thông tin phân trang nằm trong object 'page')
+      const pageInfo = pageObj.page ? (pageObj.page as Record<string, unknown>) : pageObj
+
       return {
         content: (pageObj.content as Order[]) || [],
         totalElements:
-          (pageObj.totalElements as number) ?? (pageObj.totalElementsCount as number) ?? 0,
-        totalPages: (pageObj.totalPages as number) || 0,
-        number: (pageObj.number as number) || 0,
-        size: (pageObj.size as number) || 0
+          (pageInfo.totalElements as number) ?? (pageInfo.totalElementsCount as number) ?? 0,
+        totalPages: (pageInfo.totalPages as number) || 0,
+        number: (pageInfo.number as number) || 0,
+        size: (pageInfo.size as number) || 0
       }
     }
 
     return { content: [], totalElements: 0, totalPages: 0, number: 0, size: 0 }
   },
 
-  // 4. LẤY ĐƠN HÀNG CỦA TÔI (CUSTOMER) - 👉 ĐÃ FIX LỖI ANY
-  getMyOrders: async (params: { page: number; size: number }): Promise<Page<Order>> => {
+  // 4. LẤY ĐƠN HÀNG CỦA TÔI (CUSTOMER)
+  // 👉 ĐÃ THÊM: param status để lọc theo tab
+  getMyOrders: async (params: {
+    page: number
+    size: number
+    status?: string
+  }): Promise<Page<Order>> => {
     const res = await api.get<unknown>('/orders/my-orders', { params })
     const responseObj = res as unknown as Record<string, unknown>
 
@@ -93,12 +101,15 @@ export const orderService = {
     }
 
     if (pageObj) {
+      // 👉 ĐÃ FIX: Hỗ trợ format trả về "page": { size, number, totalElements, totalPages }
+      const pageInfo = pageObj.page ? (pageObj.page as Record<string, unknown>) : pageObj
+
       return {
         content: (pageObj.content as Order[]) || [],
-        totalElements: (pageObj.totalElements as number) || 0,
-        totalPages: (pageObj.totalPages as number) || 0,
-        number: (pageObj.number as number) || 0,
-        size: (pageObj.size as number) || 0
+        totalElements: (pageInfo.totalElements as number) || 0,
+        totalPages: (pageInfo.totalPages as number) || 0,
+        number: (pageInfo.number as number) || 0,
+        size: (pageInfo.size as number) || 0
       }
     }
 

@@ -1,8 +1,6 @@
 import { z } from 'zod'
 
 type TValidator = (key: string, fallback?: string) => string
-
-// Định nghĩa type nhỏ gọn cho books truyền vào để tránh lỗi TypeScript
 type MinimalBook = { id: string; salePrice?: number }
 
 export const getReceiptDetailSchema = (t: TValidator, books: MinimalBook[] = []) =>
@@ -24,18 +22,10 @@ export const getReceiptDetailSchema = (t: TValidator, books: MinimalBook[] = [])
           .min(0, t('receipt.validation.priceNegative', 'Giá nhập không được âm'))
       )
     })
-    // ======================================================
-    // 👉 VALIDATE CHÉO: Giá nhập <= Giá bán
-    // ======================================================
     .refine(
       (data) => {
-        // Nếu chưa chọn sách hoặc chưa nhập giá thì bỏ qua (để các validate trên xử lý)
         if (!data.bookId || data.importPrice === undefined) return true
-
-        // Tìm sách đang chọn trong danh sách books
         const selectedBook = books.find((b) => b.id === data.bookId)
-
-        // Nếu tìm thấy và sách có giá bán, so sánh 2 giá
         if (selectedBook && selectedBook.salePrice) {
           return data.importPrice <= selectedBook.salePrice
         }
@@ -46,16 +36,17 @@ export const getReceiptDetailSchema = (t: TValidator, books: MinimalBook[] = [])
           'receipt.validation.importPriceTooHigh',
           'Giá nhập không được lớn hơn Giá bán hiện tại!'
         ),
-        path: ['importPrice'] // Báo lỗi ngay dưới ô nhập Giá
+        path: ['importPrice']
       }
     )
 
 export const getReceiptSchema = (t: TValidator, books: MinimalBook[] = []) =>
   z.object({
-    publisherId: z
+    // 👉 Đã sửa thành supplierId
+    supplierId: z
       .string()
       .trim()
-      .min(1, t('receipt.validation.publisherRequired', 'Vui lòng chọn Nhà xuất bản')),
+      .min(1, t('receipt.validation.supplierRequired', 'Vui lòng chọn Nhà cung cấp')),
     note: z.string().optional(),
     details: z
       .array(getReceiptDetailSchema(t, books))

@@ -107,7 +107,7 @@ public class BookEntity extends BaseEntity {
     private Set<BookImageEntity> images;
 
     @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
-    private List<PromotionEntity> promotions;
+    private Set<PromotionEntity> promotions;
 
     @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
     private Set<NewsEntity> relatedNews;

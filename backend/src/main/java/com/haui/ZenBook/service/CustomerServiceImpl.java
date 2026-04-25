@@ -9,10 +9,12 @@ import com.haui.ZenBook.dto.user.CustomerProfileUpdateRequest;
 import com.haui.ZenBook.dto.user.PhoneUpdateRequest;
 import com.haui.ZenBook.dto.user.UserProfileResponse;
 import com.haui.ZenBook.entity.AddressEntity;
+import com.haui.ZenBook.entity.OrderEntity;
 import com.haui.ZenBook.entity.UserEntity;
 import com.haui.ZenBook.exception.AppException;
 import com.haui.ZenBook.exception.ErrorCode;
 import com.haui.ZenBook.mapper.AddressMapper;
+import com.haui.ZenBook.mapper.OrderMapper;
 import com.haui.ZenBook.mapper.UserMapper;
 import com.haui.ZenBook.repository.AddressRepository;
 import com.haui.ZenBook.repository.OrderRepository;
@@ -34,6 +36,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final AddressRepository addressRepository;
     private final OrderRepository orderRepository;
     private final UserMapper userMapper;
+    private final OrderMapper orderMapper;
     private final AddressMapper addressMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -113,11 +116,17 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<OrderResponse> getMyOrders(String email) {
+        // 1. Lấy thông tin user dựa vào email
         UserEntity user = getUserByEmail(email);
-        // TODO: ráp OrderMapper khi OrderEntity sẵn sàng
-        return List.of();
-    }
 
+        // 2. Tìm tất cả đơn hàng dựa vào userId của user đó
+        List<OrderEntity> orders = orderRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId());
+
+        // 3. Map từ Entity sang DTO (OrderResponse)
+        return orders.stream()
+                .map(orderMapper::toOrderResponse)
+                .toList();
+    }
     // ── Addresses ─────────────────────────────────────────────────────────────
 
     @Override
@@ -135,7 +144,6 @@ public class CustomerServiceImpl implements CustomerService {
 
         boolean isFirstAddress = user.getAddresses().isEmpty();
 
-        // Nếu có địa chỉ rồi và request muốn set default → reset cũ trước
         if (!isFirstAddress && request.getIsDefault()) {
             addressRepository.resetDefaultAddressByUserId(user.getId());
         }
@@ -147,7 +155,12 @@ public class CustomerServiceImpl implements CustomerService {
                 .ward(request.getWard())
                 .district(request.getDistrict())
                 .city(request.getCity())
-                .isDefault(isFirstAddress || request.getIsDefault()) // địa chỉ đầu tiên luôn là default
+
+                // 👉 THÊM 2 DÒNG NÀY ĐỂ CỨU DỮ LIỆU
+                .districtId(request.getDistrictId())
+                .wardCode(request.getWardCode())
+
+                .isDefault(isFirstAddress || request.getIsDefault())
                 .user(user)
                 .build();
 
@@ -172,6 +185,8 @@ public class CustomerServiceImpl implements CustomerService {
         address.setWard(request.getWard());
         address.setDistrict(request.getDistrict());
         address.setCity(request.getCity());
+        address.setDistrictId(request.getDistrictId());
+        address.setWardCode(request.getWardCode());
 
         if (request.getIsDefault()) {
             address.setIsDefault(true);

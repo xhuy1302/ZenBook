@@ -1,0 +1,57 @@
+{
+  "list": "Quản lý nhà cung cấp",
+  "table": {
+    "columns": {
+      "name": "Tên nhà cung cấp",
+      "contactName": "Người đại diện",
+      "phone": "Điện thoại",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "noResults": "Không có dữ liệu nhà cung cấp."
+  },
+  "filters": {
+    "search": "Tìm tên nhà cung cấp...",
+    "reset": "Đặt lại",
+    "status": {
+      "label": "Trạng thái",
+      "all": "Tất cả trạng thái",
+      "ACTIVE": "Hoạt động",
+      "INACTIVE": "Tạm ngưng",
+      "BLOCKED": "Đã chặn",
+      "DELETED": "Đã xóa"
+    }
+  },
+  "errors": {
+    "name": {
+      "required": "Tên nhà cung cấp không được để trống!"
+    },
+    "email": {
+      "invalid": "Email không đúng định dạng!"
+    }
+  },
+  "messages": {
+    "createSuccess": "Thêm mới nhà cung cấp thành công!",
+    "createError": "Có lỗi xảy ra khi thêm mới!",
+    "updateSuccess": "Cập nhật nhà cung cấp thành công!",
+    "updateError": "Có lỗi xảy ra khi cập nhật!",
+    "softDeleteSuccess": "Đã chuyển nhà cung cấp vào thùng rác!",
+    "restoreSuccess": "Khôi phục nhà cung cấp thành công!",
+    "hardDeleteSuccess": "Đã xóa vĩnh viễn nhà cung cấp!"
+  },
+  "dialog": {
+    "createTitle": "Thêm Mới Nhà Cung Cấp",
+    "editTitle": "Cập Nhật Nhà Cung Cấp",
+    "viewTitle": "Chi tiết Nhà Cung Cấp",
+    "deleteTitle": "Xác nhận xóa",
+    "deleteConfirm1": "Bạn có chắc chắn muốn xóa nhà cung cấp",
+    "deleteConfirm2": "? Hành động này sẽ chuyển dữ liệu vào thùng rác.",
+    "trashTitle": "Thùng rác Nhà cung cấp",
+    "btnCreate": "Lưu Nhà Cung Cấp",
+    "btnUpdate": "Cập nhật",
+    "btnSoftDelete": "Xóa",
+    "btnRestore": "Khôi phục",
+    "btnHardDelete": "Xóa vĩnh viễn",
+    "emptyTrash": "Thùng rác trống"
+  }
+}

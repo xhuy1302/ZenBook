@@ -1,4 +1,4 @@
-import { CouponStatus, DiscountType } from '@/defines/coupon.enum'
+import { CouponStatus, CouponType, DiscountType } from '@/defines/coupon.enum'
 
 export interface CouponResponse {
   id: string
@@ -17,6 +17,7 @@ export interface CouponResponse {
   startDate: string
   endDate: string
   status: CouponStatus
+  couponType: CouponType
 
   calculatedDiscount?: number // Trường này chỉ có giá trị khi gọi API Validate ở giỏ hàng
 
@@ -33,7 +34,7 @@ export interface CouponRequest {
   minOrderValue: number
   usageLimit?: number | null
   maxUsagePerUser: number
-
+  couponType: CouponType
   userId?: string | null
   categoryId?: string | null
 

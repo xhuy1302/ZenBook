@@ -16,11 +16,19 @@ export function EditCouponDialog({ open, onOpenChange, coupon }: EditCouponDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[800px] max-h-[90vh] overflow-y-auto custom-scrollbar'>
-        <DialogHeader>
-          <DialogTitle>{t('dialog.editTitle', 'Cập nhật mã giảm giá')}</DialogTitle>
+      {/* 👉 Đã đổi từ 850px lên 1000px ở đây */}
+      <DialogContent className='sm:max-w-[1000px] p-0 overflow-hidden flex flex-col h-[90vh]'>
+        <DialogHeader className='px-6 pt-6 pb-2 shrink-0'>
+          <DialogTitle className='text-xl font-bold tracking-tight'>
+            {t('dialog.editTitle', 'Cập nhật Mã giảm giá')}
+          </DialogTitle>
         </DialogHeader>
-        <EditCouponForm coupon={coupon} onSuccess={() => onOpenChange(false)} />
+
+        <EditCouponForm
+          coupon={coupon}
+          onSuccess={() => onOpenChange(false)}
+          onCancel={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   )

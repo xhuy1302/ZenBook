@@ -93,7 +93,10 @@ public enum ErrorCode {
     ORDER_STATUS_INVALID(4005, "order.status.invalid", HttpStatus.BAD_REQUEST),
     ORDER_CANNOT_CANCEL(4006, "order.cannot.cancel", HttpStatus.BAD_REQUEST),
     ORDER_CANNOT_UPDATE(4007, "order.cannot.update", HttpStatus.BAD_REQUEST),
-
+    ORDER_RETURN_NOT_COMPLETED(4009, "order.return.not.completed", HttpStatus.BAD_REQUEST),
+    ORDER_RETURN_EXPIRED(4010, "order.return.expired", HttpStatus.BAD_REQUEST),
+    ORDER_RETURN_INVALID_STATUS(4011, "order.return.invalid.status", HttpStatus.BAD_REQUEST),
+    INVALID_DATA(4012, "invalid_data", HttpStatus.BAD_REQUEST),
     // MỚI: Lỗi liên quan đến Excel và File đính kèm
     EXCEL_IMPORT_FAILED(10004, "receipt.excel.import.failed", HttpStatus.BAD_REQUEST),
     EXCEL_INVALID_FORMAT(10005, "receipt.excel.invalid.format", HttpStatus.BAD_REQUEST),
@@ -129,7 +132,21 @@ public enum ErrorCode {
     COUPON_USER_MISMATCH(12006, "coupon.user.mismatch", HttpStatus.FORBIDDEN),
     COUPON_CATEGORY_MISMATCH(12007, "coupon.category.mismatch", HttpStatus.BAD_REQUEST),
     COUPON_USER_LIMIT_EXCEEDED(12008, "coupon.user.limit.exceeded", HttpStatus.BAD_REQUEST),
-    COUPON_RESTORE_FAILED_CODE_EXISTED(12009, "coupon.restore.failed.code.exists", HttpStatus.BAD_REQUEST);
+    COUPON_RESTORE_FAILED_CODE_EXISTED(12009, "coupon.restore.failed.code.exists", HttpStatus.BAD_REQUEST),
+
+    // ================= LỖI GIỎ HÀNG (CART - 1400x) =================
+    CART_NOT_FOUND(14000, "cart.not.found", HttpStatus.NOT_FOUND),
+    ITEM_NOT_FOUND_IN_CART(14001, "cart.item.not.found", HttpStatus.NOT_FOUND),
+    CART_IS_EMPTY(14002, "cart.is.empty", HttpStatus.BAD_REQUEST),
+    CART_ITEM_QUANTITY_INVALID(14003, "cart.item.quantity.invalid", HttpStatus.BAD_REQUEST),
+
+
+    // ================= Thêm mới cho SUPPLIER (1500x) =================
+    SUPPLIER_NOT_FOUND(15000, "supplier.not.found", HttpStatus.NOT_FOUND),
+    SUPPLIER_NAME_NOTBLANK(15001, "supplier.name.not.blank", HttpStatus.BAD_REQUEST),
+    SUPPLIER_EMAIL_EXISTED(15002, "supplier.email.exists", HttpStatus.BAD_REQUEST),
+    SUPPLIER_TAX_CODE_EXISTED(15003, "supplier.tax.code.exists", HttpStatus.BAD_REQUEST),
+    SUPPLIER_CANNOT_DELETE(15004, "supplier.cannot.delete", HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
