@@ -1,6 +1,8 @@
 package com.haui.ZenBook.repository;
 
+import com.haui.ZenBook.dto.category.CategoryFilterResponse;
 import com.haui.ZenBook.entity.CategoryEntity;
+import com.haui.ZenBook.enums.CategoryStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -39,4 +41,11 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, String
             "GROUP BY c.categoryName " +
             "ORDER BY SUM(od.quantity) DESC")
     List<Object[]> getSalesByCategoryRaw();
+
+    @Query("SELECT new com.haui.ZenBook.dto.category.CategoryFilterResponse(c.id, c.categoryName, COUNT(b.id)) " +
+            "FROM CategoryEntity c LEFT JOIN c.books b " +
+            "GROUP BY c.id, c.categoryName")
+    List<CategoryFilterResponse> getCategoriesForFilter();
+
+    List<CategoryEntity> findByParentIdIsNullAndStatusOrderByDisplayOrderAsc(CategoryStatus status);
 }

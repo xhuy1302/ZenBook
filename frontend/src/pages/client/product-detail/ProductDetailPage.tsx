@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
+import { useCart } from '@/context/CartContext'
 
 import { SidebarProvider } from '@/components/ui/sidebar'
 import BreadcrumbHeader from '@/components/zenbook/breadcrumb/BreadCrumbHeader'
@@ -34,17 +36,13 @@ function NotFound() {
   return (
     <div className='flex flex-col items-center justify-center gap-4 py-24 text-center'>
       <p className='text-6xl font-bold text-gray-100'>404</p>
-      <h2 className='text-xl font-semibold text-gray-700'>
-        {t('product.notFound', 'Không tìm thấy sản phẩm')}
-      </h2>
-      <p className='text-sm text-gray-400'>
-        {t('product.notFoundDesc', 'Sách này có thể đã bị xóa hoặc đường dẫn không chính xác.')}
-      </p>
+      <h2 className='text-xl font-semibold text-gray-700'>{t('product.notFound')}</h2>
+      <p className='text-sm text-gray-400'>{t('product.notFoundDesc')}</p>
       <a
         href='/'
         className='text-sm text-[#c92127] border border-[#c92127] px-6 py-2 rounded font-semibold hover:bg-[#c92127]/5 transition-colors'
       >
-        {t('common.backToHome', 'Về trang chủ')}
+        {t('common.backToHome')}
       </a>
     </div>
   )
@@ -53,6 +51,8 @@ function NotFound() {
 export default function ProductDetailPage() {
   const { t } = useTranslation('common')
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
+  const { addItem } = useCart()
   const [quantity, setQuantity] = useState(1)
 
   const {
@@ -78,10 +78,40 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!bookData) return
+
+    addItem(
+      {
+        id: bookData.id || '',
+        title: bookData.title || '',
+        thumbnail: bookData.thumbnail || '/images/placeholder-book.jpg',
+        price: bookData.salePrice || 0,
+        stock: bookData.stockQuantity || 0,
+        originalPrice: bookData.originalPrice,
+        author: bookData.authors?.[0]?.name
+      },
+      quantity
+    )
+
+    toast.success(t('cart.addSuccess'))
   }
 
   const handleBuyNow = () => {
     if (!bookData) return
+
+    addItem(
+      {
+        id: bookData.id || '',
+        title: bookData.title || '',
+        thumbnail: bookData.thumbnail || '/images/placeholder-book.jpg',
+        price: bookData.salePrice || 0,
+        stock: bookData.stockQuantity || 0,
+        originalPrice: bookData.originalPrice,
+        author: bookData.authors?.[0]?.name
+      },
+      quantity
+    )
+
+    navigate('/cart', { state: { buyNowId: bookData.id } })
   }
 
   return (

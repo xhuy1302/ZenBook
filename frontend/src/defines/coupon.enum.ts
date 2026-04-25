@@ -8,5 +8,11 @@ export const CouponStatus = {
   EXPIRED: 'EXPIRED'
 } as const
 
+export const CouponType = {
+  ORDER: 'ORDER',
+  SHIPPING: 'SHIPPING'
+} as const
+
 export type DiscountType = (typeof DiscountType)[keyof typeof DiscountType]
 export type CouponStatus = (typeof CouponStatus)[keyof typeof CouponStatus]
+export type CouponType = (typeof CouponType)[keyof typeof CouponType]

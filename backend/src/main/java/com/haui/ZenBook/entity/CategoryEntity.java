@@ -61,4 +61,6 @@ public class CategoryEntity extends BaseEntity {
 
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)
     Set<BookEntity> books;
+
+
 }

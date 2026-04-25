@@ -1,129 +1,137 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useTranslation } from 'react-i18next' // THÊM IMPORT NÀY
-import { ShoppingBag, ArrowLeft } from 'lucide-react'
+import { useMemo, useEffect, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { ShoppingBag, Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { CartItem } from '@/components/zenbook/cart/CartItem'
 import { CartSummary } from '@/components/zenbook/cart/CartSummary'
-import type { CartItemType } from '@/services/cart/cart.type'
+import { useCart } from '@/context/CartContext'
 
-// Premium Mock Data
-const MOCK_DATA: CartItemType[] = [
-  {
-    id: '1',
-    name: 'Apple AirPods Pro (2nd generation) with MagSafe Charging Case',
-    variant: 'White',
-    price: 6199000,
-    quantity: 1,
-    selected: true,
-    image:
-      'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?q=80&w=400&auto=format&fit=crop'
-  },
-  {
-    id: '2',
-    name: 'Sony WH-1000XM5 Wireless Noise Canceling Headphones',
-    variant: 'Midnight Blue',
-    price: 8990000,
-    quantity: 1,
-    selected: true,
-    image:
-      'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=400&auto=format&fit=crop'
-  }
-]
-
-const formatVND = (amount: number) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(amount)
-}
+const formatVND = (amount: number) =>
+  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
 
 export default function CartPage() {
-  // KHỞI TẠO HÀM DỊCH THUẬT
   const { t } = useTranslation('common')
-  const safeTranslate = t as unknown as (key: string) => string
+  const safeT = t as unknown as (key: string) => string
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  // Initialize state from localStorage or fallback to mock data
-  const [items, setItems] = useState<CartItemType[]>(() => {
-    const saved = localStorage.getItem('zenbook_cart')
-    return saved ? JSON.parse(saved) : MOCK_DATA
-  })
+  const buyNowId = location.state?.buyNowId
+  const initialized = useRef(false)
 
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const {
+    items,
+    isLoading,
+    totalPrice,
+    totalItems,
+    updateQuantity,
+    removeItem,
+    toggleSelect,
+    toggleSelectAll
+  } = useCart()
 
-  // Persist to localStorage whenever items change
   useEffect(() => {
-    localStorage.setItem('zenbook_cart', JSON.stringify(items))
-  }, [items])
+    if (!isLoading && items.length > 0 && !initialized.current) {
+      if (buyNowId) {
+        // SỬA Ở ĐÂY: Kiểm tra xem item Mua Ngay đã được fetch về state items chưa
+        const hasBuyNowItem = items.some((item) => item.id === buyNowId)
 
-  // Derived state
+        // Nếu chưa có (vì addItem gọi API chậm), ta return để đợi lần render tiếp theo
+        if (!hasBuyNowItem) return
+
+        // Nếu đã có rồi thì mới tiến hành bỏ chọn các cái khác và chọn cái này
+        items.forEach((item) => {
+          if (item.id === buyNowId && !item.selected) toggleSelect(item.id)
+          if (item.id !== buyNowId && item.selected) toggleSelect(item.id)
+        })
+
+        initialized.current = true
+        window.history.replaceState({}, document.title)
+      } else {
+        toggleSelectAll(false)
+        initialized.current = true
+        window.history.replaceState({}, document.title)
+      }
+    }
+  }, [isLoading, items, buyNowId, toggleSelect, toggleSelectAll])
+
   const selectedItems = useMemo(() => items.filter((i) => i.selected), [items])
   const isAllSelected = items.length > 0 && selectedItems.length === items.length
-  const subtotal = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  const totalSelectedItems = selectedItems.reduce((acc, item) => acc + item.quantity, 0)
 
-  // Handlers
-  const handleUpdateQuantity = (id: string, delta: number) => {
-    setItems((current) =>
-      current.map((item) => {
-        if (item.id === id) {
-          const newQty = Math.max(1, item.quantity + delta)
-          return { ...item, quantity: newQty }
-        }
-        return item
-      })
-    )
+  const handleUpdateQuantity = async (id: string, delta: number) => {
+    const item = items.find((i) => i.id === id)
+    if (item) {
+      const newQty = item.quantity + delta
+      if (newQty >= 1) {
+        await updateQuantity(id, newQty)
+      }
+    }
   }
 
-  const handleRemove = (id: string) => {
-    setItems((current) => current.filter((item) => item.id !== id))
-    toast.success('Đã xóa sản phẩm khỏi giỏ hàng')
+  const handleRemove = async (id: string) => {
+    await removeItem(id)
+    toast.success(safeT('cart.removed'))
   }
 
-  const handleToggleSelect = (id: string) => {
-    setItems((current) =>
-      current.map((item) => (item.id === id ? { ...item, selected: !item.selected } : item))
-    )
-  }
+  const handleRemoveSelected = async () => {
+    if (selectedItems.length === 0) return
 
-  const handleToggleSelectAll = () => {
-    setItems((current) => current.map((item) => ({ ...item, selected: !isAllSelected })))
+    const promise = Promise.all(selectedItems.map((item) => removeItem(item.id)))
+
+    toast.promise(promise, {
+      loading: 'Đang xóa các sản phẩm...',
+      success: 'Đã xóa các sản phẩm thành công',
+      error: 'Có lỗi xảy ra khi xóa'
+    })
   }
 
   const handleCheckout = () => {
-    setIsCheckingOut(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsCheckingOut(false)
-      toast.success('Đặt hàng thành công!', {
-        description: 'Vui lòng kiểm tra email để xem hóa đơn.'
-      })
-      // Optional: Clear selected items
-      setItems((current) => current.filter((item) => !item.selected))
-    }, 2000)
+    if (selectedItems.length === 0) {
+      toast.warning('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán')
+      return
+    }
+    sessionStorage.setItem('zenbook_checkout_items', JSON.stringify(selectedItems))
+    navigate('/checkout')
   }
 
-  // Empty State Rendering
+  if (isLoading) {
+    return (
+      <div className='min-h-[60vh] flex flex-col items-center justify-center gap-4'>
+        <Loader2 className='w-10 h-10 animate-spin text-brand-green' />
+        <p className='text-zinc-500 animate-pulse'>Đang tải giỏ hàng của bạn...</p>
+      </div>
+    )
+  }
+
   if (items.length === 0) {
     return (
-      <div className='min-h-screen bg-[#FAFAFA] flex flex-col'>
+      <div className='min-h-[calc(100vh-200px)] bg-[#f5f5fa] flex flex-col'>
         <div className='flex-1 flex items-center justify-center p-4'>
-          <div className='max-w-md w-full text-center space-y-6'>
-            <div className='w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-neutral-100'>
-              <ShoppingBag className='w-10 h-10 text-neutral-300' />
+          <div className='max-w-md w-full bg-white p-8 rounded-lg shadow-sm text-center space-y-6'>
+            <div className='mx-auto'>
+              <img
+                src='/images/empty-cart.png'
+                alt='Giỏ hàng trống'
+                className='w-40 mx-auto opacity-80'
+                onError={(e) => {
+                  ;(e.target as HTMLImageElement).style.display = 'none'
+                  ;(e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden')
+                }}
+              />
+              <div className='hidden w-24 h-24 bg-neutral-50 rounded-full flex items-center justify-center mx-auto'>
+                <ShoppingBag className='w-10 h-10 text-neutral-300' />
+              </div>
             </div>
             <div>
-              <h2 className='text-2xl font-semibold text-zinc-900 tracking-tight'>
-                {safeTranslate('cart.emptyTitle')}
-              </h2>
-              <p className='text-neutral-500 mt-2'>{safeTranslate('cart.emptyDesc')}</p>
+              <p className='text-zinc-600 font-medium'>{safeT('cart.emptyDesc')}</p>
             </div>
             <Button
-              className='w-full h-12 rounded-xl bg-brand-green hover:bg-brand-green-dark text-white text-base'
-              onClick={() => window.history.back()}
+              className='w-full max-w-[200px] h-10 bg-brand-green hover:bg-brand-green-dark text-white font-medium'
+              onClick={() => navigate('/products')}
             >
-              {safeTranslate('cart.continueShopping')}
+              {safeT('cart.continueShopping')}
             </Button>
           </div>
         </div>
@@ -132,67 +140,80 @@ export default function CartPage() {
   }
 
   return (
-    <main className='min-h-screen bg-[#FAFAFA] flex flex-col'>
-      <div className='flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 lg:p-8 pb-24'>
-        {/* Header */}
-        <div className='flex items-center gap-4 mb-8 mt-4'>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='rounded-full hover:bg-white'
-            onClick={() => window.history.back()}
-          >
-            <ArrowLeft className='w-5 h-5 text-zinc-900' />
-          </Button>
-          <h1 className='text-3xl font-semibold tracking-tight text-zinc-900'>
-            {safeTranslate('cart.title')}
-          </h1>
-        </div>
+    <main className='min-h-screen bg-[#f5f5fa] pb-24'>
+      <div className='max-w-[1200px] w-full mx-auto px-4 py-6'>
+        <h1 className='text-xl font-medium uppercase text-zinc-900 mb-4'>{safeT('cart.title')}</h1>
 
-        <div className='grid lg:grid-cols-12 gap-8 lg:gap-12'>
-          {/* Left Column: Cart Items */}
-          <div className='lg:col-span-7 xl:col-span-8 flex flex-col gap-6'>
-            {/* Select All Bar */}
-            <div className='flex items-center justify-between p-4 bg-white rounded-2xl border border-neutral-200/60 shadow-sm'>
+        <div className='grid lg:grid-cols-12 gap-5'>
+          <div className='lg:col-span-8 xl:col-span-9 flex flex-col gap-4'>
+            <div className='hidden sm:flex items-center bg-white rounded-lg p-4 text-sm text-zinc-500 font-medium border border-neutral-100'>
+              <div className='flex items-center gap-3 w-[50%]'>
+                <Checkbox
+                  checked={isAllSelected}
+                  onCheckedChange={(checked) => toggleSelectAll(!!checked)}
+                  className='rounded w-5 h-5 border-neutral-300 text-white data-[state=checked]:bg-brand-green data-[state=checked]:border-brand-green'
+                />
+                <span className='text-zinc-800'>
+                  {safeT('cart.selectAll')} ({items.length} sản phẩm)
+                </span>
+              </div>
+              <div className='flex items-center justify-between w-[50%]'>
+                <div className='w-[25%] text-center'>Đơn giá</div>
+                <div className='w-[30%] text-center'>Số lượng</div>
+                <div className='w-[30%] text-center'>Thành tiền</div>
+                <div className='w-[15%] flex justify-end'>
+                  <button
+                    onClick={handleRemoveSelected}
+                    disabled={selectedItems.length === 0}
+                    className='hover:text-brand-red transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                    title='Xóa đã chọn'
+                  >
+                    <Trash2 className='w-5 h-5' />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className='sm:hidden flex items-center justify-between bg-white rounded-lg p-4 text-sm font-medium'>
               <div className='flex items-center gap-3'>
                 <Checkbox
                   checked={isAllSelected}
-                  onCheckedChange={handleToggleSelectAll}
-                  className='rounded-[4px] border-neutral-300 text-white data-[state=checked]:bg-brand-green data-[state=checked]:border-brand-green'
+                  onCheckedChange={(checked) => toggleSelectAll(!!checked)}
+                  className='rounded w-5 h-5 border-neutral-300 data-[state=checked]:bg-brand-green data-[state=checked]:border-brand-green text-white'
                 />
-                <span className='text-sm font-medium text-zinc-900'>
-                  {safeTranslate('cart.selectAll')}
-                </span>
+                <span>Chọn tất cả ({items.length})</span>
               </div>
-              <span className='text-sm text-neutral-500'>
-                {items.length} {safeTranslate('cart.items')}
-              </span>
+              <button
+                onClick={handleRemoveSelected}
+                disabled={selectedItems.length === 0}
+                className='text-brand-red disabled:opacity-50 text-sm'
+              >
+                Xóa
+              </button>
             </div>
 
-            {/* Items List */}
-            <div className='flex flex-col gap-4'>
+            <div className='bg-white rounded-lg flex flex-col border border-neutral-100 overflow-hidden'>
               {items.map((item) => (
                 <CartItem
                   key={item.id}
                   item={item}
                   onUpdateQuantity={handleUpdateQuantity}
                   onRemove={handleRemove}
-                  onToggleSelect={handleToggleSelect}
+                  onToggleSelect={toggleSelect}
                   formatCurrency={formatVND}
                 />
               ))}
             </div>
           </div>
 
-          {/* Right Column: Summary */}
-          <div className='lg:col-span-5 xl:col-span-4'>
+          <div className='lg:col-span-4 xl:col-span-3'>
             <CartSummary
-              subtotal={subtotal}
-              totalItems={totalSelectedItems}
+              subtotal={totalPrice}
+              totalItems={totalItems}
               formatCurrency={formatVND}
               onCheckout={handleCheckout}
-              isCheckingOut={isCheckingOut}
-              t={safeTranslate} // FIX LỖI Ở ĐÂY: Truyền hàm t vào component con
+              isCheckingOut={false}
+              t={safeT}
             />
           </div>
         </div>

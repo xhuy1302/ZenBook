@@ -1,6 +1,7 @@
 package com.haui.ZenBook.repository;
 
 import com.haui.ZenBook.entity.CouponEntity;
+import com.haui.ZenBook.enums.CouponStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -16,6 +17,8 @@ public interface CouponRepository extends JpaRepository<CouponEntity, String> {
     boolean existsByCodeAndDeletedAtIsNull(String code);
 
     Optional<CouponEntity> findByCodeAndDeletedAtIsNull(String code);
+
+    Optional<CouponEntity> findByCodeAndStatus(String code, CouponStatus status);
 
     // ĐÃ SỬA: Bỏ Pageable, trả về List và sắp xếp giảm dần theo thời gian tạo
     List<CouponEntity> findAllByDeletedAtIsNullOrderByCreatedAtDesc();

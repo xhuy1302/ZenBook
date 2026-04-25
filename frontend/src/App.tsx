@@ -22,24 +22,31 @@ import PromotionPage from './pages/admin/manage-promotion/page'
 import TagPage from './pages/admin/manage-tag/page'
 import CouponPage from './pages/admin/manage-coupon/page'
 import NewsPage from './pages/admin/manage-news/page'
+import SuplierPage from './pages/admin/manage-supplier/page'
 
 // 👉 IMPORT THÊM CÁC TAB CỦA ACCOUNT PAGE
 import ProfileTab from '@/components/zenbook/account/Profiletab'
 import OrdersTab from '@/components/zenbook/account/Orderstab'
 import AddressTab from '@/components/zenbook/account/Addresstab'
+import CheckoutPage from '@/pages/client/checkout/CheckoutPage'
+import OrderSuccessPage from './pages/client/order/OrderSuccessPage'
+import OrderDetail from './components/zenbook/account/modals/OrderDetail'
+import VNPayReturn from './pages/client/payment/VNPayReturn'
+import ScrollToTop from './components/common/ScrollToTop'
 
 function App() {
   return (
     <>
       <Toaster
         richColors
-        expand={false}
+        expand={true}
         position='bottom-right'
-        duration={5000}
+        duration={1500}
         visibleToasts={5}
         closeButton
       />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* <Route path='*' element={<NotFound404 />} /> */}
 
@@ -52,15 +59,18 @@ function App() {
           <Route element={<LayoutClient />}>
             {/* CÁC ROUTE PUBLIC (Ai cũng xem được) */}
             <Route path='/' element={<HomePage />} />
-            <Route path='/product' element={<ProductListPage />} />
+            <Route path='/products' element={<ProductListPage />} />
             <Route path='/search' element={<ProductListPage />} />
-            <Route path='/product/:slug' element={<ProductDetailPage />} />
+            <Route path='/products/:slug' element={<ProductDetailPage />} />
 
             {/* =========================================
                 PROTECTED ROUTES CLIENT (Phải đăng nhập)
                 ========================================= */}
             <Route element={<ProtectedRoute allowedRoles={['USER', 'ADMIN', 'STAFF']} />}>
               <Route path='/cart' element={<CartPage />} />
+              <Route path='/checkout' element={<CheckoutPage />} />
+              <Route path='/payment/vnpay-return' element={<VNPayReturn />} />
+              <Route path='/orders/success/:id' element={<OrderSuccessPage />} />
 
               {/* 👉 KHAI BÁO ROUTE CON CHO ACCOUNT PAGE */}
               <Route path='/customer' element={<AccountPage />}>
@@ -69,6 +79,7 @@ function App() {
 
                 {/* Các URL con: /customer/profile/orders, v.v... */}
                 <Route path='orders' element={<OrdersTab />} />
+                <Route path='orders/:id' element={<OrderDetail />} />
                 <Route path='address' element={<AddressTab />} />
               </Route>
             </Route>
@@ -91,6 +102,7 @@ function App() {
               <Route path='tags' element={<TagPage />} />
               <Route path='coupons' element={<CouponPage />} />
               <Route path='news' element={<NewsPage />} />
+              <Route path='suppliers' element={<SuplierPage />} />
             </Route>
           </Route>
         </Routes>

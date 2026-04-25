@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List; // Thêm import List
 
 @Entity
@@ -51,7 +52,7 @@ public class PublisherEntity extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @OneToMany(mappedBy = "publisher", fetch = FetchType.LAZY)
-    private List<ReceiptEntity> receipts;
+    @OneToMany(mappedBy = "publisher", cascade = CascadeType.ALL)
+    private List<BookEntity> books = new ArrayList<>();
 
 }

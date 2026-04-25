@@ -2,6 +2,7 @@ import { api } from '@/utils/axiosCustomize'
 import type { ApiResponse } from '@/defines/apiResponse'
 import type {
   CategoryCreationRequest,
+  CategoryFilterResponse,
   CategoryResponse,
   CategoryUpdateRequest,
   CategoryUpdateResponse
@@ -21,7 +22,7 @@ export const getAllCategoriesApi = async () => {
 
 // 3. Lấy cấu trúc cây (Tree)
 export const getCategoryTreeApi = async () => {
-  const res = await api.get<ApiResponse<CategoryResponse[]>>('/categories/tree')
+  const res = await api.get<ApiResponse<CategoryResponse[]>>('/customer/categories/tree')
   return res.data.data
 }
 
@@ -75,3 +76,10 @@ export const uploadCategoryThumbApi = async (categoryId: string, file: File) => 
   })
   return res.data
 }
+
+export const getCategoriesForFilterApi = async () => {
+  const res = await api.get<ApiResponse<CategoryFilterResponse[]>>('/customer/categories/filter')
+  return res.data.data
+}
+
+// Lấy danh mục dạng cây cho HeroArea

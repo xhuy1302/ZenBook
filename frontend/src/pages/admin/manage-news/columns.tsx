@@ -7,10 +7,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import i18n from '@/i18n/i18n'
 import { type ColumnDef } from '@tanstack/react-table'
 import type { NewsResponse } from '@/services/news/news.type'
-import type { NewsStatus } from '@/defines/news.enum'
+import { NewsStatus } from '@/defines/news.enum'
 import { ImageIcon } from 'lucide-react'
 
-export const columns: ColumnDef<NewsResponse>[] = [
+// 👉 ĐỔI THÀNH HÀM getColumns VÀ NHẬN THÊM PARAM onEdit
+export const getColumns = (onEdit: (news: NewsResponse) => void): ColumnDef<NewsResponse>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -38,7 +39,7 @@ export const columns: ColumnDef<NewsResponse>[] = [
     enableHiding: false
   },
   {
-    id: 'title', // Dùng làm key để search trong data-table
+    id: 'title',
     accessorKey: 'title',
     header: ({ column }) => (
       <DataTableColumnHeader
@@ -48,33 +49,30 @@ export const columns: ColumnDef<NewsResponse>[] = [
     ),
     cell: ({ row }) => {
       const news = row.original
-
       return (
         <div className='flex items-center gap-3 py-1'>
-          {news.thumbnail ? (
-            <img
-              src={news.thumbnail}
-              alt={news.title}
-              className='h-12 w-16 rounded object-cover border shadow-sm shrink-0'
-              onError={(e) => {
-                e.currentTarget.src = 'https://placehold.co/600x400?text=No+Image'
-              }}
-            />
-          ) : (
-            <div className='h-12 w-16 bg-muted rounded flex items-center justify-center border shrink-0 text-muted-foreground'>
-              <ImageIcon className='w-5 h-5' />
-            </div>
-          )}
-
-          <div className='flex flex-col max-w-[300px]'>
-            <span
-              className='font-semibold leading-tight text-foreground truncate'
-              title={news.title}
-            >
+          <div className='h-12 w-16 shrink-0 overflow-hidden rounded border bg-slate-50 shadow-sm'>
+            {news.thumbnail ? (
+              <img
+                src={news.thumbnail}
+                alt={news.title}
+                className='h-full w-full object-cover'
+                onError={(e) => {
+                  e.currentTarget.src = 'https://placehold.co/600x400?text=No+Image'
+                }}
+              />
+            ) : (
+              <div className='flex h-full w-full items-center justify-center text-slate-300'>
+                <ImageIcon className='h-5 w-5' />
+              </div>
+            )}
+          </div>
+          <div className='flex flex-col max-w-[280px] overflow-hidden'>
+            <span className='font-bold text-slate-800 leading-snug truncate' title={news.title}>
               {news.title}
             </span>
-            <span className='text-[11px] text-muted-foreground mt-1 truncate' title={news.slug}>
-              /{news.slug}
+            <span className='text-[10px] text-slate-400 mt-1 font-mono truncate'>
+              /{news.slug || 'no-slug'}
             </span>
           </div>
         </div>
@@ -90,9 +88,9 @@ export const columns: ColumnDef<NewsResponse>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className='text-sm text-foreground'>
+      <div className='text-sm font-medium'>
         {row.getValue('categoryName') || (
-          <span className='text-muted-foreground italic'>Chưa phân loại</span>
+          <span className='text-slate-400 italic font-normal text-xs'>Chưa phân loại</span>
         )}
       </div>
     )
@@ -106,8 +104,8 @@ export const columns: ColumnDef<NewsResponse>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className='text-sm text-foreground'>
-        {row.getValue('authorName') || <span className='text-muted-foreground'>---</span>}
+      <div className='text-sm text-slate-600'>
+        {row.getValue('authorName') || <span className='text-slate-300'>---</span>}
       </div>
     )
   },
@@ -120,8 +118,8 @@ export const columns: ColumnDef<NewsResponse>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className='text-sm font-medium text-foreground text-center'>
-        {row.getValue('viewCount')}
+      <div className='text-sm font-bold text-indigo-600'>
+        {Number(row.getValue('viewCount')).toLocaleString() || 0}
       </div>
     )
   },
@@ -133,13 +131,8 @@ export const columns: ColumnDef<NewsResponse>[] = [
         title={i18n.t('news:table.columns.status', 'Trạng thái')}
       />
     ),
-    filterFn: (row, columnId, filterValue) => {
-      const status = row.getValue(columnId) as string
-      if (!filterValue) return true
-      return status === filterValue
-    },
     cell: ({ row }) => (
-      <div className='w-[100px] flex justify-center'>
+      <div className='w-[100px]'>
         <NewsStatusBadge status={row.getValue('status') as NewsStatus} />
       </div>
     )
@@ -149,7 +142,10 @@ export const columns: ColumnDef<NewsResponse>[] = [
     header: () => (
       <div className='text-center'>{i18n.t('news:table.columns.actions', 'Thao tác')}</div>
     ),
-    cell: ({ row }) => <NewsActionsCell news={row.original} />,
+    cell: ({ row }) => (
+      // 👉 TRUYỀN onEdit XUỐNG COMPONENT ACTION
+      <NewsActionsCell news={row.original} onEdit={() => onEdit(row.original)} />
+    ),
     enableSorting: false,
     enableHiding: false
   }

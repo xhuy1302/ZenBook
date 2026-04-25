@@ -1,0 +1,57 @@
+{
+  "list": "Supplier Management",
+  "table": {
+    "columns": {
+      "name": "Supplier Name",
+      "contactName": "Contact Name",
+      "phone": "Phone",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "noResults": "No supplier data available."
+  },
+  "filters": {
+    "search": "Search supplier name...",
+    "reset": "Reset",
+    "status": {
+      "label": "Status",
+      "all": "All statuses",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "BLOCKED": "Blocked",
+      "DELETED": "Deleted"
+    }
+  },
+  "errors": {
+    "name": {
+      "required": "Supplier name cannot be blank!"
+    },
+    "email": {
+      "invalid": "Invalid email format!"
+    }
+  },
+  "messages": {
+    "createSuccess": "Supplier created successfully!",
+    "createError": "An error occurred while creating!",
+    "updateSuccess": "Supplier updated successfully!",
+    "updateError": "An error occurred while updating!",
+    "softDeleteSuccess": "Supplier moved to trash!",
+    "restoreSuccess": "Supplier restored successfully!",
+    "hardDeleteSuccess": "Supplier permanently deleted!"
+  },
+  "dialog": {
+    "createTitle": "Add New Supplier",
+    "editTitle": "Update Supplier",
+    "viewTitle": "Supplier Details",
+    "deleteTitle": "Confirm Deletion",
+    "deleteConfirm1": "Are you sure you want to delete the supplier",
+    "deleteConfirm2": "? This action will move the data to the trash.",
+    "trashTitle": "Supplier Trash",
+    "btnCreate": "Save Supplier",
+    "btnUpdate": "Update",
+    "btnSoftDelete": "Delete",
+    "btnRestore": "Restore",
+    "btnHardDelete": "Delete Permanently",
+    "emptyTrash": "Trash is empty"
+  }
+}

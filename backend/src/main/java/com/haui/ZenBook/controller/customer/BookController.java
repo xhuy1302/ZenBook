@@ -8,13 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-@RestController("customerBookController") // BẮT BUỘC ĐỂ KHÔNG BỊ TRÙNG BEAN VỚI ADMIN
-@RequestMapping("/api/v1/books") // Endpoint công khai cho Frontend gọi
+@RestController("customerBookController")
+@RequestMapping("/api/v1/books")
 @RequiredArgsConstructor
 @Slf4j
 public class BookController {
@@ -46,7 +47,6 @@ public class BookController {
                 .build();
     }
 
-    // Endpoint cho trang chi tiết sách của Khách hàng
     @GetMapping("/{slug}")
     public ApiResponse<BookResponse> getBookDetails(@PathVariable String slug) {
         return ApiResponse.<BookResponse>builder()
@@ -54,6 +54,7 @@ public class BookController {
                 .message(messageSource.getMessage("book.get_detail.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }
+
     @GetMapping
     public ApiResponse<Page<BookResponse>> getBooks(
             @RequestParam(defaultValue = "1") int page,
@@ -63,19 +64,24 @@ public class BookController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) List<String> categoryIds
+            @RequestParam(required = false) List<String> categoryIds,
+            @RequestParam(required = false) List<String> authorIds,
+            @RequestParam(required = false) List<String> publisherIds,
+            @RequestParam(required = false) List<String> formats,
+            @RequestParam(required = false) List<String> languages,
+            @RequestParam(required = false) Integer minRating
     ) {
         Page<BookResponse> result = bookService.getBooksWithFilterAndPagination(
-                page, size, sortBy, sortDir, keyword, minPrice, maxPrice, categoryIds
+                page, size, sortBy, sortDir, keyword, minPrice, maxPrice,
+                categoryIds, authorIds, publisherIds, formats, languages, minRating
         );
 
         return ApiResponse.<Page<BookResponse>>builder()
                 .data(result)
-                .message("Lấy danh sách sách thành công") // Tùy chỉnh i18n nếu cần
+                .message("Lấy danh sách sách thành công")
                 .build();
     }
 
-    // 🔥 API LẤY CHI TIẾT THEO ID (Bên cạnh Slug bạn đã có)
     @GetMapping("/id/{id}")
     public ApiResponse<BookResponse> getBookById(@PathVariable String id) {
         return ApiResponse.<BookResponse>builder()
@@ -90,5 +96,11 @@ public class BookController {
         return ApiResponse.<Void>builder()
                 .message("Tăng lượt xem thành công")
                 .build();
+    }
+
+    @GetMapping("/price-range")
+    public ResponseEntity<?> getPriceRange() {
+        // Logic lấy min, max giá sách từ database
+        return ResponseEntity.ok(bookService.getPriceRange());
     }
 }

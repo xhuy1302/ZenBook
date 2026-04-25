@@ -18,7 +18,7 @@ export interface PromotionBookDto {
   originalPrice: number
   salePrice: number
 
-  // 👉 THÊM MỚI 4 TRƯỜNG NÀY ĐỂ KHỚP VỚI BACKEND
+  soldQuantity: number
   stockQuantity: number
   rating: number
   reviews: number

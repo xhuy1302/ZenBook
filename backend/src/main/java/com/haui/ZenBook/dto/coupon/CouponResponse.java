@@ -1,6 +1,7 @@
 package com.haui.ZenBook.dto.coupon;
 
 import com.haui.ZenBook.enums.CouponStatus;
+import com.haui.ZenBook.enums.CouponType;
 import com.haui.ZenBook.enums.DiscountType;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ public class CouponResponse {
     private String code;
     private DiscountType discountType;
     private Double discountValue;
+    private CouponType couponType;
     private Double maxDiscountAmount;
     private Double minOrderValue;
     private Integer usageLimit;

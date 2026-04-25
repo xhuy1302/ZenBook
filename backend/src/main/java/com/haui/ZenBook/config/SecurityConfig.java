@@ -28,16 +28,17 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-
-                        // 1. API PUBLIC (Không cần đăng nhập)
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/news", "/api/v1/news/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/promotions/flash-sale/active").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/books", "/api/v1/books/**").permitAll()
-                        .requestMatchers("/api/v1/customer/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/customer/**").permitAll()
+                        .requestMatchers("/api/v1/address/**").permitAll()
 
-                        // 2. API ADMIN & STAFF (Nghiệp vụ cửa hàng)
+                        // 👉 1. MỞ PUBLIC CHO VNPAY GỌI IPN (WEBHOOK) VỀ SERVER
+                        .requestMatchers("/api/v1/payment/vnpay/ipn").permitAll()
+
                         .requestMatchers("/api/v1/admin/authors/**").hasAnyRole("ADMIN", "STAFF")
                         .requestMatchers("/api/v1/admin/categories/**").hasAnyRole("ADMIN", "STAFF")
                         .requestMatchers("/api/v1/admin/suppliers/**").hasAnyRole("ADMIN", "STAFF")
@@ -46,25 +47,22 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/admin/news/**").hasAnyRole("ADMIN", "STAFF")
                         .requestMatchers("/api/v1/admin/promotions/**").hasAnyRole("ADMIN", "STAFF")
                         .requestMatchers("/api/v1/admin/dashboard/**").hasAnyRole("ADMIN", "STAFF")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/suppliers/*/hard-delete").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/suppliers/**").hasAnyRole("ADMIN", "STAFF")
                         .requestMatchers(HttpMethod.POST, "/api/files/**").hasAnyRole("ADMIN", "STAFF")
-
-                        // 3. API CHỈ DÀNH CHO ADMIN ROOT (Quản lý người dùng)
                         .requestMatchers("/api/v1/admin/users/**").hasRole("ADMIN")
-
-                        // ========================================================
-                        // 👉 BỔ SUNG SỐ 4: API DÀNH CHO NGƯỜI MUA HÀNG (CUSTOMER)
-                        // Bao gồm quản lý thông tin cá nhân, sổ địa chỉ, đơn hàng, giỏ hàng
-                        // ========================================================
                         .requestMatchers(
                                 "/api/v1/users/update",
                                 "/api/v1/users/change-password",
                                 "/api/v1/users/addresses/**",
                                 "/api/v1/orders/my",
-                                "/api/v1/orders/**", // Hoặc các đường dẫn đặt hàng sau này
-                                "/api/v1/cart/**"    // Giỏ hàng
-                        ).hasAnyRole("USER", "ADMIN", "STAFF") // Cấp quyền cho USER (và cả nhân viên nếu họ muốn tự mua hàng)
+                                "/api/v1/orders/my-orders",
+                                "/api/v1/orders/**",
+                                "/api/v1/cart/**",
 
-                        // 5. CÁC YÊU CẦU CÒN LẠI (Chặn toàn bộ các URL không khai báo nếu chưa đăng nhập)
+                                // 👉 2. YÊU CẦU ĐĂNG NHẬP KHI USER TẠO LINK THANH TOÁN
+                                "/api/v1/payment/create-url/**"
+                        ).hasAnyRole("USER", "ADMIN", "STAFF")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

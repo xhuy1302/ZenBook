@@ -2,6 +2,7 @@ import { api } from '@/utils/axiosCustomize'
 import type { ApiResponse } from '@/defines/apiResponse'
 import type {
   PublisherCreationRequest,
+  PublisherFilterResponse,
   PublisherResponse,
   PublisherUpdateRequest
 } from '@/services/publisher/publisher.type' // Đảm bảo import đúng đường dẫn mới
@@ -44,4 +45,9 @@ export const restorePublisherApi = async (id: string) => {
 export const deleteHardPublisherApi = async (id: string) => {
   const res = await api.delete<ApiResponse<void>>(`/publishers/${id}`)
   return res.data
+}
+
+export const getPublishersForFilterApi = async () => {
+  const res = await api.get<ApiResponse<PublisherFilterResponse[]>>('/customer/publishers/filter')
+  return res.data.data
 }

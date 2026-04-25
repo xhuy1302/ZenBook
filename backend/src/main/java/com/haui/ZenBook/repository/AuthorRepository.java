@@ -1,5 +1,6 @@
 package com.haui.ZenBook.repository;
 
+import com.haui.ZenBook.dto.author.AuthorFilterResponse;
 import com.haui.ZenBook.entity.AuthorEntity;
 import com.haui.ZenBook.enums.AuthorStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -51,7 +52,16 @@ public interface AuthorRepository extends JpaRepository<AuthorEntity, String> {
     """)
     int restore(@Param("id") String id);
 
+    // ================= CUSTOMER FILTER =================
+    @Query("SELECT new com.haui.ZenBook.dto.author.AuthorFilterResponse(a.id, a.name, COUNT(b.id)) " +
+            "FROM AuthorEntity a LEFT JOIN a.books b " +
+            "WHERE a.status = 'ACTIVE' " +
+            "GROUP BY a.id, a.name " +
+            "ORDER BY a.name ASC")
+    List<AuthorFilterResponse> getAuthorsForFilter();
+
     // ================= FILTER =================
+
     List<AuthorEntity> findAllByStatusAndDeletedAtBefore(AuthorStatus status, LocalDateTime time);
 
     List<AuthorEntity> findAllByStatusAndDeletedAtIsNotNullOrderByDeletedAtDesc(AuthorStatus status);

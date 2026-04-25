@@ -1,10 +1,11 @@
 import PinSetupModal from './modals/PinSetupModal'
 import TwoFactorSetupModal from './modals/TwoFactorSetupModal'
+import PhoneModal from './modals/PhoneModal'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import {
@@ -19,7 +20,6 @@ import {
   KeyRound
 } from 'lucide-react'
 import { FaFacebook } from 'react-icons/fa'
-
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -43,7 +43,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
-import { updateCustomerPhoneApi, changeCustomerPasswordApi } from '@/services/customer/customer.api'
+import { changeCustomerPasswordApi } from '@/services/customer/customer.api'
 import type { UserProfile } from '@/services/customer/customer.type'
 import {
   PASSWORD_MIN_LENGTH,
@@ -52,12 +52,6 @@ import {
   PASSWORD_NUMBER_REGEX,
   PASSWORD_SPECIAL_REGEX
 } from '@/defines/auth-constants'
-
-// ── Schemas ───────────────────────────────────────────────────────────────────
-
-const phoneSchema = z.object({
-  phone: z.string().regex(/^(0|\+84)[0-9]{9}$/, 'validation.phoneInvalid')
-})
 
 const passwordSchema = z
   .object({
@@ -76,10 +70,7 @@ const passwordSchema = z
     path: ['confirmPassword']
   })
 
-type PhoneFormValues = z.infer<typeof phoneSchema>
 type PasswordFormValues = z.infer<typeof passwordSchema>
-
-// ── Shared row component ──────────────────────────────────────────────────────
 
 interface InfoRowProps {
   icon: React.ReactNode
@@ -91,7 +82,6 @@ interface InfoRowProps {
   disabled?: boolean
   danger?: boolean
 }
-
 function InfoRow({
   icon,
   label,
@@ -103,34 +93,32 @@ function InfoRow({
   danger = false
 }: InfoRowProps) {
   return (
-    <div className='flex items-center justify-between gap-4 py-4 border-b border-border last:border-0'>
-      <div className='flex items-center gap-3 min-w-0'>
-        <div className='w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0'>
+    <div className='flex items-center justify-between gap-4 py-4 border-b border-slate-100 last:border-0'>
+      <div className='flex items-center gap-3.5 min-w-0'>
+        <div
+          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${danger ? 'bg-rose-50/50 border-rose-100' : 'bg-slate-50 border-slate-100/50'}`}
+        >
           {icon}
         </div>
         <div className='min-w-0'>
-          <p className='text-xs text-muted-foreground font-medium'>{label}</p>
+          <p className='text-[11.5px] text-slate-500 font-bold tracking-wide uppercase mb-0.5'>
+            {label}
+          </p>
           <p
-            className={`text-sm font-medium mt-0.5 truncate ${
-              value ? 'text-foreground' : 'text-muted-foreground/60 italic'
-            } ${disabled ? 'cursor-not-allowed' : ''}`}
+            className={`text-[13px] font-bold truncate ${value ? 'text-slate-900' : 'text-slate-400 italic font-medium'} ${disabled ? 'cursor-not-allowed' : ''}`}
           >
             {value || placeholder}
           </p>
         </div>
       </div>
-
       {actionLabel && (
         <Button
           type='button'
           variant='outline'
           size='sm'
           onClick={onAction}
-          className={`shrink-0 h-8 px-4 text-xs font-medium rounded-lg transition-all ${
-            danger
-              ? 'border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground'
-              : 'border-border hover:border-brand-green/50 hover:text-brand-green'
-          }`}
+          disabled={disabled}
+          className={`shrink-0 h-9 px-5 text-[13px] font-bold rounded-xl transition-all ${danger ? 'border-rose-200 text-rose-600 hover:bg-rose-50' : 'border-slate-200 hover:border-brand-green/50 hover:text-brand-green hover:bg-brand-green/5'}`}
         >
           {actionLabel}
         </Button>
@@ -138,91 +126,6 @@ function InfoRow({
     </div>
   )
 }
-
-// ── Phone update modal ────────────────────────────────────────────────────────
-
-function PhoneModal({
-  open,
-  onOpenChange,
-  currentPhone
-}: {
-  open: boolean
-  onOpenChange: (v: boolean) => void
-  currentPhone?: string
-}) {
-  const queryClient = useQueryClient()
-  const { t } = useTranslation('account')
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting }
-  } = useForm<PhoneFormValues>({
-    resolver: zodResolver(phoneSchema),
-    defaultValues: { phone: currentPhone ?? '' }
-  })
-
-  const mutation = useMutation({
-    mutationFn: updateCustomerPhoneApi,
-    onSuccess: () => {
-      toast.success(t('security.phoneUpdateSuccess'))
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
-      onOpenChange(false)
-    },
-    onError: () => toast.error(t('security.phoneUpdateError'))
-  })
-
-  const onSubmit = (data: PhoneFormValues) => mutation.mutate(data)
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-sm'>
-        <DialogHeader>
-          <DialogTitle>{t('security.updatePhoneTitle')}</DialogTitle>
-          <DialogDescription>{t('security.updatePhoneDesc')}</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 pt-1'>
-          <div className='space-y-1.5'>
-            <Label>{t('security.phoneNumber')}</Label>
-            <Input
-              placeholder={t('security.phonePlaceholder')}
-              className='focus-visible:ring-brand-green/40'
-              {...register('phone')}
-            />
-            {errors.phone && (
-              <p className='text-xs text-destructive'>{t(errors.phone.message as string)}</p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              type='submit'
-              disabled={isSubmitting}
-              className='bg-brand-green hover:bg-brand-green-dark text-primary-foreground'
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className='w-3.5 h-3.5 mr-1.5 animate-spin' />
-                  {t('common.saving')}
-                </>
-              ) : (
-                t('common.confirm')
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-// ── Password change modal ─────────────────────────────────────────────────────
 
 function PasswordStrengthBar({ value }: { value: string }) {
   const rules = [
@@ -235,20 +138,18 @@ function PasswordStrengthBar({ value }: { value: string }) {
   const score = rules.filter((r) => r.test(value)).length
   const colors = [
     '',
-    'bg-red-400',
+    'bg-rose-400',
     'bg-orange-400',
     'bg-amber-400',
     'bg-blue-400',
     'bg-brand-green'
   ]
   return (
-    <div className='flex gap-1 mt-1'>
+    <div className='flex gap-1 mt-1.5'>
       {rules.map((_, i) => (
         <div
           key={i}
-          className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-            i < score ? colors[score] : 'bg-muted'
-          }`}
+          className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i < score ? colors[score] : 'bg-slate-100'}`}
         />
       ))}
     </div>
@@ -268,12 +169,12 @@ function PasswordInput({
         id={id}
         type={show ? 'text' : 'password'}
         placeholder={placeholder}
-        className='pr-10 focus-visible:ring-brand-green/40'
+        className='pr-10 h-11 rounded-xl text-[13px] border-slate-200 focus-visible:ring-brand-green/40 font-medium'
       />
       <button
         type='button'
         onClick={() => setShow((s) => !s)}
-        className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
+        className='absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors'
         tabIndex={-1}
       >
         {show ? <EyeOff className='w-4 h-4' /> : <Eye className='w-4 h-4' />}
@@ -297,7 +198,6 @@ function ChangePasswordModal({
     reset,
     formState: { errors, isSubmitting }
   } = useForm<PasswordFormValues>({ resolver: zodResolver(passwordSchema) })
-
   const newPassword = watch('newPassword', '')
 
   const mutation = useMutation({
@@ -309,65 +209,77 @@ function ChangePasswordModal({
     },
     onError: () => toast.error(t('security.passwordChangeError'))
   })
-
   const onSubmit = (data: PasswordFormValues) =>
-    mutation.mutate({
-      currentPassword: data.currentPassword,
-      newPassword: data.newPassword
-    })
+    mutation.mutate({ currentPassword: data.currentPassword, newPassword: data.newPassword })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-md'>
-        <DialogHeader>
-          <DialogTitle>{t('security.changePasswordTitle')}</DialogTitle>
-          <DialogDescription>{t('security.changePasswordDesc')}</DialogDescription>
+      <DialogContent className='sm:max-w-md rounded-[24px] z-[100] p-7 border-slate-100 shadow-2xl'>
+        <DialogHeader className='mb-4'>
+          <div className='w-12 h-12 bg-brand-green/10 rounded-2xl flex items-center justify-center mb-3 mx-auto'>
+            <KeyRound className='w-6 h-6 text-brand-green' />
+          </div>
+          <DialogTitle className='text-[16px] font-bold text-center text-slate-900'>
+            {t('security.changePasswordTitle')}
+          </DialogTitle>
+          <DialogDescription className='text-[13px] text-center font-medium'>
+            {t('security.changePasswordDesc')}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 pt-1'>
+
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
           <div className='space-y-1.5'>
-            <Label htmlFor='currentPassword'>{t('security.currentPassword')}</Label>
+            <Label htmlFor='currentPassword' className='text-[13px] font-bold text-slate-800'>
+              {t('security.currentPassword')}
+            </Label>
             <PasswordInput id='currentPassword' {...register('currentPassword')} />
             {errors.currentPassword && (
-              <p className='text-xs text-destructive'>
+              <p className='text-[12px] font-bold text-rose-500 pl-1 mt-1'>
                 {t(errors.currentPassword.message as string)}
               </p>
             )}
           </div>
           <div className='space-y-1.5'>
-            <Label htmlFor='newPassword'>{t('security.newPassword')}</Label>
+            <Label htmlFor='newPassword' className='text-[13px] font-bold text-slate-800'>
+              {t('security.newPassword')}
+            </Label>
             <PasswordInput id='newPassword' {...register('newPassword')} />
             {newPassword && <PasswordStrengthBar value={newPassword} />}
             {errors.newPassword && (
-              <p className='text-xs text-destructive'>{t(errors.newPassword.message as string)}</p>
+              <p className='text-[12px] font-bold text-rose-500 pl-1 mt-1'>
+                {t(errors.newPassword.message as string)}
+              </p>
             )}
           </div>
           <div className='space-y-1.5'>
-            <Label htmlFor='confirmPassword'>{t('security.confirmNewPassword')}</Label>
+            <Label htmlFor='confirmPassword' className='text-[13px] font-bold text-slate-800'>
+              {t('security.confirmNewPassword')}
+            </Label>
             <PasswordInput id='confirmPassword' {...register('confirmPassword')} />
             {errors.confirmPassword && (
-              <p className='text-xs text-destructive'>
+              <p className='text-[12px] font-bold text-rose-500 pl-1 mt-1'>
                 {t(errors.confirmPassword.message as string)}
               </p>
             )}
           </div>
-          <DialogFooter className='pt-1'>
+          <DialogFooter className='pt-4'>
             <Button
               type='button'
               variant='outline'
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
+              className='rounded-xl h-11 px-6 text-[13px] font-bold w-full sm:w-auto border-slate-200'
             >
               {t('common.cancel')}
             </Button>
             <Button
               type='submit'
               disabled={isSubmitting}
-              className='bg-brand-green hover:bg-brand-green-dark text-primary-foreground'
+              className='bg-brand-green hover:bg-brand-green-dark text-white rounded-xl h-11 px-8 text-[13px] font-bold shadow-md shadow-brand-green/20 w-full sm:w-auto'
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className='w-3.5 h-3.5 mr-1.5 animate-spin' />
-                  {t('common.saving')}
+                  <Loader2 className='w-4 h-4 mr-2 animate-spin' /> {t('common.saving')}
                 </>
               ) : (
                 t('common.confirm')
@@ -380,35 +292,35 @@ function ChangePasswordModal({
   )
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
-
-interface SecurityPanelProps {
+export default function SecurityPanel({
+  user,
+  isLoading
+}: {
   user?: UserProfile
   isLoading: boolean
-}
-
-export default function SecurityPanel({ user, isLoading }: SecurityPanelProps) {
+}) {
   const { t } = useTranslation('account')
   const [phoneOpen, setPhoneOpen] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
   const [pinOpen, setPinOpen] = useState(false)
   const [twoFactorOpen, setTwoFactorOpen] = useState(false)
+
   if (isLoading) {
     return (
-      <div className='space-y-6'>
+      <div className='space-y-8'>
         {[1, 2, 3].map((i) => (
-          <div key={i} className='space-y-3 pb-4 border-b border-border last:border-0'>
-            <Skeleton className='h-4 w-32' />
+          <div key={i} className='space-y-4 pb-6 border-b border-slate-100'>
+            <Skeleton className='h-5 w-40 rounded-md' />
             {[1, 2].map((j) => (
               <div key={j} className='flex items-center justify-between'>
-                <div className='flex items-center gap-3'>
-                  <Skeleton className='w-8 h-8 rounded-lg' />
-                  <div className='space-y-1'>
-                    <Skeleton className='h-3 w-20' />
-                    <Skeleton className='h-4 w-36' />
+                <div className='flex items-center gap-4'>
+                  <Skeleton className='w-10 h-10 rounded-xl' />
+                  <div className='space-y-2'>
+                    <Skeleton className='h-3 w-20 rounded-sm' />
+                    <Skeleton className='h-4 w-36 rounded-md' />
                   </div>
                 </div>
-                <Skeleton className='h-8 w-20 rounded-lg' />
+                <Skeleton className='h-9 w-24 rounded-xl' />
               </div>
             ))}
           </div>
@@ -418,13 +330,14 @@ export default function SecurityPanel({ user, isLoading }: SecurityPanelProps) {
   }
 
   return (
-    <div className='space-y-1'>
-      <div className='pb-2'>
-        <h3 className='text-base font-semibold text-foreground mb-1'>
+    <div className='space-y-4 animate-in fade-in duration-300'>
+      {/* Box SĐT Email */}
+      <div className='bg-white border border-slate-100 p-6 rounded-[24px] shadow-sm'>
+        <h3 className='text-[16px] font-bold text-slate-900 mb-3 flex items-center gap-2'>
           {t('security.phoneEmailSection')}
         </h3>
         <InfoRow
-          icon={<Phone className='w-4 h-4 text-muted-foreground' />}
+          icon={<Phone className='w-5 h-5 text-slate-500' />}
           label={t('security.phone')}
           value={user?.phone}
           placeholder={t('security.phoneMissing')}
@@ -432,7 +345,7 @@ export default function SecurityPanel({ user, isLoading }: SecurityPanelProps) {
           onAction={() => setPhoneOpen(true)}
         />
         <InfoRow
-          icon={<Mail className='w-4 h-4 text-muted-foreground' />}
+          icon={<Mail className='w-5 h-5 text-slate-500' />}
           label={t('security.email')}
           value={user?.email}
           placeholder={t('security.emailMissing')}
@@ -440,39 +353,39 @@ export default function SecurityPanel({ user, isLoading }: SecurityPanelProps) {
         />
       </div>
 
-      <div className='py-2'>
-        <h3 className='text-base font-semibold text-foreground mb-1'>
+      {/* Box Bảo mật */}
+      <div className='bg-white border border-slate-100 p-6 rounded-[24px] shadow-sm'>
+        <h3 className='text-[16px] font-bold text-slate-900 mb-3'>
           {t('security.securitySection')}
         </h3>
         <InfoRow
-          icon={<Lock className='w-4 h-4 text-muted-foreground' />}
+          icon={<Lock className='w-5 h-5 text-slate-500' />}
           label={t('security.changePassword')}
           value='••••••••'
           actionLabel={t('common.update')}
           onAction={() => setPasswordOpen(true)}
         />
         <InfoRow
-          icon={<KeyRound className='w-4 h-4 text-muted-foreground' />}
+          icon={<KeyRound className='w-5 h-5 text-slate-500' />}
           label={t('security.pinCode', 'Mã PIN')}
           placeholder={t('security.notSet', 'Chưa thiết lập')}
           actionLabel={t('common.setup', 'Thiết lập')}
-          onAction={() => setPinOpen(true)} // Đổi từ toast thành set state
+          onAction={() => setPinOpen(true)}
         />
         <InfoRow
-          icon={<ShieldCheck className='w-4 h-4 text-muted-foreground' />}
+          icon={<ShieldCheck className='w-5 h-5 text-slate-500' />}
           label={t('security.twoFactor', 'Xác thực 2 lớp (2FA)')}
           placeholder={t('security.disabled', 'Chưa bật')}
           actionLabel={t('common.enable', 'Bật')}
-          onAction={() => setTwoFactorOpen(true)} // Đổi từ toast thành set state
+          onAction={() => setTwoFactorOpen(true)}
         />
       </div>
 
-      <div className='py-2'>
-        <h3 className='text-base font-semibold text-foreground mb-1'>
-          {t('security.socialLinks')}
-        </h3>
+      {/* Box Liên kết MXH */}
+      <div className='bg-white border border-slate-100 p-6 rounded-[24px] shadow-sm'>
+        <h3 className='text-[16px] font-bold text-slate-900 mb-3'>{t('security.socialLinks')}</h3>
         <InfoRow
-          icon={<FaFacebook className='w-4 h-4 text-blue-600' />}
+          icon={<FaFacebook className='w-5 h-5 text-blue-600' />}
           label='Facebook'
           placeholder={t('security.notLinked')}
           actionLabel={t('common.link')}
@@ -480,7 +393,7 @@ export default function SecurityPanel({ user, isLoading }: SecurityPanelProps) {
         />
         <InfoRow
           icon={
-            <svg className='w-4 h-4' viewBox='0 0 24 24'>
+            <svg className='w-5 h-5' viewBox='0 0 24 24'>
               <path
                 d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
                 fill='#4285F4'
@@ -506,25 +419,29 @@ export default function SecurityPanel({ user, isLoading }: SecurityPanelProps) {
         />
       </div>
 
-      <div className='pt-4 mt-2 border-t border-border'>
+      {/* Delete Account */}
+      <div className='flex justify-end pt-4'>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <button className='flex items-center gap-2 text-sm text-destructive/80 hover:text-destructive transition-colors group'>
-              <Trash2 className='w-4 h-4' />
-              <span>{t('security.deleteAccountRequest')}</span>
+            <button className='flex items-center gap-2 text-[13px] font-bold text-rose-500/80 hover:text-rose-600 transition-colors group bg-white hover:bg-rose-50 px-5 py-2.5 rounded-xl border border-slate-200 hover:border-rose-200 shadow-sm'>
+              <Trash2 className='w-4 h-4' /> <span>{t('security.deleteAccountRequest')}</span>
             </button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
+          <AlertDialogContent className='rounded-[24px] z-[100]'>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t('security.deleteAccountTitle')}</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className='text-rose-600 text-[16px] font-bold'>
+                {t('security.deleteAccountTitle')}
+              </AlertDialogTitle>
+              <AlertDialogDescription className='text-[13px] font-medium leading-relaxed'>
                 {t('security.deleteAccountDescription')}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogFooter className='mt-4'>
+              <AlertDialogCancel className='rounded-xl h-11 px-6 text-[13px] font-bold border-slate-200'>
+                {t('common.cancel')}
+              </AlertDialogCancel>
               <AlertDialogAction
-                className='bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+                className='bg-rose-600 hover:bg-rose-700 text-white rounded-xl h-11 px-6 text-[13px] font-bold shadow-md'
                 onClick={() => toast.info(t('security.deleteAccountRequestSent'))}
               >
                 {t('security.confirmRequest')}

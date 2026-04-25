@@ -4,7 +4,8 @@ import type {
   AuthorResponse,
   UpdateAuthorRequest,
   UpdateAuthorResponse,
-  CreateAuthorRequest // Đảm bảo bạn đã định nghĩa type này khớp với AuthorCreationRequest bên Java
+  CreateAuthorRequest, // Đảm bảo bạn đã định nghĩa type này khớp với AuthorCreationRequest bên Java
+  AuthorFilterResponse
 } from '@/services/author/author.type'
 
 // 1. Lấy tất cả author (Active)
@@ -67,5 +68,10 @@ export const uploadAuthorAvatarApi = async (authorId: string, file: File) => {
       'Content-Type': 'multipart/form-data'
     }
   })
+  return res.data.data
+}
+
+export const getAuthorsForFilterApi = async () => {
+  const res = await api.get<ApiResponse<AuthorFilterResponse[]>>('/customer/authors/filter')
   return res.data.data
 }

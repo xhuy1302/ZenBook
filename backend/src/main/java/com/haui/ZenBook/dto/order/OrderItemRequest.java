@@ -12,4 +12,6 @@ public class OrderItemRequest {
 
     @Min(value = 1, message = "Số lượng mua phải ít nhất là 1")
     private Integer quantity;
+
+    private Double price;
 }

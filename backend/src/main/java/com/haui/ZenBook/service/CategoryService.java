@@ -1,9 +1,6 @@
 package com.haui.ZenBook.service;
 
-import com.haui.ZenBook.dto.category.CategoryCreationRequest;
-import com.haui.ZenBook.dto.category.CategoryResponse;
-import com.haui.ZenBook.dto.category.CategoryUpdateRequest;
-import com.haui.ZenBook.dto.category.CategoryUpdateResponse;
+import com.haui.ZenBook.dto.category.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -38,4 +35,8 @@ public interface CategoryService {
     void restoreCategory(String id);
 
     String uploadThumbnail(String id, MultipartFile file);
+
+    List<CategoryFilterResponse> getCategoriesForFilter();
+
+
 }

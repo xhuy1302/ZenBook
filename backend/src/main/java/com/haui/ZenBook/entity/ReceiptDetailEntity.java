@@ -20,6 +20,7 @@ public class ReceiptDetailEntity {
     @JoinColumn(name = "receipt_id", nullable = false)
     private ReceiptEntity receipt;
 
+    // Chi tiết này nhập cuốn sách nào (Quyển sách đó tự biết nó của NXB nào)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
     private BookEntity book;
@@ -32,4 +33,7 @@ public class ReceiptDetailEntity {
 
     @Column(name = "sub_total")
     private Double subTotal;
+
+    @Column(name = "note", columnDefinition = "TEXT")
+    private String note;
 }

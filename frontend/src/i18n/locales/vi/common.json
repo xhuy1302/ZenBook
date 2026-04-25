@@ -14,7 +14,8 @@
     "filter": "Lọc",
     "sort": "Sắp xếp",
     "more": "Xem thêm",
-    "change": "Thay đổi"
+    "change": "Thay đổi",
+    "backToHome": "Quay về trang chủ"
   },
   "search": {
     "resultsFor": "KẾT QUẢ TÌM KIẾM:",
@@ -211,7 +212,7 @@
     "madeWith": "Làm với tình yêu dành cho những người yêu sách."
   },
   "cart": {
-    "title": "Xem lại giỏ hàng.",
+    "title": "giỏ hàng",
     "selectAll": "Chọn tất cả sản phẩm",
     "items": "sản phẩm",
     "orderSummary": "Tóm tắt đơn hàng",
@@ -226,7 +227,9 @@
     "checkout": "Thanh toán an toàn",
     "emptyTitle": "Giỏ hàng của bạn đang trống.",
     "emptyDesc": "Có vẻ như bạn chưa thêm cuốn sách nào vào giỏ hàng.",
-    "continueShopping": "Tiếp tục mua sắm"
+    "continueShopping": "Tiếp tục mua sắm",
+    "addSuccess": "Đã thêm vào giỏ hàng!",
+    "removed": "Đã xóa khỏi giỏ hàng."
   },
   "product": {
     "loading": "Đang tải thông tin sách...",

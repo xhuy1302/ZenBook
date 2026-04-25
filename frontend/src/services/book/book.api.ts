@@ -1,6 +1,12 @@
 import { api } from '@/utils/axiosCustomize'
 import type { ApiResponse } from '@/defines/apiResponse'
-import type { BookRequest, BookResponse, GetBooksParams, PageResponse } from './book.type'
+import type {
+  BookRequest,
+  BookResponse,
+  GetBooksParams,
+  PageResponse,
+  PriceRangeResponse
+} from './book.type'
 
 // ==================================================
 // 🌟 API CHO KHÁCH HÀNG (TRANG CHỦ & TÌM KIẾM)
@@ -140,5 +146,11 @@ export const restoreBookApi = async (id: string) => {
 // 7. XÓA VĨNH VIỄN
 export const hardDeleteBookApi = async (id: string) => {
   const res = await api.delete<ApiResponse<void>>(`/admin/books/hard-delete/${id}`)
+  return res.data
+}
+
+// Thêm API lấy khoảng giá
+export const getStorePriceRangeApi = async () => {
+  const res = await api.get<PriceRangeResponse>('/books/price-range') // Chỉnh URL theo đúng Controller của bạn
   return res.data
 }

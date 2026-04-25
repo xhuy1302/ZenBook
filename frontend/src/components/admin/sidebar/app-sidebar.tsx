@@ -47,7 +47,6 @@ const staticData = {
   ],
   systemMenus: [
     { name: 'Tài khoản', url: '/dashboard/users', icon: Users },
-    // Đã xóa 'Nhà cung cấp' khỏi đây
     { name: 'Khuyến mãi', url: '/dashboard/promotions', icon: Gift },
     { name: 'Mã giảm giá', url: '/dashboard/coupons', icon: TicketPercent },
     { name: 'Bài viết', url: '/dashboard/news', icon: FileText },
@@ -87,6 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: '#',
         icon: Package,
         items: [
+          { title: 'Nhà cung cấp', url: '/dashboard/suppliers' }, // 2. Thêm Nhà cung cấp vào đây
           { title: 'Phiếu nhập kho', url: '/dashboard/receipts' },
           { title: 'Kiểm kê tồn kho', url: '/dashboard/inventory' }
         ]

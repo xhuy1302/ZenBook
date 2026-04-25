@@ -7,7 +7,7 @@ import type {
   PhoneUpdateRequest,
   Order,
   Address,
-  AddressPayload
+  AddressRequest
 } from '@/services/customer/customer.type'
 
 // ── AUTH & ME ────────────────────────────────────────────────────────────────
@@ -69,12 +69,12 @@ export const getAddressesApi = async () => {
   return res.data.data
 }
 
-export const createAddressApi = async (payload: AddressPayload) => {
+export const createAddressApi = async (payload: AddressRequest) => {
   const res = await api.post<ApiResponse<Address>>('/users/addresses', payload)
   return res.data.data
 }
 
-export const updateAddressApi = async (id: string, payload: AddressPayload) => {
+export const updateAddressApi = async (id: string, payload: AddressRequest) => {
   const res = await api.put<ApiResponse<Address>>(`/users/addresses/${id}`, payload)
   return res.data.data
 }

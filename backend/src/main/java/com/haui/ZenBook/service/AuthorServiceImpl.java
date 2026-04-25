@@ -163,4 +163,10 @@ public class AuthorServiceImpl implements AuthorService {
             throw new AppException(ErrorCode.UPLOAD_FAILED); // Cái này có thể giữ nguyên không cần đối số
         }
     }
+
+    @Override
+    public List<AuthorFilterResponse> getAuthorsForFilter() {
+        return authorRepository.getAuthorsForFilter();
+    }
+
 }

@@ -14,7 +14,8 @@
     "filter": "Filter",
     "sort": "Sort",
     "more": "More",
-    "change": "Change"
+    "change": "Change",
+    "backToHome": "Back to Home"
   },
   "search": {
     "resultsFor": "SEARCH RESULTS FOR:",
@@ -193,7 +194,7 @@
     "madeWith": "Made with care for book lovers everywhere."
   },
   "cart": {
-    "title": "Review your bag.",
+    "title": "your bag",
     "selectAll": "Select All Items",
     "items": "items",
     "orderSummary": "Order Summary",
@@ -208,7 +209,9 @@
     "checkout": "Checkout safely",
     "emptyTitle": "Your bag is empty.",
     "emptyDesc": "Looks like you haven't added anything to your cart yet.",
-    "continueShopping": "Continue Shopping"
+    "continueShopping": "Continue Shopping",
+    "addSuccess": "Added to cart!",
+    "removed": "Removed from cart."
   },
   "product": {
     "loading": "Loading book information...",

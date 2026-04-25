@@ -29,4 +29,10 @@ public class OrderCreateRequest {
     @NotEmpty(message = "Giỏ hàng không được để trống")
     @Valid
     private List<OrderItemRequest> items;
+
+    private String orderCouponCode;
+    private String shippingCouponCode;
+
+    @NotBlank(message = "Vui lòng chọn địa chỉ giao hàng")
+    private String addressId;
 }

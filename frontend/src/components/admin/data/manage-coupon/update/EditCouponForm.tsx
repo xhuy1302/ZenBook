@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Ticket, Settings2, CalendarDays, Percent, Truck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -17,58 +17,62 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 import { getCouponSchema, type CouponFormValues } from '../schema/coupon.schema'
 import { updateCouponApi } from '@/services/coupon/coupon.api'
-import { CouponStatus, DiscountType } from '@/defines/coupon.enum'
+import { CouponStatus, DiscountType, CouponType } from '@/defines/coupon.enum'
 import type { CouponResponse, CouponRequest } from '@/services/coupon/coupon.type'
-
 import { getAllCategoriesApi } from '@/services/category/category.api'
-import type { CategoryResponse } from '@/services/category/category.type'
 
-export function EditCouponForm({
-  coupon,
-  onSuccess
-}: {
+interface EditCouponFormProps {
   coupon: CouponResponse
   onSuccess: () => void
-}) {
+  onCancel: () => void
+}
+
+export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormProps) {
   const { t } = useTranslation('coupon')
   const queryClient = useQueryClient()
 
-  const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
+  const { data: categories = [], isLoading: isCategoriesLoading } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => getAllCategoriesApi()
+    queryFn: getAllCategoriesApi
   })
-  const categories = categoriesData || []
 
-  // Helper cắt giây từ chuỗi Date để tương thích với <input type="datetime-local" />
   const formatDateForInput = (dateString?: string) => {
     if (!dateString) return ''
-    return dateString.substring(0, 16) // Lấy "YYYY-MM-DDTHH:mm"
+    return dateString.substring(0, 16)
+  }
+
+  // 👉 FIX LỖI 1: Ép kiểu t sang Function ẩn danh để vượt qua Strict Type của i18next
+  const validator = (key: string, fallback?: string): string => {
+    const translate = t as unknown as (k: string, opts: { defaultValue?: string }) => string
+    return translate(key, { defaultValue: fallback })
   }
 
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(
-      getCouponSchema(t as unknown as (key: string) => string)
+      getCouponSchema(validator)
     ) as unknown as import('react-hook-form').Resolver<CouponFormValues>,
     defaultValues: {
       code: coupon.code || '',
+      couponType: coupon.couponType || CouponType.ORDER,
       discountType: coupon.discountType || DiscountType.PERCENTAGE,
-      discountValue: coupon.discountValue || (undefined as unknown as number),
-      maxDiscountAmount: coupon.maxDiscountAmount ?? undefined,
+      discountValue: coupon.discountValue || 0,
+      maxDiscountAmount: coupon.maxDiscountAmount ?? null,
       minOrderValue: coupon.minOrderValue ?? 0,
-      usageLimit: coupon.usageLimit ?? undefined,
+      usageLimit: coupon.usageLimit ?? null,
       maxUsagePerUser: coupon.maxUsagePerUser ?? 1,
       status: coupon.status || CouponStatus.ACTIVE,
-      categoryId: coupon.categoryId || undefined,
+      categoryId: coupon.categoryId || null,
       startDate: formatDateForInput(coupon.startDate),
       endDate: formatDateForInput(coupon.endDate)
     }
   })
 
-  const { errors } = form.formState
-  const currentDiscountType = form.watch('discountType')
+  const { errors, isSubmitting } = form.formState
+  const watchDiscountType = form.watch('discountType')
 
   const mutation = useMutation({
     mutationFn: (values: CouponFormValues) =>
@@ -78,232 +82,278 @@ export function EditCouponForm({
       queryClient.invalidateQueries({ queryKey: ['coupons'] })
       onSuccess()
     },
-    onError: (error: unknown) => {
-      const msg =
-        (error as { response?: { data?: { message?: string } } }).response?.data?.message ||
-        t('messages.updateError', 'Có lỗi xảy ra khi cập nhật!')
+    onError: (error: { response?: { data?: { message?: string } } }) => {
+      const msg = error.response?.data?.message || t('messages.updateError', 'Lỗi cập nhật!')
       toast.error(msg)
     }
   })
 
   return (
-    <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))} className='space-y-6'>
-      {/* SECTION 1: THÔNG TIN CƠ BẢN */}
-      <div className='border rounded-lg p-4 space-y-4 bg-card'>
-        <h3 className='font-semibold text-lg border-b pb-2'>
-          {t('form.section1', '1. Thông tin cơ bản')}
-        </h3>
-        <div className='grid grid-cols-2 gap-4'>
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label className={errors.code ? 'text-red-500' : ''}>
-              {t('form.code', 'Mã Code')} <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              {...form.register('code')}
-              placeholder='VD: SUMMER2026'
-              className={`uppercase font-semibold ${errors.code ? 'border-red-500' : ''}`}
-            />
-            {errors.code && <p className='text-[10px] text-red-500'>{errors.code.message}</p>}
+    <form
+      onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+      className='flex flex-col h-full overflow-hidden bg-slate-50/50'
+    >
+      <div className='flex-1 overflow-y-auto p-6 custom-scrollbar'>
+        {/* LƯỚI 2 CỘT CÂN XỨNG */}
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8'>
+          {/* ================= CỘT TRÁI (LOẠI MÃ & CẤU HÌNH TIỀN) ================= */}
+          <div className='flex flex-col gap-6'>
+            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-4'>
+              <Label className='text-base font-bold text-slate-800'>Loại ưu đãi</Label>
+              <Controller
+                control={form.control}
+                name='couponType'
+                render={({ field }) => (
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    className='grid grid-cols-2 gap-4'
+                  >
+                    <div>
+                      <RadioGroupItem
+                        value={CouponType.ORDER}
+                        id='edit-type-order'
+                        className='peer sr-only'
+                      />
+                      <Label
+                        htmlFor='edit-type-order'
+                        className='flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-slate-100 bg-white p-4 hover:bg-slate-50 peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-green-50/30 cursor-pointer transition-all'
+                      >
+                        <Percent className='h-6 w-6 text-orange-500' />
+                        <span className='font-semibold text-sm text-slate-700'>Đơn hàng</span>
+                      </Label>
+                    </div>
+                    <div>
+                      <RadioGroupItem
+                        value={CouponType.SHIPPING}
+                        id='edit-type-shipping'
+                        className='peer sr-only'
+                      />
+                      <Label
+                        htmlFor='edit-type-shipping'
+                        className='flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-slate-100 bg-white p-4 hover:bg-slate-50 peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-green-50/30 cursor-pointer transition-all'
+                      >
+                        <Truck className='h-6 w-6 text-blue-500' />
+                        <span className='font-semibold text-sm text-slate-700'>Vận chuyển</span>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                )}
+              />
+            </section>
+
+            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col gap-5'>
+              <div className='flex items-center gap-2 text-brand-green font-semibold border-b pb-3'>
+                <Ticket className='w-5 h-5' />
+                <span>{t('form.section1', '1. Cấu hình mã')}</span>
+              </div>
+
+              <div className='space-y-2'>
+                <Label className={errors.code ? 'text-destructive' : ''}>Mã Code *</Label>
+                <Input
+                  {...form.register('code')}
+                  className={`uppercase h-11 font-mono font-bold tracking-widest ${errors.code ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                />
+                {errors.code && (
+                  <p className='text-[11px] text-destructive'>{errors.code.message}</p>
+                )}
+              </div>
+
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='space-y-2'>
+                  <Label>Hình thức giảm</Label>
+                  <Controller
+                    control={form.control}
+                    name='discountType'
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={(val) => {
+                          field.onChange(val)
+                          if (val === DiscountType.FIXED_AMOUNT)
+                            form.setValue('maxDiscountAmount', null)
+                        }}
+                      >
+                        <SelectTrigger className='h-11'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={DiscountType.PERCENTAGE}>Phần trăm (%)</SelectItem>
+                          <SelectItem value={DiscountType.FIXED_AMOUNT}>Tiền mặt (đ)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <Label className={errors.discountValue ? 'text-destructive' : ''}>
+                    Giá trị giảm *
+                  </Label>
+                  <Input
+                    type='number'
+                    {...form.register('discountValue', { valueAsNumber: true })}
+                    className={`h-11 font-semibold ${errors.discountValue ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                  />
+                  {errors.discountValue && (
+                    <p className='text-[11px] text-destructive'>{errors.discountValue.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className='space-y-2 mt-auto'>
+                <Label>Số tiền giảm tối đa (đ)</Label>
+                <Input
+                  type='number'
+                  disabled={watchDiscountType === DiscountType.FIXED_AMOUNT}
+                  {...form.register('maxDiscountAmount', {
+                    setValueAs: (v) => (v === '' || v === null ? null : Number(v))
+                  })}
+                  placeholder='Để trống = Vô hạn'
+                  className='h-11 disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-100'
+                />
+              </div>
+            </section>
           </div>
 
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label>{t('form.discountType', 'Loại giảm giá')}</Label>
-            <Controller
-              control={form.control}
-              name='discountType'
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={(val) => {
-                    field.onChange(val)
-                    if (val === DiscountType.FIXED_AMOUNT)
-                      form.setValue('maxDiscountAmount', undefined)
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={DiscountType.PERCENTAGE}>Giảm theo phần trăm (%)</SelectItem>
-                    <SelectItem value={DiscountType.FIXED_AMOUNT}>Giảm tiền mặt (đ)</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
+          {/* ================= CỘT PHẢI (ĐIỀU KIỆN & THỜI GIAN) ================= */}
+          <div className='flex flex-col gap-6'>
+            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-5'>
+              <div className='flex items-center gap-2 text-brand-green font-semibold border-b pb-3'>
+                <Settings2 className='w-5 h-5' />
+                <span>{t('form.section2', '2. Điều kiện áp dụng')}</span>
+              </div>
 
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label className={errors.discountValue ? 'text-red-500' : ''}>
-              {t('form.discountValue', 'Giá trị giảm')} <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              type='number'
-              {...form.register('discountValue', { valueAsNumber: true })}
-              className={errors.discountValue ? 'border-red-500' : ''}
-            />
-            {errors.discountValue && (
-              <p className='text-[10px] text-red-500'>{errors.discountValue.message}</p>
-            )}
-          </div>
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='space-y-2'>
+                  <Label>Đơn tối thiểu (đ) *</Label>
+                  <Input
+                    type='number'
+                    {...form.register('minOrderValue', { valueAsNumber: true })}
+                    className='h-11 font-medium'
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <Label>Giới hạn / User *</Label>
+                  <Input
+                    type='number'
+                    {...form.register('maxUsagePerUser', { valueAsNumber: true })}
+                    className='h-11'
+                  />
+                </div>
+              </div>
 
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label className={errors.maxDiscountAmount ? 'text-red-500' : ''}>
-              {t('form.maxDiscount', 'Giảm tối đa (đ)')}
-            </Label>
-            <Input
-              type='number'
-              {...form.register('maxDiscountAmount', { valueAsNumber: true })}
-              disabled={currentDiscountType === DiscountType.FIXED_AMOUNT}
-              className={`${currentDiscountType === DiscountType.FIXED_AMOUNT ? 'bg-muted cursor-not-allowed' : ''} ${errors.maxDiscountAmount ? 'border-red-500' : ''}`}
-            />
-            {currentDiscountType === DiscountType.PERCENTAGE && (
-              <p className='text-[10px] text-muted-foreground italic'>
-                {t('form.maxDiscountNote', 'Nên điền nếu giảm theo %')}
-              </p>
-            )}
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='space-y-2'>
+                  <Label>Tổng lượt dùng</Label>
+                  <Input
+                    type='number'
+                    {...form.register('usageLimit', {
+                      setValueAs: (v) => (v === '' || v === null ? null : Number(v))
+                    })}
+                    placeholder='Vô hạn'
+                    className='h-11'
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <Label>Danh mục áp dụng</Label>
+                  <Controller
+                    control={form.control}
+                    name='categoryId'
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || 'ALL'}
+                        onValueChange={(v) => field.onChange(v === 'ALL' ? null : v)}
+                        disabled={isCategoriesLoading}
+                      >
+                        <SelectTrigger className='h-11'>
+                          <SelectValue placeholder='Tất cả danh mục' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value='ALL'>Tất cả</SelectItem>
+                          {categories.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.categoryName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col gap-5'>
+              <div className='flex items-center gap-2 text-brand-green font-semibold border-b pb-3'>
+                <CalendarDays className='w-5 h-5' />
+                <span>{t('form.section3', '3. Hiệu lực & Trạng thái')}</span>
+              </div>
+
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                {/* 👉 FIX LỖI 2: Tạo style rõ ràng cho thẻ input type datetime-local */}
+                <div className='space-y-2'>
+                  <Label>Ngày bắt đầu *</Label>
+                  <Input
+                    type='datetime-local'
+                    {...form.register('startDate')}
+                    className='h-11 w-full bg-white text-slate-800 font-semibold border-slate-200 focus-visible:ring-brand-green/30 focus-visible:border-brand-green'
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <Label>Ngày kết thúc *</Label>
+                  <Input
+                    type='datetime-local'
+                    {...form.register('endDate')}
+                    className='h-11 w-full bg-white text-slate-800 font-semibold border-slate-200 focus-visible:ring-brand-green/30 focus-visible:border-brand-green'
+                  />
+                </div>
+              </div>
+
+              <div className='space-y-2 mt-auto'>
+                <Label>Trạng thái hiển thị</Label>
+                <Controller
+                  control={form.control}
+                  name='status'
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className='h-11 font-semibold'>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                          value={CouponStatus.ACTIVE}
+                          className='text-emerald-600 font-medium'
+                        >
+                          Đang hoạt động
+                        </SelectItem>
+                        <SelectItem
+                          value={CouponStatus.EXPIRED}
+                          className='text-rose-600 font-medium'
+                        >
+                          Tạm khóa / Hết hạn
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </section>
           </div>
         </div>
       </div>
 
-      {/* SECTION 2: ĐIỀU KIỆN ÁP DỤNG */}
-      <div className='border rounded-lg p-4 space-y-4 bg-card'>
-        <h3 className='font-semibold text-lg border-b pb-2'>
-          {t('form.section2', '2. Điều kiện áp dụng')}
-        </h3>
-        <div className='grid grid-cols-2 gap-4'>
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label className={errors.minOrderValue ? 'text-red-500' : ''}>
-              {t('form.minOrder', 'Đơn hàng tối thiểu (đ)')} <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              type='number'
-              {...form.register('minOrderValue', { valueAsNumber: true })}
-              className={errors.minOrderValue ? 'border-red-500' : ''}
-            />
-            {errors.minOrderValue && (
-              <p className='text-[10px] text-red-500'>{errors.minOrderValue.message}</p>
-            )}
-          </div>
-
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label>{t('form.usageLimit', 'Tổng lượt dùng hệ thống')}</Label>
-            <Input
-              type='number'
-              {...form.register('usageLimit', { valueAsNumber: true })}
-              placeholder='Để trống = Không giới hạn'
-            />
-            <p className='text-[10px] text-muted-foreground italic mt-1'>
-              Đã sử dụng: <strong className='text-foreground'>{coupon.usedCount}</strong> lượt
-            </p>
-          </div>
-
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label className={errors.maxUsagePerUser ? 'text-red-500' : ''}>
-              {t('form.maxUsagePerUser', 'Giới hạn / Người dùng')}{' '}
-              <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              type='number'
-              {...form.register('maxUsagePerUser', { valueAsNumber: true })}
-              className={errors.maxUsagePerUser ? 'border-red-500' : ''}
-            />
-            {errors.maxUsagePerUser && (
-              <p className='text-[10px] text-red-500'>{errors.maxUsagePerUser.message}</p>
-            )}
-          </div>
-
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label>{t('form.category', 'Chỉ áp dụng cho Danh mục')}</Label>
-            <Controller
-              control={form.control}
-              name='categoryId'
-              render={({ field }) => (
-                <Select
-                  value={field.value || 'ALL'}
-                  onValueChange={(val) => field.onChange(val === 'ALL' ? null : val)}
-                  disabled={isCategoriesLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Chọn danh mục...' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='ALL'>-- Tất cả danh mục --</SelectItem>
-                    {categories.map((c: CategoryResponse) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.categoryName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 3: THỜI GIAN & TRẠNG THÁI */}
-      <div className='border rounded-lg p-4 space-y-4 bg-card'>
-        <h3 className='font-semibold text-lg border-b pb-2'>
-          {t('form.section3', '3. Thời gian & Trạng thái')}
-        </h3>
-        <div className='grid grid-cols-2 gap-4'>
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label className={errors.startDate ? 'text-red-500' : ''}>
-              {t('form.startDate', 'Bắt đầu từ')} <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              type='datetime-local'
-              {...form.register('startDate')}
-              className={errors.startDate ? 'border-red-500' : ''}
-            />
-            {errors.startDate && (
-              <p className='text-[10px] text-red-500'>{errors.startDate.message}</p>
-            )}
-          </div>
-
-          <div className='col-span-2 sm:col-span-1 space-y-2'>
-            <Label className={errors.endDate ? 'text-red-500' : ''}>
-              {t('form.endDate', 'Kết thúc vào')} <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              type='datetime-local'
-              {...form.register('endDate')}
-              className={errors.endDate ? 'border-red-500' : ''}
-            />
-            {errors.endDate && <p className='text-[10px] text-red-500'>{errors.endDate.message}</p>}
-          </div>
-
-          <div className='col-span-2 space-y-2'>
-            <Label>{t('common.status', 'Trạng thái')}</Label>
-            <Controller
-              control={form.control}
-              name='status'
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className='w-[200px]'>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(CouponStatus).map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {t(`fields.status.options.${s}`, s)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className='flex justify-end gap-3 border-t pt-4 sticky bottom-0 bg-background py-4 z-10'>
-        <Button type='button' variant='ghost' onClick={onSuccess}>
+      {/* FOOTER */}
+      <div className='p-5 border-t bg-white flex justify-end gap-3 shrink-0 z-10'>
+        <Button type='button' variant='outline' onClick={onCancel} className='px-6 h-10'>
           {t('common.cancel', 'Hủy')}
         </Button>
-        <Button type='submit' disabled={mutation.isPending}>
+        <Button
+          type='submit'
+          disabled={mutation.isPending || isSubmitting}
+          className='px-8 h-10 bg-brand-green hover:bg-brand-green-dark shadow-md transition-all'
+        >
           {mutation.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-          {t('form.btnUpdate', 'Cập nhật')}
+          {t('form.btnUpdate', 'Cập nhật mã')}
         </Button>
       </div>
     </form>

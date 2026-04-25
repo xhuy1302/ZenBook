@@ -1,13 +1,11 @@
 package com.haui.ZenBook.service;
 
+import com.haui.ZenBook.dto.coupon.CouponResponse;
 import com.haui.ZenBook.dto.order.OrderCreateRequest;
 import com.haui.ZenBook.dto.order.OrderItemRequest;
 import com.haui.ZenBook.dto.order.OrderResponse;
 import com.haui.ZenBook.dto.order.OrderUpdateRequest;
-import com.haui.ZenBook.entity.BookEntity;
-import com.haui.ZenBook.entity.OrderDetailEntity;
-import com.haui.ZenBook.entity.OrderEntity;
-import com.haui.ZenBook.entity.OrderHistoryEntity;
+import com.haui.ZenBook.entity.*;
 import com.haui.ZenBook.enums.ActionRole;
 import com.haui.ZenBook.enums.BookStatus;
 import com.haui.ZenBook.enums.OrderStatus;
@@ -15,8 +13,11 @@ import com.haui.ZenBook.enums.PaymentStatus;
 import com.haui.ZenBook.exception.AppException;
 import com.haui.ZenBook.exception.ErrorCode;
 import com.haui.ZenBook.mapper.OrderMapper;
+import com.haui.ZenBook.repository.AddressRepository;
 import com.haui.ZenBook.repository.BookRepository;
 import com.haui.ZenBook.repository.OrderRepository;
+import com.haui.ZenBook.shipping.GHNShippingProvider;
+import com.haui.ZenBook.shipping.ShippingCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,11 +41,78 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final BookRepository bookRepository;
+    private final AddressRepository addressRepository;
     private final OrderMapper orderMapper;
+    private final CartService cartService;
+    private final ShippingCalculator shippingCalculator;
+    private final GHNShippingProvider ghnShippingProvider;
+    private final CouponService couponService;
+    private final PromotionService promotionService;
+
+    private static final String PAYMENT_METHOD_COD = "COD";
+    private static final String PAYMENT_METHOD_VNPAY = "VNPAY";
 
     @Override
     @Transactional
     public OrderResponse createOrder(OrderCreateRequest request, String actionBy, ActionRole role, String userId) {
+        String method = request.getPaymentMethod();
+        if (method == null || (!method.equalsIgnoreCase(PAYMENT_METHOD_COD) && !method.equalsIgnoreCase(PAYMENT_METHOD_VNPAY))) {
+            throw new AppException(ErrorCode.INVALID_DATA, "Phương thức thanh toán không hợp lệ");
+        }
+
+        AddressEntity address = addressRepository.findById(request.getAddressId())
+                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        Map<String, BookEntity> bookMap = shippingCalculator.getBooksForOrder(request.getItems());
+        double rawOrderTotal = shippingCalculator.calculateOrderTotal(request.getItems(), bookMap);
+        double weight = shippingCalculator.calculateTotalWeight(request.getItems(), bookMap);
+        double shippingFee = ghnShippingProvider.calculateFee(address, weight, rawOrderTotal);
+
+        double orderDiscount = 0.0;
+        double shippingDiscount = 0.0;
+        List<String> appliedCouponCodes = new ArrayList<>();
+
+        List<String> categoryIdsInCart = new ArrayList<>();
+        for (BookEntity book : bookMap.values()) {
+            if (book.getCategories() != null) {
+                book.getCategories().forEach(cat -> categoryIdsInCart.add(cat.getId()));
+            }
+        }
+
+        if (request.getOrderCouponCode() != null && !request.getOrderCouponCode().isBlank()) {
+            CouponResponse orderCoupon = couponService.validateCoupon(
+                    request.getOrderCouponCode(), rawOrderTotal, userId, categoryIdsInCart
+            );
+            if (orderCoupon.getCouponType() != com.haui.ZenBook.enums.CouponType.ORDER) {
+                throw new AppException(ErrorCode.COUPON_NOT_FOUND);
+            }
+            orderDiscount = Math.min(orderCoupon.getCalculatedDiscount(), rawOrderTotal);
+            appliedCouponCodes.add(request.getOrderCouponCode());
+        }
+
+        if (request.getShippingCouponCode() != null && !request.getShippingCouponCode().isBlank()) {
+            CouponResponse shippingCoupon = couponService.validateCoupon(
+                    request.getShippingCouponCode(), rawOrderTotal, userId, categoryIdsInCart
+            );
+            if (shippingCoupon.getCouponType() != com.haui.ZenBook.enums.CouponType.SHIPPING) {
+                throw new AppException(ErrorCode.COUPON_NOT_FOUND);
+            }
+            if (shippingCoupon.getDiscountType() == com.haui.ZenBook.enums.DiscountType.PERCENTAGE) {
+                shippingDiscount = shippingFee * (shippingCoupon.getDiscountValue() / 100.0);
+                if (shippingCoupon.getMaxDiscountAmount() != null) {
+                    shippingDiscount = Math.min(shippingDiscount, shippingCoupon.getMaxDiscountAmount());
+                }
+            } else {
+                shippingDiscount = shippingCoupon.getDiscountValue();
+            }
+            shippingDiscount = Math.min(shippingDiscount, shippingFee);
+            appliedCouponCodes.add(request.getShippingCouponCode());
+        }
+
+        double totalDiscountAmount = orderDiscount + shippingDiscount;
+        double finalTotal = Math.max(rawOrderTotal - orderDiscount + shippingFee - shippingDiscount, 0);
+        String combinedCoupons = String.join(", ", appliedCouponCodes);
+
         OrderEntity newOrder = OrderEntity.builder()
                 .orderCode(generateOrderCode())
                 .userId(userId)
@@ -50,18 +120,33 @@ public class OrderServiceImpl implements OrderService {
                 .customerPhone(request.getCustomerPhone())
                 .customerEmail(request.getCustomerEmail())
                 .shippingAddress(request.getShippingAddress())
-                .paymentMethod(request.getPaymentMethod())
+                .paymentMethod(method.toUpperCase())
                 .note(request.getNote())
                 .status(OrderStatus.PENDING)
                 .paymentStatus(PaymentStatus.UNPAID)
-                .shippingFee(30000.0)
-                .discountAmount(0.0)
+                .shippingFee(shippingFee)
+                .discountAmount(totalDiscountAmount)
+                .finalTotal(finalTotal)
+                .couponCode(combinedCoupons.isEmpty() ? null : combinedCoupons)
                 .build();
 
         processOrderItems(newOrder, request.getItems());
+        recordHistory(newOrder, null, OrderStatus.PENDING, actionBy, role, "Tạo đơn hàng mới với phương thức " + method.toUpperCase());
+        OrderEntity savedOrder = orderRepository.save(newOrder);
 
-        recordHistory(newOrder, null, OrderStatus.PENDING, actionBy, role, "Tạo đơn hàng mới");
-        return orderMapper.toOrderResponse(orderRepository.save(newOrder));
+        List<String> purchasedBookIds = request.getItems().stream()
+                .map(OrderItemRequest::getBookId)
+                .collect(Collectors.toList());
+        cartService.removeItemsByBookIds(actionBy, purchasedBookIds);
+
+        if (request.getOrderCouponCode() != null && !request.getOrderCouponCode().isBlank()) {
+            couponService.incrementUsedCount(request.getOrderCouponCode());
+        }
+        if (request.getShippingCouponCode() != null && !request.getShippingCouponCode().isBlank()) {
+            couponService.incrementUsedCount(request.getShippingCouponCode());
+        }
+
+        return orderMapper.toOrderResponse(savedOrder);
     }
 
     @Override
@@ -70,19 +155,14 @@ public class OrderServiceImpl implements OrderService {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
-        // CHỈ CHO PHÉP CẬP NHẬT KHI ĐƠN HÀNG ĐANG Ở TRẠNG THÁI PENDING
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new AppException(ErrorCode.ORDER_CANNOT_UPDATE);
         }
 
-        // 👉 ĐÃ THAY ĐỔI: Bỏ logic hoàn trả số lượng sách và clear giỏ hàng
-        // Chỉ cập nhật thông tin giao hàng
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setShippingAddress(request.getShippingAddress());
         order.setNote(request.getNote());
-
-        // 👉 ĐÃ THAY ĐỔI: Không gọi hàm processOrderItems nữa để giữ nguyên giỏ hàng cũ
 
         recordHistory(order, OrderStatus.PENDING, OrderStatus.PENDING, actionBy, role, "Chỉnh sửa thông tin giao hàng");
         return orderMapper.toOrderResponse(orderRepository.save(order));
@@ -91,27 +171,52 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse updateOrderStatus(String orderId, OrderStatus newStatus, String note, String actionBy, ActionRole role) {
-        OrderEntity order = orderRepository.findById(orderId).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
         OrderStatus oldStatus = order.getStatus();
 
-        if (oldStatus == newStatus || oldStatus == OrderStatus.CANCELLED || oldStatus == OrderStatus.COMPLETED || oldStatus == OrderStatus.RETURNED) {
+        if (oldStatus == OrderStatus.CANCELLED || oldStatus == OrderStatus.RETURNED) {
             throw new AppException(ErrorCode.ORDER_STATUS_INVALID);
+        }
+
+        if (newStatus == OrderStatus.RETURNED) {
+            if (oldStatus != OrderStatus.COMPLETED) {
+                throw new AppException(ErrorCode.ORDER_RETURN_NOT_COMPLETED, order.getOrderCode());
+            }
+            LocalDateTime completedAt = order.getUpdatedAt();
+            if (completedAt != null && completedAt.plusDays(7).isBefore(LocalDateTime.now())) {
+                throw new AppException(ErrorCode.ORDER_RETURN_EXPIRED, order.getOrderCode());
+            }
         }
 
         boolean valid = switch (oldStatus) {
             case PENDING -> newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELLED;
             case CONFIRMED -> newStatus == OrderStatus.PACKING;
             case PACKING -> newStatus == OrderStatus.SHIPPING;
-            case SHIPPING -> newStatus == OrderStatus.COMPLETED || newStatus == OrderStatus.RETURNED;
+            case SHIPPING -> newStatus == OrderStatus.COMPLETED;
+            case COMPLETED -> newStatus == OrderStatus.RETURNED;
             default -> false;
         };
+
         if (!valid) throw new AppException(ErrorCode.ORDER_STATUS_INVALID);
+
+        if (newStatus == OrderStatus.COMPLETED) {
+            if (PAYMENT_METHOD_COD.equalsIgnoreCase(order.getPaymentMethod())) {
+                order.setPaymentStatus(PaymentStatus.PAID);
+            }
+        }
 
         if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.RETURNED) {
             for (OrderDetailEntity detail : order.getDetails()) {
                 BookEntity b = detail.getBook();
                 b.setStockQuantity(b.getStockQuantity() + detail.getQuantity());
+                int currentSold = b.getSoldQuantity() != null ? b.getSoldQuantity() : 0;
+                b.setSoldQuantity(Math.max(currentSold - detail.getQuantity(), 0));
                 bookRepository.save(b);
+            }
+
+            if (order.getPaymentStatus() == PaymentStatus.PAID) {
+                order.setPaymentStatus(PaymentStatus.REFUNDED);
             }
         }
 
@@ -135,17 +240,20 @@ public class OrderServiceImpl implements OrderService {
                 throw new AppException(ErrorCode.BOOK_STOCK_INVALID, book.getTitle(), book.getStockQuantity(), itemReq.getQuantity());
 
             book.setStockQuantity(book.getStockQuantity() - itemReq.getQuantity());
+            int currentSold = book.getSoldQuantity() != null ? book.getSoldQuantity() : 0;
+            book.setSoldQuantity(currentSold + itemReq.getQuantity());
             bookRepository.save(book);
 
-            double subTotal = itemReq.getQuantity() * book.getSalePrice();
+            double promoPrice = promotionService.getPromotionalPrice(book);
+            double actualPrice = (promoPrice > 0) ? promoPrice : book.getSalePrice();
+            double subTotal = itemReq.getQuantity() * actualPrice;
             totalItemsPrice += subTotal;
 
             order.getDetails().add(OrderDetailEntity.builder()
                     .order(order).book(book).quantity(itemReq.getQuantity())
-                    .priceAtPurchase(book.getSalePrice()).subTotal(subTotal).build());
+                    .priceAtPurchase(actualPrice).subTotal(subTotal).build());
         }
         order.setTotalItemsPrice(totalItemsPrice);
-        order.setFinalTotal(totalItemsPrice + order.getShippingFee() - order.getDiscountAmount());
     }
 
     private void recordHistory(OrderEntity order, OrderStatus from, OrderStatus to, String by, ActionRole role, String note) {
@@ -167,11 +275,18 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    @Override public Page<OrderResponse> getMyOrders(String u, Pageable p) {
-        return orderRepository.findByUserIdOrderByCreatedAtDesc(u, p).map(orderMapper::toOrderResponse);
+    @Override
+    public Page<OrderResponse> getMyOrders(String userId, OrderStatus status, Pageable p) {
+        if (status != null) {
+            return orderRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, status, p)
+                    .map(orderMapper::toOrderResponse);
+        }
+        return orderRepository.findByUserIdOrderByCreatedAtDesc(userId, p)
+                .map(orderMapper::toOrderResponse);
     }
 
-    @Override public OrderResponse getOrderById(String id) {
+    @Override
+    public OrderResponse getOrderById(String id) {
         return orderRepository.findById(id).map(orderMapper::toOrderResponse).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
     }
 

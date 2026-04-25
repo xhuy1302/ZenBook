@@ -2,6 +2,7 @@ package com.haui.ZenBook.entity;
 
 import com.haui.ZenBook.enums.CouponStatus;
 import com.haui.ZenBook.enums.DiscountType;
+import com.haui.ZenBook.enums.CouponType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -46,4 +47,9 @@ public class CouponEntity extends BaseEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "coupon_type", nullable = false)
+    private CouponType couponType; // 👉 Thêm trường này để phân biệt
+
 }

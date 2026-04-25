@@ -15,7 +15,8 @@ import enPromotion from './locales/en/promotion.json'
 import enTag from './locales/en/tag.json'
 import enCoupon from './locales/en/coupon.json'
 import enNews from './locales/en/news.json'
-import enNews from './locales/en/account.json'
+import enAccount from './locales/en/account.json'
+import enSupplier from './locales/en/supplier.json'
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -37,6 +38,7 @@ declare module 'i18next' {
       coupon: typeof enCoupon
       news: typeof enNews
       account: typeof enAccount
+      supplier: typeof enSupplier
     }
   }
 }

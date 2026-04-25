@@ -10,8 +10,10 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog'
-import { useFetchData } from '@/hooks/useFetchData'
-import { getAllNewsApi } from '@/services/news/news.api'
+// 1. Đổi sang dùng useQuery chuẩn
+import { useQuery } from '@tanstack/react-query'
+// 2. Import đúng API lấy bài viết trong thùng rác
+import { getNewsInTrashApi } from '@/services/news/news.api'
 import { addDays, differenceInDays, format } from 'date-fns'
 import { Trash2, Newspaper } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +21,14 @@ import { useTranslation } from 'react-i18next'
 export function TrashNewsDialog() {
   const { t } = useTranslation('news')
 
-  const { data = [] } = useFetchData('news-trash', getAllNewsApi)
+  // 3. Sử dụng useQuery với queryKey dạng mảng
+  const { data } = useQuery({
+    queryKey: ['news-trash'],
+    queryFn: getNewsInTrashApi
+  })
+
+  // 4. Lớp bảo hiểm: Đảm bảo trashData luôn luôn là một mảng
+  const trashData = Array.isArray(data) ? data : []
 
   return (
     <Dialog>
@@ -59,14 +68,15 @@ export function TrashNewsDialog() {
               </thead>
 
               <tbody>
-                {data.length === 0 ? (
+                {/* Sử dụng trashData đã được bảo vệ */}
+                {trashData.length === 0 ? (
                   <tr>
                     <td colSpan={3} className='text-center p-8 text-muted-foreground'>
                       {t('trash.trashEmpty', 'Thùng rác trống')}
                     </td>
                   </tr>
                 ) : (
-                  data.map((news) => (
+                  trashData.map((news) => (
                     <tr key={news.id} className='border-t hover:bg-muted/30 transition-colors'>
                       <td className='p-3'>
                         <div className='flex items-center gap-3'>
@@ -75,6 +85,9 @@ export function TrashNewsDialog() {
                               src={news.thumbnail}
                               alt={news.title}
                               className='w-10 h-10 rounded object-cover border shadow-sm shrink-0'
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://placehold.co/100x100?text=No+Image'
+                              }}
                             />
                           ) : (
                             <div className='w-10 h-10 rounded flex items-center justify-center border shadow-sm bg-muted shrink-0'>
@@ -93,20 +106,27 @@ export function TrashNewsDialog() {
                       <td className='p-3 text-muted-foreground'>
                         {news.deletedAt &&
                           (() => {
-                            const deletedDate = new Date(news.deletedAt)
-                            const expiredDate = addDays(deletedDate, 30)
-                            const remainingDays = differenceInDays(expiredDate, new Date())
+                            // Xử lý an toàn cho Date
+                            try {
+                              // Chú ý: Nếu định dạng backend trả về là "dd-MM-yyyy HH:mm:ss" thì new Date() có thể lỗi trên vài trình duyệt.
+                              // Để an toàn tạm thời, code này vẫn giữ nguyên logic cũ của bạn.
+                              const deletedDate = new Date(news.deletedAt)
+                              const expiredDate = addDays(deletedDate, 30)
+                              const remainingDays = differenceInDays(expiredDate, new Date())
 
-                            return (
-                              <div className='flex flex-col'>
-                                <span className='text-foreground'>
-                                  {format(deletedDate, 'dd/MM/yyyy HH:mm')}
-                                </span>
-                                <span className='text-[11px] text-red-500 font-medium'>
-                                  {t('trash.remainingDays', `Còn ${remainingDays} ngày`)}
-                                </span>
-                              </div>
-                            )
+                              return (
+                                <div className='flex flex-col'>
+                                  <span className='text-foreground'>
+                                    {format(deletedDate, 'dd/MM/yyyy HH:mm')}
+                                  </span>
+                                  <span className='text-[11px] text-red-500 font-medium'>
+                                    {t('trash.remainingDays', `Còn ${remainingDays} ngày`)}
+                                  </span>
+                                </div>
+                              )
+                            } catch {
+                              return <span>{news.deletedAt}</span>
+                            }
                           })()}
                       </td>
 

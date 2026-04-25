@@ -30,3 +30,9 @@ export type PublisherCreationRequest = {
 export type PublisherUpdateRequest = PublisherCreationRequest & {
   status: PublisherStatus
 }
+
+export interface PublisherFilterResponse {
+  id: string
+  name: string
+  count: number
+}

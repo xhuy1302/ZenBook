@@ -1,5 +1,6 @@
 package com.haui.ZenBook.service;
 
+import com.haui.ZenBook.dto.publisher.PublisherFilterResponse;
 import com.haui.ZenBook.dto.publisher.PublisherUpdateRequest;
 import com.haui.ZenBook.dto.publisher.PublisherCreationRequest;
 import com.haui.ZenBook.dto.publisher.PublisherResponse;
@@ -116,5 +117,10 @@ public class PublisherServiceImpl implements PublisherService {
         publisher.setDeletedAt(null);
         publisher.setStatus(PublisherStatus.ACTIVE);
         publisherRepository.save(publisher);
+    }
+
+    @Override
+    public List<PublisherFilterResponse> getPublishersForFilter() {
+        return publisherRepository.getPublishersForFilter();
     }
 }

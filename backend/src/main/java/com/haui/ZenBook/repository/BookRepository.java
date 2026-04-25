@@ -1,5 +1,6 @@
 package com.haui.ZenBook.repository;
 
+import com.haui.ZenBook.dto.book.PriceRangeResponse;
 import com.haui.ZenBook.entity.BookEntity;
 import com.haui.ZenBook.enums.BookStatus;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,15 @@ import java.util.Optional;
 @Repository
 public interface BookRepository extends JpaRepository<BookEntity, String>, JpaSpecificationExecutor<BookEntity> {
 
+    @EntityGraph(attributePaths = {"authors", "categories", "publisher", "promotions", "images"})
     Optional<BookEntity> findBySlug(String slug);
+
+    @Query("SELECT COALESCE(MIN(b.salePrice), 0.0), COALESCE(MAX(b.salePrice), 500000.0) FROM BookEntity b WHERE b.deletedAt IS NULL")
+    List<Object[]> getPriceRange();
+
+    @EntityGraph(attributePaths = {"authors", "categories", "publisher", "promotions"})
+    @Override
+    Optional<BookEntity> findById(String id);
 
     boolean existsBySlug(String slug);
 
@@ -26,14 +35,20 @@ public interface BookRepository extends JpaRepository<BookEntity, String>, JpaSp
 
     boolean existsByTitleAndIdNot(String title, String id);
 
+    @EntityGraph(attributePaths = {"authors", "categories", "publisher", "promotions"})
     List<BookEntity> findByDeletedAtIsNullOrderByCreatedAtDesc();
 
+    @EntityGraph(attributePaths = {"authors", "categories", "publisher", "promotions"})
     List<BookEntity> findByDeletedAtIsNotNullOrderByDeletedAtDesc();
 
     List<BookEntity> findByStockQuantityLessThanAndDeletedAtIsNullOrderByStockQuantityAsc(int stockQuantity);
 
     @Query("SELECT COUNT(b) FROM BookEntity b WHERE b.stockQuantity < 5 AND b.deletedAt IS NULL")
     long countLowStockBooks();
+
+    @Query("SELECT new com.haui.ZenBook.dto.book.PriceRangeResponse(MIN(b.salePrice), MAX(b.salePrice)) " +
+            "FROM BookEntity b WHERE b.status = 'ACTIVE'")
+    PriceRangeResponse getStorePriceRange();
 
     @EntityGraph(attributePaths = {"authors", "categories", "publisher", "promotions"})
     @Query("SELECT b FROM BookEntity b WHERE b.status = :status AND b.deletedAt IS NULL ORDER BY b.createdAt DESC")

@@ -10,12 +10,12 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ReceiptMapper {
 
-    // 👉 Đã đổi sang publisher
-    @Mapping(target = "publisherId", source = "publisher.id")
-    @Mapping(target = "publisherName", source = "publisher.name") // Giả sử PublisherEntity có thuộc tính name
+    // 👉 Đã map thuộc tính của Supplier
+    @Mapping(target = "supplierId", source = "supplier.id")
+    @Mapping(target = "supplierName", source = "supplier.name")
     ReceiptResponse toResponse(ReceiptEntity entity);
 
     @Mapping(target = "bookId", source = "book.id")
-    @Mapping(target = "bookTitle", source = "book.title") // Giả sử BookEntity có thuộc tính title
+    @Mapping(target = "bookTitle", source = "book.title")
     ReceiptDetailResponse toDetailResponse(ReceiptDetailEntity entity);
 }

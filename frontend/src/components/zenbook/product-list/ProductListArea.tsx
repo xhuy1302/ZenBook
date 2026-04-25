@@ -3,9 +3,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { SlidersHorizontal, Loader2, X } from 'lucide-react'
+import { SlidersHorizontal, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 
 import {
@@ -16,26 +15,24 @@ import {
 } from '@/components/zenbook/product-list'
 import type { FilterState, SortOption, ViewMode } from '@/components/zenbook/product-list'
 
-// 👉 ĐÃ SỬA: Import API lọc và phân trang từ Backend
-import { getBooksApi } from '@/services/book/book.api'
+import { getBooksApi, getStorePriceRangeApi } from '@/services/book/book.api'
+import { getAuthorsForFilterApi } from '@/services/author/author.api'
+import { getCategoriesForFilterApi } from '@/services/category/category.api'
+import { getPublishersForFilterApi } from '@/services/publisher/publisher.api'
 
-// Import các API lấy danh mục, tác giả (Nếu bạn đã có file API này, hãy mở comment ra)
-// import { getCategoriesApi } from '@/services/category/category.api'
-// import { getAuthorsApi } from '@/services/author/author.api'
-// import { getPublishersApi } from '@/services/publisher/publisher.api'
-
-const PAGE_SIZE = 12 // Hiển thị 12 cuốn sách 1 trang cho đẹp (dạng lưới 4x3)
+const PAGE_SIZE = 12
 
 const DEFAULT_FILTERS: FilterState = {
   categoryIds: [],
   authorIds: [],
   publisherIds: [],
+  formats: [],
+  languages: [],
   minPrice: 0,
-  maxPrice: 500000,
+  maxPrice: 99999999, // Mặc định là vô cực để làm cờ đánh dấu
   minRating: null
 }
 
-// 👉 THÊM MỚI: Định nghĩa interface để nhận prop onTotalChange từ component cha
 interface ProductListAreaProps {
   onTotalChange?: (total: number) => void
 }
@@ -43,7 +40,6 @@ interface ProductListAreaProps {
 export default function ProductListArea({ onTotalChange }: ProductListAreaProps) {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // 1. STATES
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1)
   const [sort, setSort] = useState<SortOption>((searchParams.get('sort') as SortOption) || 'newest')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
@@ -52,7 +48,24 @@ export default function ProductListArea({ onTotalChange }: ProductListAreaProps)
 
   const keyword = searchParams.get('q') || ''
 
-  // 2. ĐỒNG BỘ URL PARAMS
+  // 1. LẤY KHOẢNG GIÁ ĐỘNG TỪ BACKEND
+  const { data: priceRangeData } = useQuery({
+    queryKey: ['storePriceRange'],
+    queryFn: getStorePriceRangeApi,
+    staleTime: 60 * 60 * 1000
+  })
+
+  const dynamicMaxPrice = priceRangeData?.maxPrice || 500000
+
+  // 2. GIẢI PHÁP THAY THẾ USE-EFFECT: TẠO DISPLAY FILTERS
+  const displayFilters = useMemo(
+    () => ({
+      ...filters,
+      maxPrice: filters.maxPrice === 99999999 ? dynamicMaxPrice : filters.maxPrice
+    }),
+    [filters, dynamicMaxPrice]
+  )
+
   useEffect(() => {
     const params: Record<string, string> = {}
     if (page > 1) params.page = String(page)
@@ -61,7 +74,6 @@ export default function ProductListArea({ onTotalChange }: ProductListAreaProps)
     setSearchParams(params, { replace: true })
   }, [page, sort, keyword, setSearchParams])
 
-  // 3. CHUYỂN ĐỔI SORT OPTION CỦA FRONTEND THÀNH THAM SỐ CHO BACKEND
   const sortParams = useMemo(() => {
     switch (sort) {
       case 'price_asc':
@@ -78,9 +90,8 @@ export default function ProductListArea({ onTotalChange }: ProductListAreaProps)
     }
   }, [sort])
 
-  // 4. GỌI API LẤY SÁCH TỪ DATABASE (Server-side Pagination & Filtering)
   const { data: booksResponse, isLoading: booksLoading } = useQuery({
-    queryKey: ['books', page, sort, filters, keyword],
+    queryKey: ['books', page, sort, displayFilters, keyword],
     queryFn: () =>
       getBooksApi({
         page,
@@ -88,44 +99,50 @@ export default function ProductListArea({ onTotalChange }: ProductListAreaProps)
         sortBy: sortParams.sortBy,
         sortDir: sortParams.sortDir,
         keyword: keyword || undefined,
-        minPrice: filters.minPrice > 0 ? filters.minPrice : undefined,
-        maxPrice: filters.maxPrice < 500000 ? filters.maxPrice : undefined,
-        // API Backend của bạn đang nhận List<String> categoryIds, nên map từ number sang string
-        categoryIds: filters.categoryIds.length > 0 ? filters.categoryIds.map(String) : undefined
+        minPrice: displayFilters.minPrice > 0 ? displayFilters.minPrice : undefined,
+        maxPrice: displayFilters.maxPrice < dynamicMaxPrice ? displayFilters.maxPrice : undefined,
+        minRating: displayFilters.minRating || undefined,
+        categoryIds: displayFilters.categoryIds.length > 0 ? displayFilters.categoryIds : undefined,
+        authorIds: displayFilters.authorIds.length > 0 ? displayFilters.authorIds : undefined,
+        publisherIds:
+          displayFilters.publisherIds.length > 0 ? displayFilters.publisherIds : undefined,
+        formats: displayFilters.formats.length > 0 ? displayFilters.formats : undefined,
+        languages: displayFilters.languages.length > 0 ? displayFilters.languages : undefined
       }),
-    staleTime: 2 * 60 * 1000 // Cache 2 phút
+    staleTime: 2 * 60 * 1000
   })
 
-  // Bóc tách dữ liệu từ API trả về (Dựa theo PageResponse của Spring Boot)
   const booksToDisplay = booksResponse?.content || []
   const totalPages = booksResponse?.page?.totalPages || 0
   const totalElements = booksResponse?.page?.totalElements || 0
 
-  // 👉 THÊM MỚI: Báo cáo tổng số kết quả lên component cha (ProductListPage)
   useEffect(() => {
     if (onTotalChange) {
       onTotalChange(totalElements)
     }
   }, [totalElements, onTotalChange])
 
-  // 5. GỌI API LẤY DANH MỤC, TÁC GIẢ CHO SIDEBAR LỌC
-  // (Tạm thời Mock nếu chưa có API, nếu có thì thay bằng useQuery)
-  const { data: categoriesData } = useQuery({
-    queryKey: ['categoriesSidebar'],
-    queryFn: async () => {
-      // return await getCategoriesApi()
-      return [
-        { id: 1, name: 'Văn học' },
-        { id: 2, name: 'Kinh tế' },
-        { id: 3, name: 'Tâm lý - Kỹ năng' }
-      ] // Dữ liệu giả định tạm thời
-    }
+  const { data: authorsData } = useQuery({
+    queryKey: ['authorsSidebar'],
+    queryFn: getAuthorsForFilterApi,
+    staleTime: 5 * 60 * 1000
   })
 
-  // 6. XỬ LÝ SỰ KIỆN
+  const { data: categoriesData } = useQuery({
+    queryKey: ['categoriesSidebar'],
+    queryFn: getCategoriesForFilterApi,
+    staleTime: 5 * 60 * 1000
+  })
+
+  const { data: publishersData } = useQuery({
+    queryKey: ['publishersSidebar'],
+    queryFn: getPublishersForFilterApi,
+    staleTime: 5 * 60 * 1000
+  })
+
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters)
-    setPage(1) // Quay về trang 1 khi đổi bộ lọc
+    setPage(1)
   }
 
   const handleSortChange = (newSort: SortOption) => {
@@ -133,8 +150,8 @@ export default function ProductListArea({ onTotalChange }: ProductListAreaProps)
     setPage(1)
   }
 
-  // 7. HIỂN THỊ TAG ĐANG LỌC
   const activeFilterTags: { label: string; onRemove: () => void }[] = []
+
   if (keyword) {
     activeFilterTags.push({
       label: `Từ khóa: "${keyword}"`,
@@ -145,31 +162,30 @@ export default function ProductListArea({ onTotalChange }: ProductListAreaProps)
       }
     })
   }
-  if (filters.minPrice > 0 || filters.maxPrice < 500000) {
+
+  if (displayFilters.minPrice > 0 || displayFilters.maxPrice < dynamicMaxPrice) {
     activeFilterTags.push({
-      label: `${new Intl.NumberFormat('vi-VN').format(filters.minPrice)}₫ – ${new Intl.NumberFormat('vi-VN').format(filters.maxPrice)}₫`,
-      onRemove: () => handleFilterChange({ ...filters, minPrice: 0, maxPrice: 500000 })
+      label: `${new Intl.NumberFormat('vi-VN').format(displayFilters.minPrice)}₫ – ${new Intl.NumberFormat('vi-VN').format(displayFilters.maxPrice)}₫`,
+      onRemove: () => handleFilterChange({ ...filters, minPrice: 0, maxPrice: 99999999 })
     })
   }
-  // Nếu bạn lọc thêm category thì có thể push thêm tag ở đây
 
   return (
     <div className='max-w-7xl mx-auto px-4 pt-4 pb-12'>
       <div className='flex flex-col lg:flex-row gap-6 items-start'>
-        {/* CỘT TRÁI - SIDEBAR LỌC */}
-        <div className='hidden lg:block w-[260px] shrink-0 sticky top-4'>
+        {/* CỘT TRÁI - SIDEBAR LỌC (Đã mở rộng xl:w-[280px] để Sidebar mới có không gian) */}
+        <div className='hidden lg:block w-[260px] xl:w-[280px] shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
           <ProductFilterSidebar
-            filters={filters}
+            filters={displayFilters}
             onFilterChange={handleFilterChange}
             categories={categoriesData || []}
-            // authors={authorsData}
-            // publishers={publishersData}
+            authors={authorsData || []}
+            publishers={publishersData || []}
+            maxPriceAllowed={dynamicMaxPrice}
           />
         </div>
 
-        {/* CỘT PHẢI - SẢN PHẨM */}
         <div className='flex-1 min-w-0'>
-          {/* Thanh Sắp xếp */}
           <ProductSortBar
             sort={sort}
             onSortChange={handleSortChange}
@@ -179,66 +195,49 @@ export default function ProductListArea({ onTotalChange }: ProductListAreaProps)
             isLoading={booksLoading}
           />
 
-          {/* Lọc trên Mobile */}
-          <div className='mt-3 flex flex-col gap-3'>
+          <div className='mt-4 flex flex-col gap-4'>
             <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant='outline'
-                  className='h-9 px-3 border-gray-200 rounded-lg lg:hidden w-fit'
+                  className='h-10 px-4 border-slate-200 rounded-xl lg:hidden w-fit text-[13px] font-bold text-slate-700 hover:bg-slate-50'
                 >
-                  <SlidersHorizontal className='w-4 h-4 mr-2' /> Lọc
+                  <SlidersHorizontal className='w-4 h-4 mr-2' strokeWidth={2.5} /> Lọc sản phẩm
                 </Button>
               </SheetTrigger>
-              <SheetContent side='left' className='w-80 p-4 overflow-y-auto'>
-                <SheetHeader className='mb-4'>
-                  <SheetTitle>Lọc sản phẩm</SheetTitle>
+              <SheetContent side='left' className='w-[320px] p-0 overflow-y-auto bg-slate-50'>
+                <SheetHeader className='p-5 bg-white border-b border-slate-200 sticky top-0 z-10'>
+                  <SheetTitle className='text-left font-black tracking-tight text-slate-900'>
+                    Bộ Lọc Sản Phẩm
+                  </SheetTitle>
                 </SheetHeader>
-                <ProductFilterSidebar
-                  filters={filters}
-                  onFilterChange={(f) => {
-                    handleFilterChange(f)
-                    setMobileFilterOpen(false)
-                  }}
-                  categories={categoriesData || []}
-                />
+                <div className='p-4'>
+                  <ProductFilterSidebar
+                    filters={displayFilters}
+                    onFilterChange={(f) => {
+                      handleFilterChange(f)
+                      setMobileFilterOpen(false)
+                    }}
+                    categories={categoriesData || []}
+                    authors={authorsData || []}
+                    publishers={publishersData || []}
+                    maxPriceAllowed={dynamicMaxPrice}
+                  />
+                </div>
               </SheetContent>
             </Sheet>
-
-            {/* Tags đang lọc */}
-            {activeFilterTags.length > 0 && (
-              <div className='flex items-center gap-2 flex-wrap'>
-                <span className='text-[10px] font-bold text-gray-400 uppercase'>Đang lọc:</span>
-                {activeFilterTags.map((tag, i) => (
-                  <Badge
-                    key={i}
-                    variant='outline'
-                    className='flex items-center gap-1 text-[11px] border-brand-green/30 text-brand-green bg-brand-green/5'
-                  >
-                    {tag.label}
-                    <button onClick={tag.onRemove} className='ml-1 hover:text-brand-red'>
-                      <X className='w-3 h-3' />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
-
-          {/* Lưới sản phẩm tải từ Backend */}
           {booksLoading ? (
-            <div className='h-[400px] flex items-center justify-center bg-white rounded-xl border border-gray-100 mt-4 shadow-sm'>
-              <div className='flex flex-col items-center gap-2'>
+            <div className='h-[400px] flex items-center justify-center bg-white rounded-2xl border border-slate-200 mt-5 shadow-sm'>
+              <div className='flex flex-col items-center gap-3'>
                 <Loader2 className='w-8 h-8 animate-spin text-brand-green' />
-                <span className='text-sm text-gray-500'>Đang tải sách...</span>
+                <span className='text-[14px] font-semibold text-slate-500'>Đang tải sách...</span>
               </div>
             </div>
           ) : (
-            <div className='mt-4'>
+            <div className='mt-5'>
               <ProductGrid books={booksToDisplay} isLoading={false} viewMode={viewMode} />
-
-              {/* Phân trang */}
-              <div className='mt-10 mb-4 flex justify-center'>
+              <div className='mt-12 mb-6 flex justify-center'>
                 <ProductPagination
                   currentPage={page}
                   totalPages={totalPages}

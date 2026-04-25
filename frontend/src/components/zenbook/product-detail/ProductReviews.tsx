@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Star, ThumbsUp, Flag } from 'lucide-react'
-import type { ReviewItem } from './book.types'
+import type { ReviewItem } from '@/services/book/book.type'
 
 interface ProductReviewsProps {
   bookId: string

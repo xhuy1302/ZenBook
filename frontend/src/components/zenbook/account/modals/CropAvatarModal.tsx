@@ -1,7 +1,5 @@
-// Đường dẫn: src/components/zenbook/account/modals/CropAvatarModal.tsx
-
 import { useState, useCallback } from 'react'
-import Cropper, { type Area } from 'react-easy-crop' // 👉 1. Import type Area từ thư viện
+import Cropper, { type Area } from 'react-easy-crop'
 import {
   Dialog,
   DialogContent,
@@ -12,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { getCroppedImg } from '@/utils/cropImage'
 import { ZoomIn, ZoomOut } from 'lucide-react'
-import { toast } from 'sonner' // 👉 Thêm toast để báo lỗi mượt hơn thay vì chỉ console.error
+import { toast } from 'sonner'
 
 interface CropAvatarModalProps {
   open: boolean
@@ -30,11 +28,9 @@ export default function CropAvatarModal({
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
 
-  // 👉 2. Thay <any> bằng <Area | null>
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
   const [isCropping, setIsCropping] = useState(false)
 
-  // 👉 3. Khai báo kiểu Area cho 2 tham số
   const onCropCompleteHandler = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels)
   }, [])
@@ -47,8 +43,6 @@ export default function CropAvatarModal({
       onCropComplete(croppedFile)
       onOpenChange(false)
     } catch (e: unknown) {
-      // Trong TS, lỗi ở catch mặc định là unknown
-      // 👉 4. Xử lý lỗi chuẩn TypeScript thay vì console.error(e) trực tiếp
       if (e instanceof Error) {
         toast.error(`Lỗi cắt ảnh: ${e.message}`)
       } else {
@@ -61,31 +55,34 @@ export default function CropAvatarModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[500px]'>
+      {/* Đã thêm z-[70] vào DialogContent để đè lên Header (z-[60]) */}
+      <DialogContent className='sm:max-w-[500px] z-[70] rounded-2xl'>
         <DialogHeader>
-          <DialogTitle>Chỉnh sửa ảnh đại diện</DialogTitle>
+          <DialogTitle className='text-[18px]'>Chỉnh sửa ảnh đại diện</DialogTitle>
         </DialogHeader>
 
         {imageSrc ? (
-          <div className='relative w-full h-[300px] bg-black/5 rounded-md overflow-hidden my-4'>
+          <div className='relative w-full h-[300px] bg-slate-50 rounded-xl overflow-hidden my-2 border border-slate-100'>
             <Cropper
               image={imageSrc}
               crop={crop}
               zoom={zoom}
-              aspect={1} // Ép tỉ lệ 1:1 (hình vuông)
-              cropShape='round' // Hiện vùng cắt hình tròn cho trực quan
+              aspect={1}
+              cropShape='round'
               onCropChange={setCrop}
               onCropComplete={onCropCompleteHandler}
               onZoomChange={setZoom}
             />
           </div>
         ) : (
-          <div className='h-[300px] flex items-center justify-center'>Chưa có ảnh</div>
+          <div className='h-[300px] flex items-center justify-center text-slate-400 text-[13px]'>
+            Chưa có ảnh
+          </div>
         )}
 
         {/* Thanh điều khiển Zoom */}
-        <div className='flex items-center gap-3 px-4'>
-          <ZoomOut className='w-4 h-4 text-muted-foreground' />
+        <div className='flex items-center gap-3 px-4 py-2'>
+          <ZoomOut className='w-4 h-4 text-slate-500' />
           <input
             type='range'
             value={zoom}
@@ -93,19 +90,24 @@ export default function CropAvatarModal({
             max={3}
             step={0.1}
             onChange={(e) => setZoom(Number(e.target.value))}
-            className='flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-brand-green'
+            className='flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-green'
           />
-          <ZoomIn className='w-4 h-4 text-muted-foreground' />
+          <ZoomIn className='w-4 h-4 text-slate-500' />
         </div>
 
-        <DialogFooter className='mt-4'>
-          <Button variant='outline' onClick={() => onOpenChange(false)} disabled={isCropping}>
+        <DialogFooter className='mt-2'>
+          <Button
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+            disabled={isCropping}
+            className='h-10 rounded-xl px-6 text-[13px] font-bold border-slate-200'
+          >
             Hủy
           </Button>
           <Button
             onClick={handleSave}
             disabled={isCropping}
-            className='bg-brand-green hover:bg-brand-green-dark text-primary-foreground'
+            className='bg-brand-green hover:bg-brand-green-dark text-white h-10 rounded-xl px-6 text-[13px] font-bold shadow-md shadow-brand-green/20'
           >
             {isCropping ? 'Đang xử lý...' : 'Xác nhận & Tải lên'}
           </Button>

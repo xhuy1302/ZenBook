@@ -21,5 +21,10 @@
     <include file="classpath:db/changelog/changes/014-create-table-coupons.xml"/>
     <include file="classpath:db/changelog/changes/015-create-table-news.xml"/>
     <include file="classpath:db/changelog/changes/016-create-table-user_address.xml"/>
-    <include file="classpath:db/changelog/changes/17-add-gender-dob-to-users.xml"/>
+    <include file="classpath:db/changelog/changes/017-add-gender-dob-to-users.xml"/>
+    <include file="classpath:db/changelog/changes/018-create-table-carts.xml"/>
+    <include file="classpath:db/changelog/changes/019-add-coupon-type.xml"/>
+    <include file="classpath:db/changelog/changes/20-add-id-ghn.xml"/>
+    <include file="classpath:db/changelog/changes/21-create-table-suppliers.xml"/>
+    <include file="classpath:db/changelog/changes/22-add-note-receipt-detail.xml"/>
 </databaseChangeLog>

@@ -41,3 +41,9 @@ export type UpdateAuthorResponse = {
   avatar?: string | null
   status: AuthorStatus
 }
+
+export interface AuthorFilterResponse {
+  id: string
+  name: string
+  count: number
+}

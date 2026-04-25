@@ -22,4 +22,6 @@ public class ReceiptDetailRequest {
     @NotNull(message = "Giá nhập không được để trống")
     @Min(value = 0, message = "Giá nhập không được nhỏ hơn 0")
     private Double importPrice;
+
+    private String note;
 }

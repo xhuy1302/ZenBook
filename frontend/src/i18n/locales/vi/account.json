@@ -161,6 +161,13 @@
     "shopNow": "Mua sắm ngay",
     "details": "Chi tiết",
     "itemCount": "{{count}} sản phẩm",
+    "totalCount": "Tổng",
+    "searchPlaceholder": "Tìm kiếm theo mã đơn hàng...",
+    "page": "Trang",
+    "noItems": "Không có thông tin sản phẩm",
+    "moreItems": "sản phẩm khác...",
+    "returnExpiredHint": "Hết hạn hoàn trả",
+    "quantity": "Số lượng",
     "columns": {
       "code": "Mã đơn",
       "date": "Ngày đặt",
@@ -170,10 +177,73 @@
       "actions": "Thao tác"
     },
     "status": {
+      "all": "Tất cả",
       "pending": "Chờ xác nhận",
+      "confirmed": "Đã xác nhận",
+      "packing": "Đang đóng gói",
       "shipping": "Đang giao",
       "completed": "Hoàn thành",
-      "cancelled": "Đã huỷ"
+      "cancelled": "Đã huỷ",
+      "returned": "Hoàn trả"
+    },
+    "actions": {
+      "cancel": "Hủy đơn",
+      "confirm": "Đã nhận hàng",
+      "return": "Hoàn trả",
+      "details": "Chi tiết"
+    },
+    "dialog": {
+      "cancel": {
+        "title": "Xác nhận hủy đơn hàng",
+        "desc": "Đơn hàng đang ở trạng thái chờ xác nhận. Bạn có chắc muốn hủy không?",
+        "label": "Lý do hủy (không bắt buộc)",
+        "placeholder": "Nhập lý do hủy...",
+        "keep": "Giữ lại",
+        "confirm": "Xác nhận hủy"
+      },
+      "confirm": {
+        "title": "Xác nhận đã nhận hàng",
+        "desc": "Bạn xác nhận đã nhận được hàng và hài lòng? Sau khi xác nhận, bạn có thể yêu cầu hoàn trả trong vòng 7 ngày nếu có lỗi.",
+        "notYet": "Chưa nhận được",
+        "action": "Đã nhận hàng"
+      },
+      "return": {
+        "title": "Yêu cầu hoàn trả hàng",
+        "desc": "Nếu sản phẩm bị lỗi, bạn có thể yêu cầu hoàn trả trong vòng 7 ngày kể từ ngày nhận hàng.",
+        "label": "Lý do hoàn trả",
+        "placeholder": "Mô tả lý do hoàn trả...",
+        "errorRequired": "Vui lòng nhập lý do hoàn trả.",
+        "cancel": "Hủy bỏ",
+        "confirm": "Gửi yêu cầu"
+      }
+    },
+    "mutation": {
+      "cancelDefault": "Người dùng tự hủy",
+      "cancelSuccess": "Đã hủy đơn hàng thành công!",
+      "cancelError": "Không thể hủy đơn hàng. Vui lòng thử lại.",
+      "confirmNote": "Khách hàng xác nhận đã nhận hàng",
+      "confirmSuccess": "Xác nhận nhận hàng thành công!",
+      "confirmError": "Không thể xác nhận. Vui lòng thử lại.",
+      "returnSuccess": "Yêu cầu hoàn trả đã được gửi!",
+      "returnError": "Không thể gửi yêu cầu hoàn trả."
+    },
+    "detail": {
+      "errorLoad": "Lỗi tải đơn hàng",
+      "back": "Quay lại",
+      "total": "Tổng",
+      "history": "Lịch sử đơn hàng",
+      "products": "Sản phẩm",
+      "evaluate": "Đánh giá",
+      "shipping": "Giao hàng",
+      "payment": "Thanh toán",
+      "subtotal": "Tạm tính",
+      "shippingFee": "Phí ship",
+      "discount": "Giảm giá",
+      "finalTotal": "Tổng",
+      "cancelOrder": "Huỷ đơn",
+      "trackOrder": "Theo dõi",
+      "buyAgain": "Mua lại",
+      "emptyImage": "Không có ảnh"
     }
   }
 }

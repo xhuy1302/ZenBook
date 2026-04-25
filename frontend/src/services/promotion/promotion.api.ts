@@ -3,7 +3,7 @@ import type { PromotionRequest, PromotionResponse } from '@/services/promotion/p
 
 export const getActiveFlashSaleApi = async () => {
   const res = await api.get('/promotions/flash-sale/active')
-  return res.data.data
+  return res.data.data ?? null
 }
 
 // ==========================================

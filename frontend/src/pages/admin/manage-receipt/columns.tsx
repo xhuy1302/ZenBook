@@ -7,7 +7,6 @@ import { ReceiptStatusBadge } from '@/components/admin/data/manage-receipt/Recei
 import { ReceiptActionsCell } from '@/components/admin/action/ReceiptAction'
 import { format, isValid } from 'date-fns'
 
-// Hàm helper để format ngày an toàn
 const safeFormatDate = (dateString?: string | null) => {
   if (!dateString) return '---'
   if (dateString.includes('-') && !dateString.includes('T')) return dateString
@@ -16,7 +15,6 @@ const safeFormatDate = (dateString?: string | null) => {
 }
 
 export const getColumns = (t: TFunction<'receipt'>): ColumnDef<ReceiptResponse>[] => [
-  // 🟢 CỘT CHECKBOX (THÊM MỚI)
   {
     id: 'select',
     header: ({ table }) => (
@@ -43,7 +41,6 @@ export const getColumns = (t: TFunction<'receipt'>): ColumnDef<ReceiptResponse>[
     enableSorting: false,
     enableHiding: false
   },
-  // Các cột hiện có (giữ nguyên)
   {
     accessorKey: 'receiptCode',
     header: ({ column }) => (
@@ -59,21 +56,22 @@ export const getColumns = (t: TFunction<'receipt'>): ColumnDef<ReceiptResponse>[
       </div>
     )
   },
+  // 👉 ĐÃ SỬA: publisherName -> supplierName
   {
-    accessorKey: 'publisherName',
+    accessorKey: 'supplierName',
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
-        title={t('table.publisher', 'Nhà xuất bản')}
+        title={t('table.supplier', 'Nhà cung cấp')}
         className='justify-center'
       />
     ),
     cell: ({ row }) => (
       <div
         className='text-center mx-auto max-w-[200px] lg:max-w-[250px] truncate font-medium'
-        title={row.original.publisherName}
+        title={row.original.supplierName}
       >
-        {row.original.publisherName}
+        {row.original.supplierName}
       </div>
     )
   },

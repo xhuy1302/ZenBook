@@ -1,6 +1,7 @@
 package com.haui.ZenBook.service;
 
 import com.haui.ZenBook.dto.author.AuthorCreationRequest;
+import com.haui.ZenBook.dto.author.AuthorFilterResponse;
 import com.haui.ZenBook.dto.author.AuthorUpdateRequest;
 import com.haui.ZenBook.dto.author.AuthorResponse;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,5 +34,6 @@ public interface AuthorService {
 
     String updateAvatar(String authorId, MultipartFile file);
 
+    List<AuthorFilterResponse> getAuthorsForFilter();
     // TODO:
 }

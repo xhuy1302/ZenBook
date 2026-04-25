@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table'
 
 import { Badge } from '@/components/ui/badge'
-import { CalendarDays, User, Store, FileText, Hash } from 'lucide-react'
+import { CalendarDays, User, Truck, FileText, Hash } from 'lucide-react'
 
 import type { ReceiptResponse } from '@/services/receipt/receipt.type'
 import { ReceiptStatusBadge } from '../ReceiptStatusBadge'
@@ -65,20 +65,20 @@ export function ViewReceiptDialog({ open, onOpenChange, receipt }: ViewReceiptDi
         </DialogHeader>
 
         <div className='flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar'>
-          {/* THÔNG TIN CHUNG: Dùng Flex với Label cố định để căn lề thẳng đứng */}
+          {/* THÔNG TIN CHUNG */}
           <div className='grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4 bg-muted/10 p-5 rounded-xl border border-dashed'>
             {/* Cột trái */}
             <div className='space-y-4'>
               <div className='flex items-center gap-3'>
                 <div className='flex items-center gap-2 text-muted-foreground w-32 shrink-0'>
-                  <Store className='w-4 h-4' />
+                  <Truck className='w-4 h-4' />
                   <span className='text-xs font-bold uppercase'>
-                    {/* 👉 Đã sửa thành NXB và key publisher */}
-                    {t('receipt.table.publisher', 'NXB')}
+                    {/* 👉 ĐÃ SỬA: Key supplier */}
+                    {t('receipt.table.supplier', 'Nhà cung cấp')}
                   </span>
                 </div>
-                {/* 👉 Đã sửa thành publisherName */}
-                <span className='text-sm font-bold text-foreground'>: {receipt.publisherName}</span>
+                {/* 👉 ĐÃ SỬA: Truy xuất supplierName */}
+                <span className='text-sm font-bold text-foreground'>: {receipt.supplierName}</span>
               </div>
 
               <div className='flex items-center gap-3'>
@@ -122,7 +122,7 @@ export function ViewReceiptDialog({ open, onOpenChange, receipt }: ViewReceiptDi
               </div>
             </div>
 
-            {/* Ghi chú nằm ngang bên dưới */}
+            {/* Ghi chú */}
             {receipt.note && (
               <div className='col-span-full pt-2 mt-2 border-t border-dashed flex items-start gap-3'>
                 <div className='flex items-center gap-2 text-muted-foreground w-32 shrink-0'>
@@ -136,7 +136,7 @@ export function ViewReceiptDialog({ open, onOpenChange, receipt }: ViewReceiptDi
             )}
           </div>
 
-          {/* BẢNG CHI TIẾT */}
+          {/* BẢNG CHI TIẾT DANH SÁCH MẶT HÀNG */}
           <div className='space-y-4'>
             <h3 className='text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2'>
               <span className='w-1.5 h-1.5 rounded-full bg-primary' />
