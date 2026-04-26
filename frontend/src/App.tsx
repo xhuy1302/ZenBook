@@ -23,6 +23,7 @@ import TagPage from './pages/admin/manage-tag/page'
 import CouponPage from './pages/admin/manage-coupon/page'
 import NewsPage from './pages/admin/manage-news/page'
 import SuplierPage from './pages/admin/manage-supplier/page'
+import ReviewPage from './pages/admin/manage-review/page'
 
 // 👉 IMPORT THÊM CÁC TAB CỦA ACCOUNT PAGE
 import ProfileTab from '@/components/zenbook/account/Profiletab'
@@ -103,6 +104,7 @@ function App() {
               <Route path='coupons' element={<CouponPage />} />
               <Route path='news' element={<NewsPage />} />
               <Route path='suppliers' element={<SuplierPage />} />
+              <Route path='reviews' element={<ReviewPage />} />
             </Route>
           </Route>
         </Routes>

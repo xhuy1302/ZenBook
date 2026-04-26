@@ -1,0 +1,74 @@
+{
+  "title": "Review Management",
+  "filters": {
+    "search": "Search review content...",
+    "status": {
+      "label": "Status",
+      "all": "All Statuses",
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "rating": {
+      "label": "Rating",
+      "all": "All Ratings",
+      "1": "1 Star",
+      "2": "2 Stars",
+      "3": "3 Stars",
+      "4": "4 Stars",
+      "5": "5 Stars"
+    },
+    "reset": "Reset"
+  },
+  "table": {
+    "columns": {
+      "review": "Review",
+      "book": "Product",
+      "user": "User",
+      "status": "Status",
+      "createdAt": "Created At",
+      "actions": "Actions"
+    },
+    "noResults": "No reviews found."
+  },
+  "actions": {
+    "view": "View Details",
+    "approve": "Approve",
+    "reject": "Reject / Hide",
+    "reply": "Reply to Customer",
+    "delete": "Delete Review"
+  },
+  "status": {
+    "PENDING": "Pending",
+    "APPROVED": "Approved",
+    "REJECTED": "Rejected"
+  },
+  "dialog": {
+    "view": {
+      "title": "Review Details",
+      "productInfo": "Product",
+      "userInfo": "Customer",
+      "content": "Content",
+      "images": "Attached Images",
+      "reply": "Store Reply",
+      "close": "Close"
+    },
+    "status": {
+      "approveTitle": "Approve Review",
+      "approveDesc": "Are you sure you want to approve this review? The product's average rating will be recalculated.",
+      "rejectTitle": "Reject / Hide Review",
+      "rejectDesc": "This review will be hidden from the product page. Are you sure?",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "reply": {
+      "title": "Reply to Customer",
+      "desc": "Your reply will be displayed publicly below this review.",
+      "placeholder": "Enter your thank you message or support answer...",
+      "send": "Send Reply",
+      "update": "Update Reply",
+      "cancel": "Cancel",
+      "require": "Please enter the reply content!"
+    }
+  }
+}

@@ -131,4 +131,12 @@ public class UserEntity extends BaseEntity implements UserDetails {
     public boolean isEnabled() {
         return status == null || status == UserStatus.ACTIVE;
     }
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<ReviewEntity> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<ReviewHelpfulVoteEntity> helpfulVotes = new ArrayList<>();
 }

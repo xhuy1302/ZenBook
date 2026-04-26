@@ -146,7 +146,12 @@ public enum ErrorCode {
     SUPPLIER_NAME_NOTBLANK(15001, "supplier.name.not.blank", HttpStatus.BAD_REQUEST),
     SUPPLIER_EMAIL_EXISTED(15002, "supplier.email.exists", HttpStatus.BAD_REQUEST),
     SUPPLIER_TAX_CODE_EXISTED(15003, "supplier.tax.code.exists", HttpStatus.BAD_REQUEST),
-    SUPPLIER_CANNOT_DELETE(15004, "supplier.cannot.delete", HttpStatus.BAD_REQUEST);
+    SUPPLIER_CANNOT_DELETE(15004, "supplier.cannot.delete", HttpStatus.BAD_REQUEST),
+
+    // ================= LỖI REVIEW / RATING (1600x) =================
+    REVIEW_NOT_FOUND(16000, "review.not.found", HttpStatus.NOT_FOUND),
+    REVIEW_ALREADY_REPLIED(16001, "review.already.replied", HttpStatus.BAD_REQUEST),
+    REVIEW_REPLY_NOT_FOUND(16002, "review.reply.not.found", HttpStatus.NOT_FOUND);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

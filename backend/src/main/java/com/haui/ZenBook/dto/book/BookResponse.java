@@ -49,7 +49,7 @@ public class BookResponse {
 
 
     private Double rating;
-    private Integer reviews;
+    private Integer totalReviews;
     private Integer views;
     private String award;
     private Integer discount;
