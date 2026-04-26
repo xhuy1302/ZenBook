@@ -26,6 +26,7 @@ public interface OrderMapper {
 
     // 2. Map Entity Chi tiết -> DTO Chi tiết
     @Mapping(source = "book.id", target = "bookId")
+    @Mapping(source = "book.slug", target = "bookSlug")
     @Mapping(source = "book.title", target = "bookTitle")
     @Mapping(source = "book.thumbnail", target = "bookImage")
     OrderDetailResponse toOrderDetailResponse(OrderDetailEntity entity);

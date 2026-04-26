@@ -226,6 +226,14 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.getCategoriesForFilter();
     }
 
+    @Override
+    public List<CategoryResponse> getAllActiveCategories() {
+        return categoryRepository.findAllByDeletedAtIsNullOrderByCategoryNameAsc()
+                .stream()
+                .map(categoryMapper::toResponse) // Gọi mapper của bạn ở đây
+                .collect(Collectors.toList());
+    }
+
     private boolean isCircularReference(String currentCategoryId, String newParentId) {
         String checkId = newParentId;
 

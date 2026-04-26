@@ -16,6 +16,7 @@ import com.haui.ZenBook.mapper.OrderMapper;
 import com.haui.ZenBook.repository.AddressRepository;
 import com.haui.ZenBook.repository.BookRepository;
 import com.haui.ZenBook.repository.OrderRepository;
+import com.haui.ZenBook.repository.ReviewRepository;
 import com.haui.ZenBook.shipping.GHNShippingProvider;
 import com.haui.ZenBook.shipping.ShippingCalculator;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
     private final GHNShippingProvider ghnShippingProvider;
     private final CouponService couponService;
     private final PromotionService promotionService;
+    private final ReviewRepository reviewRepository;
 
     private static final String PAYMENT_METHOD_COD = "COD";
     private static final String PAYMENT_METHOD_VNPAY = "VNPAY";
@@ -279,15 +281,22 @@ public class OrderServiceImpl implements OrderService {
     public Page<OrderResponse> getMyOrders(String userId, OrderStatus status, Pageable p) {
         if (status != null) {
             return orderRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, status, p)
-                    .map(orderMapper::toOrderResponse);
+                    .map(orderMapper::toOrderResponse)
+                    .map(this::enrichOrderResponse); // 👉 THÊM DÒNG NÀY
         }
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId, p)
-                .map(orderMapper::toOrderResponse);
+                .map(orderMapper::toOrderResponse)
+                .map(this::enrichOrderResponse); // 👉 THÊM DÒNG NÀY
     }
 
     @Override
     public OrderResponse getOrderById(String id) {
-        return orderRepository.findById(id).map(orderMapper::toOrderResponse).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        OrderResponse response = orderRepository.findById(id)
+                .map(orderMapper::toOrderResponse)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+        // 👉 GỌI HÀM BỔ SUNG TRƯỚC KHI TRẢ VỀ
+        return enrichOrderResponse(response);
     }
 
     @Override
@@ -301,5 +310,21 @@ public class OrderServiceImpl implements OrderService {
         String max = orderRepository.findMaxOrderCodeByDate(prefix);
         int next = (max == null) ? 1 : Integer.parseInt(max.substring(max.lastIndexOf("-") + 1)) + 1;
         return String.format("%s-%03d", prefix, next);
+    }
+    private OrderResponse enrichOrderResponse(OrderResponse response) {
+        if (response == null || response.getDetails() == null || response.getUserId() == null) {
+            return response;
+        }
+
+        response.getDetails().forEach(detail -> {
+            // 👉 ĐỔI TỪ KIỂM TRA THEO BOOK & USER SANG KIỂM TRA THEO ORDER_DETAIL_ID
+            boolean hasReviewed = reviewRepository.existsByOrderDetailIdAndDeletedAtIsNull(
+                    detail.getId() // detail.getId() chính là OrderDetailId
+            );
+
+            detail.setIsReviewed(hasReviewed);
+        });
+
+        return response;
     }
 }

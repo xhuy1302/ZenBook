@@ -50,6 +50,9 @@ public class ReviewEntity extends BaseEntity {
     // ==========================================
     // QUAN HỆ VỚI CÁC BẢNG VỆ TINH (REVIEW MODULE)
     // ==========================================
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="order_detail_id", nullable=false)
+    private OrderDetailEntity orderDetail;
 
     // 1-Nhiều với ReviewImage
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

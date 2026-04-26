@@ -3,6 +3,7 @@ package com.haui.ZenBook.service;
 import com.haui.ZenBook.S3Client.S3Service;
 import com.haui.ZenBook.dto.news.NewsRequest;
 import com.haui.ZenBook.dto.news.NewsResponse;
+import com.haui.ZenBook.dto.news.NewsStatsResponse;
 import com.haui.ZenBook.entity.*;
 import com.haui.ZenBook.enums.NewsStatus;
 import com.haui.ZenBook.exception.AppException;
@@ -14,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.io.IOException;
 import java.text.Normalizer;
@@ -39,8 +44,15 @@ public class NewsServiceImpl implements NewsService {
     // ================= HELPER: TẠO SLUG TỪ TITLE =================
     private String generateSlug(String title) {
         String normalized = Normalizer.normalize(title, Normalizer.Form.NFD);
-        String noAccent = Pattern.compile("\\p{InCombiningDiacriticalMarks}+").matcher(normalized).replaceAll("");
-        String slug = noAccent.replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll("\\s+", "-").toLowerCase();
+        String noAccent = Pattern.compile("\\p{InCombiningDiacriticalMarks}+")
+                .matcher(normalized)
+                .replaceAll("");
+
+        String slug = noAccent
+                .replaceAll("[^a-zA-Z0-9\\s]", "")
+                .replaceAll("\\s+", "-")
+                .toLowerCase();
+
         return slug;
     }
 
@@ -219,5 +231,56 @@ public class NewsServiceImpl implements NewsService {
     public List<NewsResponse> getNewsInTrash() {
         return newsRepository.findAllByDeletedAtIsNotNullOrderByDeletedAtDesc()
                 .stream().map(newsMapper::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<NewsResponse> getPublicNews(String search, String categoryId, int page, int limit) {
+        // Page trong Spring Data bắt đầu từ 0
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+
+        Page<NewsEntity> newsPage = newsRepository.findPublicNews(categoryId, search, pageable);
+        return newsPage.map(newsMapper::toResponse);
+    }
+
+    @Override
+    public NewsStatsResponse getNewsStats() {
+        long totalPosts = newsRepository.countByDeletedAtIsNullAndStatus(NewsStatus.PUBLISHED);
+        long trendingPosts = newsRepository.countByDeletedAtIsNullAndStatusAndIsTrendingTrue(NewsStatus.PUBLISHED);
+        Long totalViews = newsRepository.sumTotalViews();
+
+        return NewsStatsResponse.builder()
+                .totalPosts(totalPosts)
+                .trendingPosts(trendingPosts)
+                .totalViews(totalViews != null ? totalViews : 0L)
+                .build();
+    }
+
+    @Override
+    public List<NewsResponse> getFeaturedNews() {
+        return newsRepository.findTop5ByDeletedAtIsNullAndStatusAndIsFeaturedTrueOrderByCreatedAtDesc(NewsStatus.PUBLISHED)
+                .stream()
+                .map(newsMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void incrementViewCount(String id) {
+        if (!newsRepository.existsById(id)) {
+            throw new AppException(ErrorCode.NEWS_NOT_FOUND, id);
+        }
+        newsRepository.incrementViewCount(id);
+    }
+
+    @Override
+    @Transactional
+    public NewsResponse getNewsBySlug(String slug) {
+        NewsEntity news = newsRepository.findBySlugAndDeletedAtIsNull(slug)
+                .orElseThrow(() -> new AppException(ErrorCode.NEWS_NOT_FOUND, slug));
+
+        news.setViewCount(news.getViewCount() + 1);
+        newsRepository.save(news);
+
+        return newsMapper.toResponse(news);
     }
 }

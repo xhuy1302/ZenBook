@@ -39,6 +39,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/customer/**").permitAll()
                         .requestMatchers("/api/v1/address/**").permitAll()
                         .requestMatchers("/api/v1/payment/vnpay/ipn").permitAll() // Webhook VNPAY
+                        .requestMatchers(HttpMethod.GET, "/api/v1/public/news/**").permitAll() // Lấy list, chi tiết, stats, featured
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/public/news/*/view").permitAll() // Tăng lượt xem công khai
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+                        // Cho phép xem danh sách review public
+                        .requestMatchers(HttpMethod.GET, "/api/v1/books/*/reviews").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/news", "/api/v1/news/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**").permitAll()
 
                         // ==========================================
                         // 2. ĐẶC QUYỀN ADMIN (CHỈ ADMIN ĐƯỢC PHÉP TRUY CẬP)

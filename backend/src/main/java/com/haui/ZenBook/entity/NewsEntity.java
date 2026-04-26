@@ -82,4 +82,10 @@ public class NewsEntity extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "book_id")
     )
     private Set<BookEntity> books;
+
+    @Column(name = "is_featured")
+    private Boolean isFeatured;
+
+    @Column(name = "is_trending")
+    private Boolean isTrending;
 }

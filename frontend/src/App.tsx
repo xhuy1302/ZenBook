@@ -29,6 +29,9 @@ import ReviewPage from './pages/admin/manage-review/page'
 import ProfileTab from '@/components/zenbook/account/Profiletab'
 import OrdersTab from '@/components/zenbook/account/Orderstab'
 import AddressTab from '@/components/zenbook/account/Addresstab'
+import MyReview from '@/components/zenbook/account/MyReviews'
+import BlogPage from './components/zenbook/blog/Blog'
+import BlogDetailPage from './components/zenbook/blog/BlogDetail'
 import CheckoutPage from '@/pages/client/checkout/CheckoutPage'
 import OrderSuccessPage from './pages/client/order/OrderSuccessPage'
 import OrderDetail from './components/zenbook/account/modals/OrderDetail'
@@ -60,6 +63,8 @@ function App() {
           <Route element={<LayoutClient />}>
             {/* CÁC ROUTE PUBLIC (Ai cũng xem được) */}
             <Route path='/' element={<HomePage />} />
+            <Route path='/blog' element={<BlogPage />} />
+            <Route path='/blog/:slug' element={<BlogDetailPage />} />
             <Route path='/products' element={<ProductListPage />} />
             <Route path='/search' element={<ProductListPage />} />
             <Route path='/products/:slug' element={<ProductDetailPage />} />
@@ -82,6 +87,7 @@ function App() {
                 <Route path='orders' element={<OrdersTab />} />
                 <Route path='orders/:id' element={<OrderDetail />} />
                 <Route path='address' element={<AddressTab />} />
+                <Route path='myreviews' element={<MyReview />} />
               </Route>
             </Route>
           </Route>

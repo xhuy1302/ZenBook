@@ -38,5 +38,5 @@ public interface CategoryService {
 
     List<CategoryFilterResponse> getCategoriesForFilter();
 
-
+    List<CategoryResponse> getAllActiveCategories();
 }

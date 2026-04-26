@@ -47,10 +47,21 @@ public class BookController {
                 .build();
     }
 
-    @GetMapping("/{slug}")
-    public ApiResponse<BookResponse> getBookDetails(@PathVariable String slug) {
+    // Đổi tên biến thành slugOrId cho chuẩn ngữ nghĩa
+    @GetMapping("/{slugOrId}")
+    public ApiResponse<BookResponse> getBookDetails(@PathVariable String slugOrId) {
+        BookResponse book;
+
+        try {
+            // 1. Ưu tiên thử tìm theo Slug trước
+            book = bookService.getBookBySlug(slugOrId);
+        } catch (Exception e) {
+            // 2. Nếu tìm Slug không thấy (bắn lỗi Not Found), tự động quay xe tìm theo ID
+            book = bookService.getBookById(slugOrId);
+        }
+
         return ApiResponse.<BookResponse>builder()
-                .data(bookService.getBookBySlug(slug))
+                .data(book)
                 .message(messageSource.getMessage("book.get_detail.success", null, LocaleContextHolder.getLocale()))
                 .build();
     }

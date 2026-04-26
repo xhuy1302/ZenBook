@@ -240,7 +240,7 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-[60] w-full bg-white shadow-sm border-b border-slate-100 transition-transform duration-300 ease-in-out ${
+      className={`sticky top-0 z-[30] w-full bg-white shadow-sm border-b border-slate-100 transition-transform duration-300 ease-in-out ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >

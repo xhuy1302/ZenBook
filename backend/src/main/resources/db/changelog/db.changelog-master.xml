@@ -30,4 +30,7 @@
     <include file="classpath:db/changelog/changes/24-create-table-review-images.xml"/>
     <include file="classpath:db/changelog/changes/25-create-table-review-repliers.xml"/>
     <include file="classpath:db/changelog/changes/26-create-table-review-helpful-votes.xml"/>
+    <include file="classpath:db/changelog/changes/27-add-updated_at-review-helpful-votes.xml"/>
+    <include file="classpath:db/changelog/changes/28-add-order_detail_id-reviews.xml"/>
+    <include file="classpath:db/changelog/changes/29-add-news.xml"/>
 </databaseChangeLog>
