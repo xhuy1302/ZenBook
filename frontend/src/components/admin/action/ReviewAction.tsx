@@ -26,8 +26,8 @@ import {
 import { ReviewStatus } from '@/defines/review.enum'
 import type { ReviewSummaryResponse } from '@/services/review/review.type'
 
-import { ReviewDetailDialog } from '@/components/admin/data/manage-review/dialog/Reviewdetaildialog'
-import { ReviewStatusDialog } from '@/components/admin/data/manage-review/dialog/Reviewstatusdialog'
+import { ReviewDetailDialog } from '@/components/admin/data/manage-review/dialog/ReviewDetailDialog'
+import { ReviewStatusDialog } from '@/components/admin/data/manage-review/dialog/ReviewStatusDialog'
 import { ReviewReplyDialog } from '@/components/admin/data/manage-review/dialog/ReviewReplyDialog'
 
 type ActiveDialog = 'detail' | 'status' | 'reply' | null

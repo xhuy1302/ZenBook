@@ -48,4 +48,6 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, String
     List<CategoryFilterResponse> getCategoriesForFilter();
 
     List<CategoryEntity> findByParentIdIsNullAndStatusOrderByDisplayOrderAsc(CategoryStatus status);
+
+    List<CategoryEntity> findAllByDeletedAtIsNullOrderByCategoryNameAsc();
 }

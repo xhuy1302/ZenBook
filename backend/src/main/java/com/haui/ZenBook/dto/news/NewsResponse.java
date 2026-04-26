@@ -30,6 +30,9 @@ public class NewsResponse {
     private String categoryId;
     private String categoryName;
 
+    private Boolean isFeatured;
+    private Boolean isTrending;
+
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime publishedAt;
 

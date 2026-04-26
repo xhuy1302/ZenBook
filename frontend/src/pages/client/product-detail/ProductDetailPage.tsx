@@ -55,6 +55,10 @@ export default function ProductDetailPage() {
   const { addItem } = useCart()
   const [quantity, setQuantity] = useState(1)
 
+  // LẤY THÔNG TIN USER ĐANG ĐĂNG NHẬP (Sửa lại key localStorage hoặc dùng Redux/Context tùy dự án của bạn)
+  const storedUser = localStorage.getItem('user') // ví dụ: 'user' hoặc 'userInfo'
+  const currentUser = storedUser ? JSON.parse(storedUser) : null
+
   const {
     data: bookData,
     isLoading,
@@ -171,13 +175,9 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
+              {/* TRUYỀN THÊM currentUserId VÀO COMPONENT NÀY */}
               <section className='bg-white rounded border border-gray-100 p-5'>
-                <ProductReviews
-                  bookId={bookData.id}
-                  rating={bookData.rating}
-                  reviewsCount={bookData.reviews}
-                  items={[]}
-                />
+                <ProductReviews bookId={bookData.id} currentUserId={currentUser?.id} />
               </section>
 
               <section className='bg-white rounded border border-gray-100 p-5'>

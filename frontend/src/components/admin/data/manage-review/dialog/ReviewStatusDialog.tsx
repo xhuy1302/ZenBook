@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { updateReviewStatusApi } from '@/services/review/review.api'
 import type { ReviewStatus } from '@/defines/review.enum'
 import type { ReviewStatusFormValues } from '../schema/ReviewStatus.schema'
-import { ReviewStatusForm } from '../form/Reviewstatusform'
+import { ReviewStatusForm } from '../form/ReviewStatusForm'
 
 interface ReviewStatusDialogProps {
   open: boolean

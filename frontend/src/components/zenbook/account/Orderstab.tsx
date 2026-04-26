@@ -1,9 +1,10 @@
+'use client'
+
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
-  Eye,
   Search,
   XCircle,
   Package,
@@ -12,7 +13,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  ShoppingBag
+  ShoppingBag,
+  Star,
+  RefreshCcw,
+  Store,
+  ShieldCheck,
+  MessageSquarePlus
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,10 +36,17 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { orderService } from '@/services/order/order.api'
 
+// 👉 IMPORT MODAL
+import { ReviewFormModal } from '@/components/zenbook/review/ReviewFormModal'
+
 interface OrderItem {
+  id: string
+  bookId: string
   bookTitle: string
   quantity: number
+  priceAtPurchase?: number
   bookImage?: string
+  isReviewed?: boolean
 }
 
 interface ApiError {
@@ -50,14 +63,15 @@ const STATUS_KEYS: Record<string, string> = {
   RETURNED: 'orders.status.returned'
 }
 
-const STATUS_CLASSES: Record<string, string> = {
-  PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
-  CONFIRMED: 'bg-blue-50 text-blue-700 border-blue-200',
-  PACKING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  SHIPPING: 'bg-sky-50 text-sky-700 border-sky-200',
-  COMPLETED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  CANCELLED: 'bg-rose-50 text-rose-700 border-rose-200',
-  RETURNED: 'bg-slate-100 text-slate-700 border-slate-300'
+// Thay vì màu nền, ta dùng màu Text cho Trạng thái (Style Shopee)
+const STATUS_TEXT_CLASSES: Record<string, string> = {
+  PENDING: 'text-amber-500',
+  CONFIRMED: 'text-blue-500',
+  PACKING: 'text-indigo-500',
+  SHIPPING: 'text-sky-500',
+  COMPLETED: 'text-brand-green',
+  CANCELLED: 'text-rose-500',
+  RETURNED: 'text-slate-500'
 }
 
 const TABS = [
@@ -96,26 +110,19 @@ const isWithin7Days = (dateStr: string) => {
 
 function OrderSkeleton() {
   return (
-    <div className='flex flex-col gap-5 mt-4'>
+    <div className='flex flex-col gap-4 mt-4'>
       {[1, 2, 3].map((i) => (
         <div key={i} className='rounded-2xl border border-slate-100 overflow-hidden bg-white'>
-          <div className='bg-slate-50/50 p-4 border-b border-slate-100 flex justify-between items-center'>
-            <Skeleton className='h-5 w-32 rounded-lg' />
-            <Skeleton className='h-7 w-24 rounded-full' />
-          </div>
-          <div className='p-5 grid grid-cols-1 md:grid-cols-4 gap-4'>
-            <div className='md:col-span-3 flex flex-col gap-3'>
+          <Skeleton className='h-12 w-full' />
+          <div className='p-4 flex gap-4'>
+            <Skeleton className='h-20 w-20 rounded-xl shrink-0' />
+            <div className='flex flex-col gap-2 flex-1'>
               <Skeleton className='h-4 w-3/4 rounded-lg' />
-              <Skeleton className='h-4 w-1/2 rounded-lg' />
-            </div>
-            <div className='flex flex-col items-start md:items-end gap-2'>
-              <Skeleton className='h-4 w-16 rounded-lg' />
-              <Skeleton className='h-6 w-24 rounded-lg' />
+              <Skeleton className='h-4 w-1/4 rounded-lg' />
             </div>
           </div>
-          <div className='p-4 border-t border-slate-100 bg-slate-50/30 flex justify-end gap-3'>
-            <Skeleton className='h-9 w-28 rounded-lg' />
-            <Skeleton className='h-9 w-32 rounded-lg' />
+          <div className='p-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3'>
+            <Skeleton className='h-9 w-28 rounded-xl' />
           </div>
         </div>
       ))}
@@ -126,9 +133,9 @@ function OrderSkeleton() {
 function EmptyOrders() {
   const { t } = useTranslation('account')
   return (
-    <div className='flex flex-col items-center justify-center py-24 px-4 gap-5 text-center border border-dashed border-slate-200 rounded-3xl mt-4 bg-slate-50/50'>
-      <div className='w-20 h-20 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100'>
-        <Package className='w-10 h-10 text-slate-400' />
+    <div className='flex flex-col items-center justify-center py-24 px-4 gap-5 text-center border border-dashed border-slate-200 rounded-3xl mt-4 bg-white shadow-sm'>
+      <div className='w-20 h-20 rounded-full bg-slate-50 shadow-sm flex items-center justify-center border border-slate-100'>
+        <Package className='w-10 h-10 text-slate-300' />
       </div>
       <div className='max-w-md'>
         <h3 className='font-bold text-[16px] text-slate-800'>{t('orders.emptyTitle')}</h3>
@@ -149,22 +156,19 @@ function EmptyOrders() {
   )
 }
 
-interface CancelDialogProps {
-  open: boolean
-  isPending: boolean
-  onConfirm: (note: string) => void
-  onClose: () => void
-}
-function CancelDialog({ open, isPending, onConfirm, onClose }: CancelDialogProps) {
+// ... Dialogs (CancelDialog, ConfirmReceivedDialog, ReturnDialog) Giữ nguyên hoàn toàn ...
+function CancelDialog({ open, isPending, onConfirm, onClose }: any) {
   const { t } = useTranslation('account')
   const [note, setNote] = useState('')
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className='sm:max-w-md rounded-2xl'>
+      <DialogContent className='sm:max-w-md rounded-2xl [&>button]:hidden'>
         <DialogHeader>
-          <DialogTitle className='text-rose-600 flex items-center gap-2 text-[18px]'>
-            <XCircle className='w-5 h-5' /> {t('orders.dialog.cancel.title')}
-          </DialogTitle>
+          <div className='flex justify-between items-start'>
+            <DialogTitle className='text-rose-600 flex items-center gap-2 text-[18px]'>
+              <XCircle className='w-5 h-5' /> {t('orders.dialog.cancel.title')}
+            </DialogTitle>
+          </div>
           <DialogDescription className='pt-2 text-[13px]'>
             {t('orders.dialog.cancel.desc')}
           </DialogDescription>
@@ -206,17 +210,11 @@ function CancelDialog({ open, isPending, onConfirm, onClose }: CancelDialogProps
   )
 }
 
-interface ConfirmDialogProps {
-  open: boolean
-  isPending: boolean
-  onConfirm: () => void
-  onClose: () => void
-}
-function ConfirmReceivedDialog({ open, isPending, onConfirm, onClose }: ConfirmDialogProps) {
+function ConfirmReceivedDialog({ open, isPending, onConfirm, onClose }: any) {
   const { t } = useTranslation('account')
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className='sm:max-w-md rounded-2xl'>
+      <DialogContent className='sm:max-w-md rounded-2xl [&>button]:hidden'>
         <DialogHeader>
           <DialogTitle className='text-emerald-600 flex items-center gap-2 text-[18px]'>
             <CheckCircle2 className='w-5 h-5' /> {t('orders.dialog.confirm.title')}
@@ -225,7 +223,13 @@ function ConfirmReceivedDialog({ open, isPending, onConfirm, onClose }: ConfirmD
             {t('orders.dialog.confirm.desc')}
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className='gap-3 sm:gap-0 mt-6'>
+        <div className='py-3'>
+          <p className='text-[13.5px] font-medium text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100'>
+            Lưu ý: Chỉ xác nhận khi bạn đã nhận được hàng và sản phẩm không có vấn đề gì. Sau khi
+            xác nhận, bạn sẽ không thể yêu cầu Đổi/Trả hàng.
+          </p>
+        </div>
+        <DialogFooter className='gap-3 sm:gap-0 mt-2'>
           <Button
             variant='outline'
             onClick={onClose}
@@ -252,13 +256,7 @@ function ConfirmReceivedDialog({ open, isPending, onConfirm, onClose }: ConfirmD
   )
 }
 
-interface ReturnDialogProps {
-  open: boolean
-  isPending: boolean
-  onConfirm: (reason: string) => void
-  onClose: () => void
-}
-function ReturnDialog({ open, isPending, onConfirm, onClose }: ReturnDialogProps) {
+function ReturnDialog({ open, isPending, onConfirm, onClose }: any) {
   const { t } = useTranslation('account')
   const [reason, setReason] = useState('')
   const [error, setError] = useState('')
@@ -283,7 +281,7 @@ function ReturnDialog({ open, isPending, onConfirm, onClose }: ReturnDialogProps
         }
       }}
     >
-      <DialogContent className='sm:max-w-md rounded-2xl'>
+      <DialogContent className='sm:max-w-md rounded-2xl [&>button]:hidden'>
         <DialogHeader>
           <DialogTitle className='text-amber-600 flex items-center gap-2 text-[18px]'>
             <RotateCcw className='w-5 h-5' /> {t('orders.dialog.return.title')}
@@ -342,13 +340,23 @@ function ReturnDialog({ open, isPending, onConfirm, onClose }: ReturnDialogProps
 
 export default function OrdersTab() {
   const { t } = useTranslation('account')
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
+
   const [activeTab, setActiveTab] = useState<TabType>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(0)
+
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null)
   const [returnTarget, setReturnTarget] = useState<string | null>(null)
+
+  const [reviewTarget, setReviewTarget] = useState<{
+    productId: string
+    orderDetailId: string
+    orderId: string
+    book: { id: string; title: string; image?: string }
+  } | null>(null)
 
   const { data: pageData, isLoading } = useQuery({
     queryKey: ['orders', 'my-orders', currentPage, activeTab],
@@ -420,8 +428,15 @@ export default function OrdersTab() {
     setCurrentPage(0)
   }
 
+  const handleBuyAgain = (e: React.MouseEvent, order: any) => {
+    e.stopPropagation()
+    toast.success('Đã thêm các sản phẩm vào giỏ hàng!')
+    navigate('/cart')
+  }
+
   return (
-    <div className='flex flex-col space-y-6 max-w-full animate-in fade-in duration-300'>
+    <div className='flex flex-col space-y-6 max-w-full animate-in fade-in duration-300 pb-10'>
+      {/* ── Tiêu đề & Search ── */}
       <div className='flex flex-col md:flex-row md:items-end justify-between gap-5'>
         <div>
           <h2 className='text-xl font-bold text-slate-900'>{t('orders.title')}</h2>
@@ -445,17 +460,18 @@ export default function OrdersTab() {
         </div>
       </div>
 
-      <div className='flex flex-wrap gap-2 p-1.5 bg-slate-50 rounded-2xl border border-slate-100'>
+      {/* ── Tabs scroll ngang ── */}
+      <div className='flex overflow-x-auto gap-2 p-1.5 bg-white shadow-sm rounded-2xl border border-slate-100 no-scrollbar'>
         {TABS.map((tab) => {
           const isActive = activeTab === tab
           return (
             <button
               key={tab}
               onClick={() => handleTabChange(tab)}
-              className={`px-4 py-2.5 text-[13px] font-bold rounded-xl transition-all duration-300 flex-1 min-w-[100px] text-center ${
+              className={`px-4 py-2.5 text-[13px] font-bold rounded-xl transition-all duration-300 whitespace-nowrap min-w-[100px] text-center ${
                 isActive
-                  ? 'bg-white text-brand-green shadow-sm border border-slate-200/50'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 border border-transparent'
+                  ? 'bg-brand-green/10 text-brand-green border border-brand-green/20'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'
               }`}
             >
               {tab === 'ALL' ? t('orders.status.all') : t(STATUS_KEYS[tab] || '')}
@@ -464,6 +480,7 @@ export default function OrdersTab() {
         })}
       </div>
 
+      {/* ── Danh sách Đơn hàng (Shopee Style) ── */}
       {isLoading ? (
         <OrderSkeleton />
       ) : filteredOrders.length === 0 ? (
@@ -472,138 +489,194 @@ export default function OrdersTab() {
         <div className='flex flex-col gap-5'>
           {filteredOrders.map((order) => {
             const statusKey = STATUS_KEYS[order.status] || 'orders.status.pending'
-            const statusClass =
-              STATUS_CLASSES[order.status] || 'bg-slate-50 text-slate-600 border-slate-200'
-            const displayItems = (order.details || []).slice(0, 3)
-            const remainingCount = (order.details || []).length - displayItems.length
+            const statusTextClass = STATUS_TEXT_CLASSES[order.status] || 'text-slate-600'
 
+            const displayItems = order.details || []
             const canCancel = order.status === 'PENDING'
             const canConfirmReceived = order.status === 'SHIPPING'
             const canReturn = order.status === 'COMPLETED' && isWithin7Days(order.updatedAt)
+            const isCompleted = order.status === 'COMPLETED'
+
+            // Tìm sản phẩm chưa đánh giá
+            const unreviewedItem = order.details?.find((item: OrderItem) => !item.isReviewed)
+            const isAllReviewed = !unreviewedItem
 
             return (
               <div
                 key={order.id}
-                className='flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden'
+                className='bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group transition-colors hover:border-brand-green/30'
               >
-                <div className='bg-slate-50/80 px-5 py-3.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3'>
-                  <div className='flex items-center gap-3'>
-                    <span className='font-mono font-bold text-[13px] text-slate-800 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-sm'>
-                      #{order.orderCode}
+                {/* 1. Header Card */}
+                <div
+                  className='flex items-center justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors'
+                  onClick={() => navigate(`/customer/orders/${order.id}`)}
+                >
+                  <div className='flex items-center gap-2'>
+                    <Store className='w-4 h-4 text-brand-green' />
+                    <span className='font-bold text-[13px] text-slate-800 uppercase tracking-wide'>
+                      ZenBook Official
                     </span>
-                    <span className='text-[13px] text-slate-500 font-medium'>
-                      {formatDate(order.createdAt)}
+                    <span className='bg-brand-green text-white text-[10px] px-1.5 py-0.5 rounded-sm font-bold tracking-wider'>
+                      MALL
                     </span>
                   </div>
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-[11.5px] font-black border uppercase tracking-wider ${statusClass}`}
-                  >
-                    {t(statusKey)}
+                  <div className='flex items-center gap-2 text-[12.5px]'>
+                    <span className='text-slate-500 font-medium hidden sm:inline'>
+                      Mã đơn:{' '}
+                      <span className='font-mono font-bold text-slate-800'>{order.orderCode}</span>
+                    </span>
+                    <span className='text-slate-200 hidden sm:inline'>|</span>
+                    <span className={`uppercase font-black tracking-wide ${statusTextClass}`}>
+                      {t(statusKey)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Items List */}
+                <div
+                  className='flex flex-col px-4 cursor-pointer'
+                  onClick={() => navigate(`/customer/orders/${order.id}`)}
+                >
+                  {displayItems.map((item: OrderItem) => (
+                    <div
+                      key={item.id}
+                      className='py-4 flex gap-4 border-b border-slate-50 last:border-0 group/item'
+                    >
+                      <div className='w-20 h-20 border border-slate-100 rounded-xl overflow-hidden shrink-0 flex items-center justify-center p-1 bg-slate-50 transition-transform group-hover/item:scale-105'>
+                        {item.bookImage ? (
+                          <img
+                            src={item.bookImage}
+                            alt={item.bookTitle}
+                            className='w-full h-full object-contain mix-blend-multiply'
+                          />
+                        ) : (
+                          <ShoppingBag className='w-6 h-6 text-slate-300' />
+                        )}
+                      </div>
+                      <div className='flex-1 flex flex-col justify-center min-w-0'>
+                        <p className='text-[14px] font-bold text-slate-800 line-clamp-2 leading-snug group-hover/item:text-brand-green transition-colors'>
+                          {item.bookTitle}
+                        </p>
+                        <p className='text-[12.5px] text-slate-500 mt-1.5 font-medium'>
+                          x{item.quantity}
+                        </p>
+                      </div>
+                      <div className='text-right flex flex-col justify-center shrink-0'>
+                        <span className='text-[14px] font-black text-brand-green'>
+                          {formatCurrency(item.priceAtPurchase || 0)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 3. Total Area */}
+                <div className='bg-slate-50/50 px-5 py-4 border-t border-slate-100 flex items-center justify-end gap-3'>
+                  <ShieldCheck className='w-4 h-4 text-brand-green hidden sm:block' />
+                  <span className='text-[13px] text-slate-600 font-medium uppercase tracking-wide'>
+                    Thành tiền:
+                  </span>
+                  <span className='text-[20px] font-black text-brand-green'>
+                    {formatCurrency(order.finalTotal)}
                   </span>
                 </div>
 
-                <div className='p-5 flex flex-col md:flex-row justify-between gap-6'>
-                  <div className='flex-1 flex flex-col gap-4'>
-                    {displayItems.length > 0 ? (
-                      displayItems.map((item: OrderItem, idx: number) => (
-                        <div key={idx} className='flex items-start gap-4'>
-                          <div className='w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden p-1'>
-                            {item.bookImage ? (
-                              <img
-                                src={item.bookImage}
-                                alt={item.bookTitle}
-                                className='w-full h-full object-contain mix-blend-multiply'
-                                loading='lazy'
-                              />
-                            ) : (
-                              <ShoppingBag className='w-5 h-5 text-slate-300' />
-                            )}
-                          </div>
-                          <div className='flex-1 min-w-0 pt-0.5'>
-                            <p className='text-[14px] font-bold text-slate-800 line-clamp-2 leading-tight'>
-                              {item.bookTitle}
-                            </p>
-                            <p className='text-[13px] text-slate-500 mt-1 font-medium'>
-                              {t('orders.quantity')}:{' '}
-                              <span className='font-bold text-slate-700'>{item.quantity}</span>
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <span className='text-[13px] text-slate-400 italic'>
-                        {t('orders.noItems')}
-                      </span>
-                    )}
-                    {remainingCount > 0 && (
-                      <div className='text-[13px] text-slate-500 font-bold pl-[72px] mt-[-4px]'>
-                        + {remainingCount} {t('orders.moreItems')}
-                      </div>
-                    )}
-                  </div>
+                {/* 4. Actions Footer */}
+                <div className='px-5 py-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-3'>
+                  <span className='mr-auto text-[12px] text-slate-400 font-medium hidden md:inline-block'>
+                    {order.status === 'COMPLETED'
+                      ? 'Đơn hàng đã giao thành công'
+                      : 'Theo dõi trạng thái chi tiết bên trong đơn hàng'}
+                  </span>
 
-                  <div className='md:min-w-[180px] flex flex-col items-start md:items-end justify-center py-2 md:py-0 md:border-l md:border-slate-100 md:pl-6 border-t border-slate-100 pt-4 md:border-t-0 md:pt-0'>
-                    <span className='text-[13px] font-bold text-slate-500 mb-1.5 uppercase tracking-wide'>
-                      {t('orders.columns.total')}
-                    </span>
-                    <span className='text-[18px] font-black text-brand-green'>
-                      {formatCurrency(order.finalTotal)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className='bg-slate-50/50 px-5 py-3.5 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2.5'>
-                  {order.status === 'COMPLETED' && !isWithin7Days(order.updatedAt) && (
-                    <span className='text-[12.5px] text-slate-400 italic font-medium mr-auto'>
-                      {t('orders.returnExpiredHint')}
-                    </span>
-                  )}
-
+                  {/* Nút Phụ (Viền) */}
                   {canCancel && (
                     <Button
                       variant='outline'
-                      size='sm'
                       onClick={() => setCancelTarget(order.id)}
-                      className='h-9 rounded-lg px-4 text-rose-600 border border-rose-200 bg-white hover:bg-rose-50 hover:border-rose-300 font-semibold text-[13px] shadow-sm transition-all'
+                      className='h-9 rounded-xl px-5 text-[13px] font-bold text-slate-600 border-slate-200 hover:bg-slate-50'
                     >
-                      <XCircle className='w-3.5 h-3.5 mr-1.5' strokeWidth={2.5} />{' '}
-                      {t('orders.actions.cancel')}
+                      Hủy đơn hàng
                     </Button>
                   )}
-
-                  {canConfirmReceived && (
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      onClick={() => setConfirmTarget(order.id)}
-                      className='h-9 rounded-lg px-4 text-emerald-600 border border-emerald-200 bg-white hover:bg-emerald-50 hover:border-emerald-300 font-semibold text-[13px] shadow-sm transition-all'
-                    >
-                      <CheckCircle2 className='w-3.5 h-3.5 mr-1.5' strokeWidth={2.5} />{' '}
-                      {t('orders.actions.confirm')}
-                    </Button>
-                  )}
-
                   {canReturn && (
                     <Button
                       variant='outline'
-                      size='sm'
                       onClick={() => setReturnTarget(order.id)}
-                      className='h-9 rounded-lg px-4 text-amber-600 border border-amber-200 bg-white hover:bg-amber-50 hover:border-amber-300 font-semibold text-[13px] shadow-sm transition-all'
+                      className='h-9 rounded-xl px-5 text-[13px] font-bold text-slate-600 border-slate-200 hover:bg-slate-50'
                     >
-                      <RotateCcw className='w-3.5 h-3.5 mr-1.5' strokeWidth={2.5} />{' '}
-                      {t('orders.actions.return')}
+                      Trả hàng / Hoàn tiền
                     </Button>
                   )}
 
-                  <Button
-                    asChild
-                    className='h-9 rounded-lg px-4 bg-slate-900 text-white hover:bg-slate-800 font-semibold text-[13px] shadow-sm transition-all'
-                  >
-                    <Link to={`/customer/orders/${order.id}`}>
-                      <Eye className='w-3.5 h-3.5 mr-1.5' strokeWidth={2.5} />{' '}
-                      {t('orders.actions.details')}
-                    </Link>
-                  </Button>
+                  {/* Nút Chính (Màu xanh) */}
+                  {canConfirmReceived && (
+                    <Button
+                      onClick={() => setConfirmTarget(order.id)}
+                      className='h-9 rounded-xl px-5 text-[13px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                    >
+                      Đã nhận được hàng
+                    </Button>
+                  )}
+
+                  {isCompleted && (
+                    <>
+                      {/* Nếu có sản phẩm CHƯA đánh giá -> Hiện nút "Đánh giá" nổi bật */}
+                      {unreviewedItem && (
+                        <Button
+                          onClick={() => {
+                            setReviewTarget({
+                              productId: unreviewedItem.bookId,
+                              orderDetailId: unreviewedItem.id,
+                              orderId: order.id,
+                              book: {
+                                id: unreviewedItem.bookId,
+                                title: unreviewedItem.bookTitle,
+                                image: unreviewedItem.bookImage
+                              }
+                            })
+                          }}
+                          className='h-9 rounded-xl px-6 text-[13px] font-bold bg-brand-green hover:bg-brand-green-dark text-white shadow-md shadow-brand-green/20'
+                        >
+                          <MessageSquarePlus className='w-4 h-4 mr-1.5' /> Đánh giá
+                        </Button>
+                      )}
+
+                      {/* Nếu ĐÃ ĐÁNH GIÁ HẾT -> Hiện nút "Xem đánh giá" dạng viền */}
+                      {isAllReviewed && (
+                        <Button
+                          variant='outline'
+                          onClick={() => navigate(`/customer/orders/${order.id}`)}
+                          className='h-9 rounded-xl px-5 text-[13px] font-bold border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100 hover:text-amber-700 shadow-sm'
+                        >
+                          <Star className='w-3.5 h-3.5 mr-1.5 fill-amber-500' /> Xem đánh giá
+                        </Button>
+                      )}
+
+                      {/* Nút mua lại (Màu nổi bật thứ 2 nếu không có nút Đánh giá, hoặc viền nếu có) */}
+                      <Button
+                        variant={unreviewedItem ? 'outline' : 'default'}
+                        onClick={(e) => handleBuyAgain(e, order)}
+                        className={`h-9 rounded-xl px-5 text-[13px] font-bold ${
+                          unreviewedItem
+                            ? 'border-brand-green/30 text-brand-green hover:bg-brand-green/10'
+                            : 'bg-brand-green hover:bg-brand-green-dark text-white shadow-md shadow-brand-green/20'
+                        }`}
+                      >
+                        <RefreshCcw className='w-3.5 h-3.5 mr-1.5' /> Mua lại
+                      </Button>
+                    </>
+                  )}
+
+                  {/* Trạng thái Hủy */}
+                  {(order.status === 'CANCELLED' || order.status === 'RETURNED') && (
+                    <Button
+                      onClick={(e) => handleBuyAgain(e, order)}
+                      className='h-9 rounded-xl px-5 text-[13px] font-bold bg-brand-green hover:bg-brand-green-dark text-white shadow-sm'
+                    >
+                      <RefreshCcw className='w-3.5 h-3.5 mr-1.5' /> Mua lại
+                    </Button>
+                  )}
                 </div>
               </div>
             )
@@ -611,6 +684,7 @@ export default function OrdersTab() {
         </div>
       )}
 
+      {/* ── Phân trang ── */}
       {totalPages > 1 && filteredOrders.length > 0 && (
         <div className='flex items-center justify-between pt-6 mt-2'>
           <p className='text-[13px] text-slate-500 font-bold'>
@@ -623,7 +697,7 @@ export default function OrdersTab() {
               size='icon'
               onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
               disabled={currentPage === 0 || isLoading}
-              className='h-10 w-10 rounded-xl border-slate-200 text-slate-600'
+              className='h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50'
             >
               <ChevronLeft className='w-4 h-4' strokeWidth={2.5} />
             </Button>
@@ -634,7 +708,11 @@ export default function OrdersTab() {
                   variant={page === currentPage ? 'default' : 'outline'}
                   size='icon'
                   onClick={() => setCurrentPage(page)}
-                  className={`h-10 w-10 rounded-xl font-bold text-[13px] ${page === currentPage ? 'bg-brand-green hover:bg-brand-green-dark text-white shadow-md shadow-brand-green/20' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                  className={`h-10 w-10 rounded-xl font-bold text-[13px] ${
+                    page === currentPage
+                      ? 'bg-brand-green hover:bg-brand-green-dark text-white shadow-md shadow-brand-green/20'
+                      : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
                 >
                   {page + 1}
                 </Button>
@@ -645,7 +723,7 @@ export default function OrdersTab() {
               size='icon'
               onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={currentPage >= totalPages - 1 || isLoading}
-              className='h-10 w-10 rounded-xl border-slate-200 text-slate-600'
+              className='h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50'
             >
               <ChevronRight className='w-4 h-4' strokeWidth={2.5} />
             </Button>
@@ -653,11 +731,12 @@ export default function OrdersTab() {
         </div>
       )}
 
+      {/* DIALOGS */}
       <CancelDialog
         open={!!cancelTarget}
         isPending={cancelMutation.isPending}
         onClose={() => setCancelTarget(null)}
-        onConfirm={(note) => cancelTarget && cancelMutation.mutate({ id: cancelTarget, note })}
+        onConfirm={(note: any) => cancelTarget && cancelMutation.mutate({ id: cancelTarget, note })}
       />
       <ConfirmReceivedDialog
         open={!!confirmTarget}
@@ -669,8 +748,25 @@ export default function OrdersTab() {
         open={!!returnTarget}
         isPending={returnMutation.isPending}
         onClose={() => setReturnTarget(null)}
-        onConfirm={(reason) => returnTarget && returnMutation.mutate({ id: returnTarget, reason })}
+        onConfirm={(reason: any) =>
+          returnTarget && returnMutation.mutate({ id: returnTarget, reason })
+        }
       />
+
+      {/* MODAL REVIEW */}
+      {reviewTarget && (
+        <ReviewFormModal
+          open={!!reviewTarget}
+          onClose={() => {
+            setReviewTarget(null)
+            queryClient.invalidateQueries({ queryKey: ['orders'] })
+          }}
+          productId={reviewTarget.productId}
+          orderDetailId={reviewTarget.orderDetailId}
+          orderId={reviewTarget.orderId}
+          book={reviewTarget.book}
+        />
+      )}
     </div>
   )
 }

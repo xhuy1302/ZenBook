@@ -7,7 +7,11 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -56,4 +60,27 @@ public interface NewsRepository extends JpaRepository<NewsEntity, String> {
           and n.deletedAt is not null
     """)
     int restore(@Param("id") String id);
+    // Lấy danh sách Public (Có lọc, tìm kiếm và phân trang)
+    @Query("SELECT n FROM NewsEntity n WHERE n.deletedAt IS NULL AND n.status = 'PUBLISHED' " +
+            "AND (:categoryId IS NULL OR n.category.id = :categoryId) " +
+            "AND (:search IS NULL OR LOWER(n.title) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<NewsEntity> findPublicNews(@Param("categoryId") String categoryId,
+                                    @Param("search") String search,
+                                    Pageable pageable);
+
+    // Lấy bài viết nổi bật
+    List<NewsEntity> findTop5ByDeletedAtIsNullAndStatusAndIsFeaturedTrueOrderByCreatedAtDesc(NewsStatus status);
+
+    // Dành cho phần Thống kê (Stats)
+    long countByDeletedAtIsNullAndStatus(NewsStatus status);
+
+    long countByDeletedAtIsNullAndStatusAndIsTrendingTrue(NewsStatus status);
+
+    @Query("SELECT SUM(n.viewCount) FROM NewsEntity n WHERE n.deletedAt IS NULL AND n.status = 'PUBLISHED'")
+    Long sumTotalViews();
+
+    // Tăng lượt view (Dùng Modifying để update trực tiếp xuống DB, tránh lỗi concurrency)
+    @Modifying
+    @Query("UPDATE NewsEntity n SET n.viewCount = n.viewCount + 1 WHERE n.id = :id")
+    void incrementViewCount(@Param("id") String id);
 }

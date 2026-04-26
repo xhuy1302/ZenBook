@@ -34,4 +34,11 @@ public class CategoryController {
                 .message("Lấy cấu trúc cây danh mục thành công")
                 .build();
     }
+
+    @GetMapping
+    public ApiResponse<List<CategoryResponse>> getAllCategories() {
+        return ApiResponse.<List<CategoryResponse>>builder()
+                .data(categoryService.getAllActiveCategories())
+                .build();
+    }
 }

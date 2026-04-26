@@ -3,11 +3,13 @@ import type { ActionRole, OrderStatus, PaymentStatus } from '@/defines/order.enu
 export interface OrderDetail {
   id: string
   bookId: string
+  bookSlug: string
   bookTitle: string
   bookImage?: string
   quantity: number
   priceAtPurchase: number
   subTotal: number
+  isReviewed: boolean
 }
 
 export interface OrderHistory {

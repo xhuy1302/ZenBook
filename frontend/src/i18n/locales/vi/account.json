@@ -245,5 +245,29 @@
       "buyAgain": "Mua lại",
       "emptyImage": "Không có ảnh"
     }
+  },
+  "reviews": {
+    "title": "Đánh giá của tôi",
+    "subtitle": "Quản lý và theo dõi các đánh giá sản phẩm của bạn",
+    "countLabel": "đánh giá",
+    "tabs": {
+      "all": "Tất cả",
+      "approved": "Đã duyệt",
+      "pending": "Chờ duyệt"
+    },
+    "orderCode": "Đơn hàng",
+    "helpfulCount": "người thấy hữu ích",
+    "shopReply": "Phản hồi từ ZenBook",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa đánh giá này không?",
+    "editTitle": "Chỉnh sửa đánh giá",
+    "ratingLabel": "Số sao",
+    "contentLabel": "Nội dung",
+    "contentPlaceholder": "Chia sẻ trải nghiệm của bạn về sản phẩm này...",
+    "cancel": "Hủy",
+    "save": "Lưu thay đổi",
+    "emptyTitle": "Chưa có đánh giá nào",
+    "emptySubtitle": "Bạn chưa viết đánh giá nào trong mục này. Hãy mua hàng và chia sẻ cảm nhận nhé!"
   }
 }

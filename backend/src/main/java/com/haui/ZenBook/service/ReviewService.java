@@ -1,29 +1,43 @@
 package com.haui.ZenBook.service;
 
-import com.haui.ZenBook.dto.review.ReviewFilterRequest;
-import com.haui.ZenBook.dto.review.ReviewReplyRequest;
-import com.haui.ZenBook.dto.review.UpdateReviewStatusRequest;
-import com.haui.ZenBook.dto.review.ReviewDetailResponse;
-import com.haui.ZenBook.dto.review.ReviewReplyResponse;
-import com.haui.ZenBook.dto.review.ReviewSummaryResponse;
+import com.haui.ZenBook.dto.review.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ReviewService {
 
-    // --- API Danh sách & Chi tiết ---
+    // ── ADMIN ─────────────────────────────────────────────────────────
     Page<ReviewSummaryResponse> getAdminReviews(ReviewFilterRequest filter, Pageable pageable);
-
     ReviewDetailResponse getReviewDetail(String reviewId);
-
-    // --- API Kiểm duyệt ---
     ReviewDetailResponse updateReviewStatus(String reviewId, UpdateReviewStatusRequest request);
-
-    // --- API Phản hồi của Staff/Admin ---
-    // userId ở đây là ID của tài khoản Admin/Staff đang đăng nhập (lấy từ Security Context ở Controller)
     ReviewReplyResponse replyToReview(String reviewId, ReviewReplyRequest request, String staffUserId);
-
     ReviewReplyResponse updateReply(String replyId, ReviewReplyRequest request);
-
     void deleteReply(String replyId);
+
+    // ── CUSTOMER — đọc ────────────────────────────────────────────────
+
+    Page<ReviewResponse> getBookReviews(
+            String bookId,
+            ReviewCustomerFilter filter,
+            Pageable pageable,
+            String currentUserId
+    );
+
+    RatingStatsResponse getRatingStats(String bookId);
+
+    boolean hasUserReviewedBook(String bookId, String userId);
+
+    // 👉 THÊM MỚI: Lấy danh sách đánh giá của chính User đang đăng nhập
+    Page<MyReviewResponse> getMyReviews(String userId, String status, Pageable pageable);
+
+    // ── CUSTOMER — viết ───────────────────────────────────────────────
+    ReviewDetailResponse createReview(String bookId, CreateReviewRequest request, String userId);
+    ReviewDetailResponse updateReview(String reviewId, UpdateReviewRequest request, String userId);
+    void deleteReview(String reviewId, String userId);
+
+    HelpfulVoteResponse toggleHelpfulVote(String reviewId, String userId);
+
+    // ── UPLOAD ────────────────────────────────────────────────────────
+    String uploadReviewImage(MultipartFile file);
 }

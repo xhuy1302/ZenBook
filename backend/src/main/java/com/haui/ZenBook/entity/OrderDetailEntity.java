@@ -29,4 +29,5 @@ public class OrderDetailEntity {
 
     @Column(name = "sub_total", nullable = false, updatable = false)
     private Double subTotal;
+
 }

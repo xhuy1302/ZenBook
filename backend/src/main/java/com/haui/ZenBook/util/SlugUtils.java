@@ -5,30 +5,44 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 public class SlugUtils {
-    private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
-    private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
+
+    private static final Pattern COMBINING_MARKS =
+            Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+
+    private static final Pattern NONLATIN =
+            Pattern.compile("[^a-z0-9\\s-]");
+
+    private static final Pattern WHITESPACE =
+            Pattern.compile("\\s+");
 
     public static String makeSlug(String input) {
-        if (input == null || input.isEmpty()) {
+        if (input == null || input.isBlank()) {
             return "";
         }
 
-        // 1. Thay thế thủ công chữ đ và Đ (Vì NFD không xử lý được 2 chữ này)
-        String slug = input.replace('đ', 'd').replace('Đ', 'D');
+        String slug = input.trim();
 
-        // 2. Chuyển sang chữ thường và thay thế khoảng trắng bằng gạch ngang
-        slug = WHITESPACE.matcher(slug).replaceAll("-");
+        // fix riêng chữ Đ/đ
+        slug = slug.replace("đ", "d")
+                .replace("Đ", "D");
 
-        // 3. Loại bỏ các dấu tiếng Việt khác (á, à, ả,...)
+        // bỏ dấu
         slug = Normalizer.normalize(slug, Normalizer.Form.NFD);
+        slug = COMBINING_MARKS.matcher(slug).replaceAll("");
 
-        // 4. Xóa tất cả các ký tự không phải Latinh hoặc số
+        // lowercase
+        slug = slug.toLowerCase(Locale.ENGLISH);
+
+        // remove ký tự đặc biệt
         slug = NONLATIN.matcher(slug).replaceAll("");
 
-        // 5. Dọn dẹp các gạch ngang thừa
-        return slug.toLowerCase(Locale.ENGLISH)
-                .replaceAll("-+", "-")      // Nhiều gạch ngang thành 1
-                .replaceAll("^-", "")       // Xóa gạch ngang ở đầu
-                .replaceAll("-$", "");      // Xóa gạch ngang ở cuối
+        // khoảng trắng -> -
+        slug = WHITESPACE.matcher(slug).replaceAll("-");
+
+        // dọn --
+        slug = slug.replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
+
+        return slug;
     }
 }

@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { User, ShoppingBag, MapPin, LogOut, ChevronRight } from 'lucide-react'
+import { User, ShoppingBag, MapPin, LogOut, ChevronRight, Star } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/context/AuthContext'
 
@@ -23,6 +23,12 @@ const menuItems = [
     href: '/customer/address',
     exact: false,
     icon: <MapPin className='w-4 h-4' />
+  },
+  {
+    label: 'Đánh giá của tôi',
+    href: '/customer/myreviews', // Đảm bảo route này khớp với cấu hình Router của bạn
+    exact: false,
+    icon: <Star className='w-4 h-4' />
   }
 ]
 
