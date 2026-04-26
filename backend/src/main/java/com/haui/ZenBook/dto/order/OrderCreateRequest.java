@@ -23,6 +23,7 @@ public class OrderCreateRequest {
     private String shippingAddress;
 
     private String note;
+
     @NotBlank(message = "Phương thức thanh toán không được để trống")
     private String paymentMethod;
 

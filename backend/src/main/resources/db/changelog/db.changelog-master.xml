@@ -26,5 +26,8 @@
     <include file="classpath:db/changelog/changes/019-add-coupon-type.xml"/>
     <include file="classpath:db/changelog/changes/20-add-id-ghn.xml"/>
     <include file="classpath:db/changelog/changes/21-create-table-suppliers.xml"/>
-    <include file="classpath:db/changelog/changes/22-add-note-receipt-detail.xml"/>
+    <include file="classpath:db/changelog/changes/23-create-table-reviews.xml"/>
+    <include file="classpath:db/changelog/changes/24-create-table-review-images.xml"/>
+    <include file="classpath:db/changelog/changes/25-create-table-review-repliers.xml"/>
+    <include file="classpath:db/changelog/changes/26-create-table-review-helpful-votes.xml"/>
 </databaseChangeLog>

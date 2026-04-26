@@ -1,0 +1,74 @@
+{
+  "title": "Quản lý Đánh giá",
+  "filters": {
+    "search": "Tìm kiếm nội dung đánh giá...",
+    "status": {
+      "label": "Trạng thái",
+      "all": "Tất cả trạng thái",
+      "PENDING": "Chờ duyệt",
+      "APPROVED": "Đã duyệt",
+      "REJECTED": "Bị từ chối"
+    },
+    "rating": {
+      "label": "Số sao",
+      "all": "Tất cả số sao",
+      "1": "1 Sao",
+      "2": "2 Sao",
+      "3": "3 Sao",
+      "4": "4 Sao",
+      "5": "5 Sao"
+    },
+    "reset": "Đặt lại"
+  },
+  "table": {
+    "columns": {
+      "review": "Đánh giá",
+      "book": "Sản phẩm",
+      "user": "Người dùng",
+      "status": "Trạng thái",
+      "createdAt": "Ngày tạo",
+      "actions": "Thao tác"
+    },
+    "noResults": "Không tìm thấy đánh giá nào."
+  },
+  "actions": {
+    "view": "Xem chi tiết",
+    "approve": "Duyệt hiển thị",
+    "reject": "Từ chối / Ẩn",
+    "reply": "Phản hồi khách hàng",
+    "delete": "Xóa đánh giá"
+  },
+  "status": {
+    "PENDING": "Chờ duyệt",
+    "APPROVED": "Đã duyệt",
+    "REJECTED": "Từ chối"
+  },
+  "dialog": {
+    "view": {
+      "title": "Chi tiết đánh giá",
+      "productInfo": "Sản phẩm",
+      "userInfo": "Khách hàng",
+      "content": "Nội dung",
+      "images": "Ảnh đính kèm",
+      "reply": "Phản hồi của cửa hàng",
+      "close": "Đóng"
+    },
+    "status": {
+      "approveTitle": "Duyệt hiển thị đánh giá",
+      "approveDesc": "Bạn có chắc chắn muốn duyệt đánh giá này? Sau khi duyệt, điểm trung bình của sách sẽ được tính toán lại.",
+      "rejectTitle": "Từ chối / Ẩn đánh giá",
+      "rejectDesc": "Đánh giá này sẽ bị ẩn khỏi trang chi tiết sản phẩm. Bạn có chắc chắn muốn thực hiện?",
+      "confirm": "Xác nhận",
+      "cancel": "Hủy"
+    },
+    "reply": {
+      "title": "Phản hồi khách hàng",
+      "desc": "Câu trả lời của bạn sẽ hiển thị công khai ngay dưới bài đánh giá này.",
+      "placeholder": "Nhập nội dung cảm ơn hoặc giải đáp thắc mắc...",
+      "send": "Gửi phản hồi",
+      "update": "Cập nhật",
+      "cancel": "Hủy",
+      "require": "Vui lòng nhập nội dung phản hồi!"
+    }
+  }
+}

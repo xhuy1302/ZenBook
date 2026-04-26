@@ -18,7 +18,7 @@ public interface PromotionMapper {
     @Mapping(target = "books", ignore = true)
     @Mapping(target = "id", ignore = true)
     PromotionEntity toEntity(PromotionRequest request);
-
+    @Mapping(target = "reviews", source = "totalReviews")
     @Mapping(target = "slug", source = "slug")
     PromotionResponse.PromotionBookDto toPromotionBookDto(BookEntity book);
 

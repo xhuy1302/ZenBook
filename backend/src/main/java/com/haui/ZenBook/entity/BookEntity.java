@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -59,7 +60,7 @@ public class BookEntity extends BaseEntity {
     private Double rating = 0.0; // Điểm đánh giá trung bình (1.0 -> 5.0)
 
     @Column(name = "total_reviews")
-    private Integer reviews = 0; // Số lượng người đã đánh giá
+    private Integer totalReviews = 0; // Số lượng người đã đánh giá
 
     @Column(name = "award")
     private String award; // Tên giải thưởng (Nếu có) - Dùng cho tab Award Winners
@@ -111,4 +112,13 @@ public class BookEntity extends BaseEntity {
 
     @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
     private Set<NewsEntity> relatedNews;
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+
+    private List<ReviewEntity> reviews = new ArrayList<>();
+    public void addReview(ReviewEntity review) {
+        reviews.add(review);
+        review.setBook(this);
+    }
 }

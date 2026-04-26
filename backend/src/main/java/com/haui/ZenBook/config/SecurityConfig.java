@@ -28,6 +28,9 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // ==========================================
+                        // 1. PUBLIC API (KHÔNG CẦN ĐĂNG NHẬP)
+                        // ==========================================
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/news", "/api/v1/news/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**").permitAll()
@@ -35,22 +38,51 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/books", "/api/v1/books/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/customer/**").permitAll()
                         .requestMatchers("/api/v1/address/**").permitAll()
+                        .requestMatchers("/api/v1/payment/vnpay/ipn").permitAll() // Webhook VNPAY
 
-                        // 👉 1. MỞ PUBLIC CHO VNPAY GỌI IPN (WEBHOOK) VỀ SERVER
-                        .requestMatchers("/api/v1/payment/vnpay/ipn").permitAll()
-
-                        .requestMatchers("/api/v1/admin/authors/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers("/api/v1/admin/categories/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers("/api/v1/admin/suppliers/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers("/api/v1/admin/books/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers("/api/v1/admin/receipts/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers("/api/v1/admin/news/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers("/api/v1/admin/promotions/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers("/api/v1/admin/dashboard/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/suppliers/*/hard-delete").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/admin/suppliers/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers(HttpMethod.POST, "/api/files/**").hasAnyRole("ADMIN", "STAFF")
+                        // ==========================================
+                        // 2. ĐẶC QUYỀN ADMIN (CHỈ ADMIN ĐƯỢC PHÉP TRUY CẬP)
+                        // LƯU Ý: Phải đặt lên trước các rule của STAFF
+                        // ==========================================
+                        // Quản lý nhân sự & Người dùng
                         .requestMatchers("/api/v1/admin/users/**").hasRole("ADMIN")
+
+                        // Quản lý dòng tiền, nhập kho, khuyến mãi lớn
+                        .requestMatchers("/api/v1/admin/promotions/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/receipts/**").hasRole("ADMIN")
+
+                        // Quyền THÊM/SỬA/XÓA các dữ liệu danh mục cốt lõi (STAFF chỉ được GET)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/categories/**", "/api/v1/admin/suppliers/**", "/api/v1/admin/authors/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/admin/categories/**", "/api/v1/admin/suppliers/**", "/api/v1/admin/authors/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/categories/**", "/api/v1/admin/suppliers/**", "/api/v1/admin/authors/**").hasRole("ADMIN")
+
+                        // Các hành động XÓA nhạy cảm đối với thực thể chính
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/books/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/reviews/**").hasRole("ADMIN") // Ngăn Staff tự ý xóa đánh giá/phản hồi
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/news/**").hasRole("ADMIN")
+
+                        // ==========================================
+                        // 3. QUYỀN VẬN HÀNH CHUNG (ADMIN & STAFF)
+                        // ==========================================
+                        // Cho phép STAFF gọi GET để xem mọi thứ trong trang quản trị
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/**").hasAnyRole("ADMIN", "STAFF")
+
+                        // STAFF được làm việc với Sách (Tạo/Sửa/Upload Ảnh) - Lưu ý: Quyền XÓA đã bị chặn ở trên
+                        .requestMatchers("/api/v1/admin/books/**").hasAnyRole("ADMIN", "STAFF")
+                        .requestMatchers(HttpMethod.POST, "/api/files/**").hasAnyRole("ADMIN", "STAFF")
+
+                        // STAFF được làm việc với Đánh giá (Duyệt/Trả lời khách)
+                        .requestMatchers("/api/v1/admin/reviews/**").hasAnyRole("ADMIN", "STAFF")
+
+                        // STAFF được viết/sửa bài Tin tức
+                        .requestMatchers("/api/v1/admin/news/**").hasAnyRole("ADMIN", "STAFF")
+
+                        // STAFF được xem Dashboard thống kê
+                        .requestMatchers("/api/v1/admin/dashboard/**").hasAnyRole("ADMIN", "STAFF")
+
+                        // ==========================================
+                        // 4. API DÀNH CHO KHÁCH HÀNG (YÊU CẦU LOGIN)
+                        // ==========================================
                         .requestMatchers(
                                 "/api/v1/users/update",
                                 "/api/v1/users/change-password",
@@ -59,10 +91,10 @@ public class SecurityConfig {
                                 "/api/v1/orders/my-orders",
                                 "/api/v1/orders/**",
                                 "/api/v1/cart/**",
-
-                                // 👉 2. YÊU CẦU ĐĂNG NHẬP KHI USER TẠO LINK THANH TOÁN
                                 "/api/v1/payment/create-url/**"
                         ).hasAnyRole("USER", "ADMIN", "STAFF")
+
+                        // Khóa toàn bộ các URL còn lại
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
