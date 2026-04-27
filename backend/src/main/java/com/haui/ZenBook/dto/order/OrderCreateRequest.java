@@ -32,7 +32,12 @@ public class OrderCreateRequest {
     private List<OrderItemRequest> items;
 
     private String orderCouponCode;
+
     private String shippingCouponCode;
+
+    private Double orderDiscount;
+
+    private Double shippingDiscount;
 
     @NotBlank(message = "Vui lòng chọn địa chỉ giao hàng")
     private String addressId;

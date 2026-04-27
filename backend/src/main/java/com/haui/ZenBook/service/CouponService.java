@@ -2,6 +2,7 @@ package com.haui.ZenBook.service;
 
 import com.haui.ZenBook.dto.coupon.CouponRequest;
 import com.haui.ZenBook.dto.coupon.CouponResponse;
+import com.haui.ZenBook.dto.coupon.CouponValidateRequest;
 import com.haui.ZenBook.enums.CouponType;
 
 import java.util.List;
@@ -24,4 +25,7 @@ public interface CouponService {
     double calculateDiscount(String code, double targetAmount, double orderTotal, CouponType expectedType);
 
     void incrementUsedCount(String code);
+
+    CouponResponse validateCoupon(CouponValidateRequest request, String currentUserId);
+
 }

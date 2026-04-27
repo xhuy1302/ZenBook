@@ -32,7 +32,8 @@ export interface Order {
   shippingAddress: string
   totalItemsPrice: number
   shippingFee: number
-  discountAmount: number
+  orderDiscount: number
+  shippingDiscount: number
   finalTotal: number
   paymentMethod: string
   status: OrderStatus
@@ -62,6 +63,8 @@ export interface OrderCreateRequest {
   paymentMethod: string
   orderCouponCode?: string
   shippingCouponCode?: string
+  orderDiscount: number
+  shippingDiscount: number
   note?: string
   items: OrderItemRequest[]
 }

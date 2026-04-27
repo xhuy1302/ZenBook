@@ -1,9 +1,21 @@
 {
-  "dashboard": "Trang chủ",
+  "dashboard": "Bảng điều khiển",
+  "books": "Sách",
+  "orders": "Đơn hàng",
   "users": "Người dùng",
+  "settings": "Cài đặt",
+  "promotions": "Khuyến mãi",
+  "coupons": "Mã giảm giá",
+  "news": "Bài viết",
+  "reviews": "Đánh giá",
+  "tags": "Tags",
+  "suppliers": "Nhà cung cấp",
+  "receipts": "Phiếu nhập kho",
+  "inventory": "Kiểm kê tồn kho",
   "categories": "Danh mục",
   "authors": "Tác giả",
-  "books": "Sách",
+  "publishers": "Nhà xuất bản",
   "create": "Thêm mới",
-  "edit": "Chỉnh sửa"
+  "edit": "Chỉnh sửa",
+  "trash": "Thùng rác"
 }

@@ -15,6 +15,9 @@ import {
   Gift
 } from 'lucide-react'
 import * as React from 'react'
+import { useMemo, useContext } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 
 import { NavMain } from '@/components/admin/sidebar/nav-main'
 import { NavProjects } from '@/components/admin/sidebar/nav-projects'
@@ -27,36 +30,13 @@ import {
   SidebarHeader,
   SidebarRail
 } from '@/components/ui/sidebar'
-import { useContext, useMemo } from 'react'
 import { AuthContext } from '@/context/AuthContext'
-import { useQuery } from '@tanstack/react-query'
 import { orderService } from '@/services/order/order.api'
 
-const staticData = {
-  teams: [
-    {
-      name: 'Zenbook Store.',
-      logo: GalleryVerticalEnd,
-      plan: 'Pro Plan'
-    },
-    {
-      name: 'Zenbook Logistics',
-      logo: AudioWaveform,
-      plan: 'Startup'
-    }
-  ],
-  systemMenus: [
-    { name: 'Tài khoản', url: '/dashboard/users', icon: Users },
-    { name: 'Khuyến mãi', url: '/dashboard/promotions', icon: Gift },
-    { name: 'Mã giảm giá', url: '/dashboard/coupons', icon: TicketPercent },
-    { name: 'Bài viết', url: '/dashboard/news', icon: FileText },
-    { name: 'Đánh giá / Review', url: '/dashboard/reviews', icon: Star },
-    { name: 'Tags sách', url: '/dashboard/tags', icon: Tags },
-    { name: 'Cài đặt hệ thống', url: '/dashboard/settings', icon: Settings2 }
-  ]
-}
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // 👉 SỬA Ở ĐÂY: Lấy thêm i18n để bắt được sự kiện thay đổi ngôn ngữ
+  const { t, i18n } = useTranslation('sidebar')
+
   const authContext = useContext(AuthContext)
   const user = authContext?.user
 
@@ -67,55 +47,101 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     enabled: !!user
   })
 
+  // Dữ liệu cho TeamSwitcher
+  const teams = useMemo(
+    () => [
+      {
+        name: t('teams.store.name'),
+        logo: GalleryVerticalEnd,
+        plan: t('teams.store.plan')
+      },
+      {
+        name: t('teams.logistics.name'),
+        logo: AudioWaveform,
+        plan: t('teams.logistics.plan')
+      }
+    ],
+    // 👉 SỬA Ở ĐÂY: Thêm i18n.language vào dependency
+    [t, i18n.language]
+  )
+
+  // Danh sách menu hệ thống (bên dưới NavMain)
+  const systemMenus = useMemo(
+    () => [
+      { name: t('systemMenus.accounts'), url: '/dashboard/users', icon: Users },
+      { name: t('systemMenus.promotions'), url: '/dashboard/promotions', icon: Gift },
+      { name: t('systemMenus.coupons'), url: '/dashboard/coupons', icon: TicketPercent },
+      { name: t('systemMenus.news'), url: '/dashboard/news', icon: FileText },
+      { name: t('systemMenus.reviews'), url: '/dashboard/reviews', icon: Star },
+      { name: t('systemMenus.tags'), url: '/dashboard/tags', icon: Tags },
+      { name: t('systemMenus.settings'), url: '/dashboard/settings', icon: Settings2 }
+    ],
+    // 👉 SỬA Ở ĐÂY: Thêm i18n.language
+    [t, i18n.language]
+  )
+
+  // Nav chính (Quản lý Sách, Kho, Đơn hàng)
   const navMainWithBadge = useMemo(
     () => [
       {
-        title: 'Quản lý Sách',
+        title: t('navMain.books'),
         url: '#',
         icon: BookOpen,
         isActive: true,
         items: [
-          { title: 'Tất cả sách', url: '/dashboard/books' },
-          { title: 'Danh mục', url: '/dashboard/categories' },
-          { title: 'Tác giả', url: '/dashboard/authors' },
-          { title: 'Nhà xuất bản', url: '/dashboard/publishers' }
+          { title: t('navMain.booksAll'), url: '/dashboard/books' },
+          { title: t('navMain.booksCategories'), url: '/dashboard/categories' },
+          { title: t('navMain.booksAuthors'), url: '/dashboard/authors' },
+          { title: t('navMain.booksPublishers'), url: '/dashboard/publishers' }
         ]
       },
       {
-        title: 'Quản lý Kho',
+        title: t('navMain.inventory'),
         url: '#',
         icon: Package,
         items: [
-          { title: 'Nhà cung cấp', url: '/dashboard/suppliers' }, // 2. Thêm Nhà cung cấp vào đây
-          { title: 'Phiếu nhập kho', url: '/dashboard/receipts' },
-          { title: 'Kiểm kê tồn kho', url: '/dashboard/inventory' }
+          { title: t('navMain.inventorySuppliers'), url: '/dashboard/suppliers' },
+          { title: t('navMain.inventoryReceipts'), url: '/dashboard/receipts' },
+          { title: t('navMain.inventoryStockCheck'), url: '/dashboard/inventory' }
         ]
       },
       {
-        title: 'Đơn hàng',
+        title: t('navMain.orders'),
         url: '/dashboard/orders',
         icon: ShoppingCart,
         badge: pendingCount > 0 ? String(pendingCount) : undefined
       }
     ],
-    [pendingCount]
+    // 👉 SỬA Ở ĐÂY: Thêm i18n.language
+    [t, i18n.language, pendingCount]
   )
 
   const currentUser = {
-    name: user?.fullName || 'Zenbook Admin',
-    email: user?.email || 'admin@zenbook.com',
+    name: user?.fullName || t('user.defaultName'),
+    email: user?.email || t('user.defaultEmail'),
     avatar: user?.avatar || '/avatars/admin.jpg'
   }
 
   return (
     <Sidebar side='left' variant='inset' collapsible='icon' {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={staticData.teams} />
+        <TeamSwitcher teams={teams} />
       </SidebarHeader>
-      <SidebarContent>
+
+      <SidebarContent
+        className='
+          overflow-y-auto 
+          [&::-webkit-scrollbar]:w-[5px] 
+          [&::-webkit-scrollbar-track]:bg-transparent 
+          [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 
+          hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/50 
+          [&::-webkit-scrollbar-thumb]:rounded-full
+        '
+      >
         <NavMain items={navMainWithBadge} />
-        <NavProjects projects={staticData.systemMenus} />
+        <NavProjects projects={systemMenus} />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser user={currentUser} />
       </SidebarFooter>

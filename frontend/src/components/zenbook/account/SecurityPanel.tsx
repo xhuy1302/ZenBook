@@ -214,7 +214,7 @@ function ChangePasswordModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-md rounded-[24px] z-[100] p-7 border-slate-100 shadow-2xl'>
+      <DialogContent className='sm:max-w-md rounded-[24px] z-[9999] p-7 border-slate-100 shadow-2xl'>
         <DialogHeader className='mb-4'>
           <div className='w-12 h-12 bg-brand-green/10 rounded-2xl flex items-center justify-center mb-3 mx-auto'>
             <KeyRound className='w-6 h-6 text-brand-green' />

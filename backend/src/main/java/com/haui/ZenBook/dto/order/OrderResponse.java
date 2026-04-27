@@ -27,7 +27,8 @@ public class OrderResponse {
 
     private Double totalItemsPrice;
     private Double shippingFee;
-    private Double discountAmount;
+    private Double orderDiscount;
+    private Double shippingDiscount;
     private Double finalTotal;
 
     private String paymentMethod;
