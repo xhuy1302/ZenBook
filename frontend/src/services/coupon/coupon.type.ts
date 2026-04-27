@@ -42,3 +42,10 @@ export interface CouponRequest {
   endDate: string
   status: CouponStatus
 }
+
+export interface CouponValidateRequest {
+  code: string
+  orderTotal: number
+  couponType: CouponType
+  categoryIdsInCart?: string[]
+}

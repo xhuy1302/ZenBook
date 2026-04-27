@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cập nhật trạng thái đơn hàng</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 10px;">
+    <tr>
+        <td align="center">
+            <table width="100%" max-width="600px" border="0" cellpadding="0" cellspacing="0" style="background-color: #ffffff; max-width: 600px; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+
+                <tr>
+                    <td style="background-color: #10b981; padding: 20px 30px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">ZENBOOK MALL</h1>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding: 30px 30px 10px 30px;">
+                        <p style="margin: 0 0 15px 0; font-size: 16px; color: #333333;">
+                            Xin chào <strong><span th:text="${order.customerName}">Khách hàng</span></strong>,
+                        </p>
+                        <p style="margin: 0 0 20px 0; font-size: 15px; color: #555555; line-height: 1.5;">
+                            Thông tin trạng thái đơn hàng <strong style="color: #10b981;">#<span th:text="${order.orderCode}">12345</span></strong> của bạn vừa được hệ thống cập nhật.
+                        </p>
+
+                        <div style="border-left: 4px solid #10b981; background-color: #f0fdf4; padding: 15px 20px; border-radius: 0 4px 4px 0; margin-bottom: 25px;">
+                            <p style="margin: 0 0 5px 0; font-size: 13px; color: #666666;">Trạng thái mới nhất:</p>
+                            <h2 style="margin: 0; font-size: 18px; color: #10b981; text-transform: uppercase;" th:text="${statusVn}">
+                                ĐANG GIAO HÀNG
+                            </h2>
+                        </div>
+
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 25px; border-top: 1px solid #eeeeee;">
+                            <tr>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee; color: #666666; font-size: 14px;">Mã đơn hàng:</td>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee; text-align: right; font-weight: bold; color: #333333; font-size: 14px;">
+                                    #<span th:text="${order.orderCode}">12345</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee; color: #666666; font-size: 14px;">Thanh toán:</td>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee; text-align: right; color: #666666; font-size: 14px;">
+                                    <span th:text="${order.paymentMethod}">COD</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee; color: #666666; font-size: 14px;">Tổng số tiền:</td>
+                                <td style="padding: 12px 0; border-bottom: 1px solid #eeeeee; text-align: right; font-weight: bold; color: #ee4d2d; font-size: 16px;">
+                                    <span th:text="${#numbers.formatDecimal(order.finalTotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 đ</span>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin: 0 0 25px 0; font-size: 14px; color: #555555; line-height: 1.5; text-align: center;">
+                            Bạn có thể theo dõi chi tiết quá trình xử lý đơn hàng bằng cách bấm vào nút bên dưới:
+                        </p>
+
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                            <tr>
+                                <td align="center">
+                                    <a href="https://zenbook.vn/orders/history" target="_blank" style="display: inline-block; padding: 14px 35px; background-color: #10b981; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; letter-spacing: 0.5px;">
+                                        XEM CHI TIẾT ĐƠN HÀNG
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="background-color: #fafafa; padding: 25px 30px; text-align: center; border-top: 1px solid #eeeeee;">
+                        <p style="margin: 0 0 10px 0; color: #777777; font-size: 13px;">
+                            Cảm ơn bạn đã tin tưởng và mua sắm tại <strong>ZenBook</strong>!
+                        </p>
+                        <p style="margin: 0; color: #aaaaaa; font-size: 11px; line-height: 1.4;">
+                            Đây là email tự động từ hệ thống ZenBook.<br>
+                            Vui lòng không trả lời email này. Nếu cần hỗ trợ, hãy liên hệ CSKH qua website.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

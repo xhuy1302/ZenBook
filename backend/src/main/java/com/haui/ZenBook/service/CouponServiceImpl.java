@@ -2,6 +2,7 @@ package com.haui.ZenBook.service;
 
 import com.haui.ZenBook.dto.coupon.CouponRequest;
 import com.haui.ZenBook.dto.coupon.CouponResponse;
+import com.haui.ZenBook.dto.coupon.CouponValidateRequest;
 import com.haui.ZenBook.entity.CouponEntity;
 import com.haui.ZenBook.enums.CouponStatus;
 import com.haui.ZenBook.enums.DiscountType;
@@ -27,6 +28,7 @@ public class CouponServiceImpl implements CouponService {
     private final CouponRepository couponRepository;
     private final OrderRepository orderRepository;
     private final CouponMapper couponMapper;
+
 
     // ========================================================
     // 1. CLIENT LOGIC: VALIDATE MÃ KHI ĐẶT HÀNG
@@ -174,6 +176,70 @@ public class CouponServiceImpl implements CouponService {
             }
             couponRepository.save(coupon);
         });
+    }
+
+    @Override
+    @Transactional(readOnly = true) // Validate chỉ đọc dữ liệu, không ghi
+    public CouponResponse validateCoupon(CouponValidateRequest request, String currentUserId) {
+        CouponEntity coupon = couponRepository.findByCodeAndDeletedAtIsNull(request.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.COUPON_NOT_FOUND, request.getCode()));
+
+        // 1. Kiểm tra loại mã (Freeship hay Mã giảm giá đơn hàng)
+        if (coupon.getCouponType() != request.getCouponType()) {
+            throw new AppException(ErrorCode.COUPON_TYPE_MISMATCH);
+        }
+
+        // 2. Kiểm tra trạng thái và thời gian
+        LocalDateTime now = LocalDateTime.now();
+        if (coupon.getStatus() == CouponStatus.EXPIRED || now.isBefore(coupon.getStartDate()) || now.isAfter(coupon.getEndDate())) {
+            throw new AppException(ErrorCode.COUPON_EXPIRED_OR_INACTIVE);
+        }
+
+        // 3. Kiểm tra giới hạn lượt dùng toàn hệ thống
+        if (coupon.getUsageLimit() != null && coupon.getUsedCount() >= coupon.getUsageLimit()) {
+            throw new AppException(ErrorCode.COUPON_OUT_OF_USAGE);
+        }
+
+        // 4. Kiểm tra giá trị đơn hàng tối thiểu
+        if (request.getOrderTotal() < coupon.getMinOrderValue()) {
+            // Có thể format số tiền trả về trong message
+            throw new AppException(ErrorCode.COUPON_MIN_ORDER_NOT_MET, String.valueOf(coupon.getMinOrderValue()));
+        }
+
+        // 5. Kiểm tra giới hạn theo User
+        if (coupon.getUserId() != null && !coupon.getUserId().equals(currentUserId)) {
+            throw new AppException(ErrorCode.COUPON_USER_MISMATCH);
+        }
+
+        // 6. Kiểm tra giới hạn theo Danh mục (Chỉ áp dụng cho mã ORDER)
+        if (coupon.getCouponType() == CouponType.ORDER && coupon.getCategoryId() != null) {
+            boolean hasValidCategory = request.getCategoryIdsInCart() != null &&
+                    request.getCategoryIdsInCart().contains(coupon.getCategoryId());
+            if (!hasValidCategory) {
+                throw new AppException(ErrorCode.COUPON_CATEGORY_MISMATCH);
+            }
+        }
+
+        // 7. Kiểm tra số lần User này đã dùng mã
+        long countUsed = orderRepository.countByUserIdAndCouponId(currentUserId, coupon.getId());
+        if (countUsed >= coupon.getMaxUsagePerUser()) {
+            throw new AppException(ErrorCode.COUPON_USER_LIMIT_EXCEEDED);
+        }
+
+        // 8. Tính toán số tiền giảm dự kiến
+        double discount = 0.0;
+        if (coupon.getDiscountType() == DiscountType.PERCENTAGE) {
+            discount = request.getOrderTotal() * (coupon.getDiscountValue() / 100);
+            if (coupon.getMaxDiscountAmount() != null && discount > coupon.getMaxDiscountAmount()) {
+                discount = coupon.getMaxDiscountAmount();
+            }
+        } else {
+            discount = coupon.getDiscountValue();
+        }
+
+        CouponResponse response = couponMapper.toResponse(coupon);
+        response.setCalculatedDiscount(discount);
+        return response;
     }
 
     // ========================================================

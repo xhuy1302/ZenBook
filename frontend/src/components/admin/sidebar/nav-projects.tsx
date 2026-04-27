@@ -2,6 +2,7 @@
 
 import { type LucideIcon } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import {
   SidebarGroup,
@@ -20,13 +21,14 @@ export function NavProjects({
     icon: LucideIcon
   }[]
 }) {
+  const { t } = useTranslation('sidebar')
   const location = useLocation()
   const pathname = location.pathname
 
   return (
     <SidebarGroup className='group-data-[collapsible=icon]:hidden mt-2'>
       <SidebarGroupLabel className='uppercase tracking-widest text-muted-foreground font-bold text-[11px] mb-1'>
-        Hệ thống & Cấu hình
+        {t('navProjects.groupLabel')}
       </SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => {

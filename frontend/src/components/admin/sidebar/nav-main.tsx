@@ -2,6 +2,7 @@
 
 import { ChevronRight, type LucideIcon } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
@@ -30,13 +31,14 @@ export function NavMain({
     }[]
   }[]
 }) {
+  const { t } = useTranslation('sidebar')
   const location = useLocation()
   const pathname = location.pathname
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel className='uppercase tracking-widest text-muted-foreground font-bold text-[11px] mb-1'>
-        Nghiệp vụ cửa hàng
+        {t('navMain.groupLabel')}
       </SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
@@ -76,7 +78,6 @@ export function NavMain({
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items.map((subItem) => {
-                        // Kiểm tra active chính xác cho cả route con (VD: /dashboard/publishers/create)
                         const isActive =
                           pathname === subItem.url || pathname.startsWith(`${subItem.url}/`)
 

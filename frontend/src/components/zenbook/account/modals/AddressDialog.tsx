@@ -212,7 +212,7 @@ export default function AddressDialog({
                       <SelectTrigger>
                         <SelectValue placeholder='Chọn Tỉnh' />
                       </SelectTrigger>
-                      <SelectContent className='max-h-56'>
+                      <SelectContent className='max-h-56 z-[10000]'>
                         {provinces.map((p) => (
                           <SelectItem key={p.ProvinceID} value={p.ProvinceName}>
                             {p.ProvinceName}
@@ -242,7 +242,7 @@ export default function AddressDialog({
                       <SelectTrigger>
                         <SelectValue placeholder='Chọn Quận' />
                       </SelectTrigger>
-                      <SelectContent className='max-h-56'>
+                      <SelectContent className='max-h-56 z-[10000]'>
                         {districts.map((d) => (
                           <SelectItem key={d.DistrictID} value={d.DistrictName}>
                             {d.DistrictName}
@@ -271,7 +271,7 @@ export default function AddressDialog({
                       <SelectTrigger>
                         <SelectValue placeholder='Chọn Phường' />
                       </SelectTrigger>
-                      <SelectContent className='max-h-56'>
+                      <SelectContent className='max-h-56 z-[10000]'>
                         {wards.map((w) => (
                           <SelectItem key={w.WardCode} value={w.WardName}>
                             {w.WardName}

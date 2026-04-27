@@ -45,6 +45,9 @@ public class OrderEntity {
     @Column(name = "shipping_fee", nullable = false)
     private Double shippingFee;
 
+    private Double orderDiscount;    // Lưu tiền giảm giá đơn hàng
+    private Double shippingDiscount; // Lưu tiền giảm giá vận chuyển
+
     @Column(name = "discount_amount", nullable = false)
     private Double discountAmount;
 

@@ -47,11 +47,16 @@ export const getColumns = (t: TFunction<'product'>): ColumnDef<BookResponse>[] =
         <div className='flex items-center gap-3 py-1'>
           <img
             src={
-              book.thumbnail ||
-              'https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/books/Book-default.png'
+              book.thumbnail && book.thumbnail.trim()
+                ? book.thumbnail
+                : 'https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/books/Zen+Book+2.png'
             }
             alt={book.title}
             className='h-12 w-9 rounded object-cover border shadow-sm'
+            onError={(e) => {
+              e.currentTarget.src =
+                'https://zenbook-s3.s3.ap-southeast-2.amazonaws.com/books/Zen+Book+2.png'
+            }}
           />
           <div className='flex flex-col'>
             <span className='font-semibold leading-none text-foreground'>{book.title}</span>

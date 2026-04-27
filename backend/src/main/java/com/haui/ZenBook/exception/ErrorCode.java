@@ -30,6 +30,7 @@ public enum ErrorCode {
 
     USER_NOT_FOUND(4001, "user.not.found", HttpStatus.NOT_FOUND),
     CANNOT_DELETE_SELF(4002, "user.cannot.delete.self", HttpStatus.BAD_REQUEST),
+
     // ================= Thêm mới cho ADDRESS =================
     ADDRESS_NOT_FOUND(4008, "address.not.found", HttpStatus.NOT_FOUND),
 
@@ -43,8 +44,8 @@ public enum ErrorCode {
     CATEGORY_NAME_INVALID_SIZE(5011, "category.name.invalid.size", HttpStatus.BAD_REQUEST),
     CATEGORY_CANNOT_PARENT_ITSELF(5012, "category.cannot.parent.itself", HttpStatus.BAD_REQUEST),
     CATEGORY_LEVEL_TOO_DEEP(5013, "category.level.too.deep", HttpStatus.BAD_REQUEST),
-    PARENT_CATEGORY_NOT_FOUND(5004, "category.parent.not.found", HttpStatus.BAD_REQUEST), // Note: Duplicate key in original, kept to avoid breaking changes if used
-    CATEGORY_HAS_CHILDREN(5006, "category.has.child", HttpStatus.BAD_REQUEST), // Note: Duplicate key in original, kept to avoid breaking changes if used
+    PARENT_CATEGORY_NOT_FOUND(5004, "category.parent.not.found", HttpStatus.BAD_REQUEST),
+    CATEGORY_HAS_CHILDREN(5006, "category.has.child", HttpStatus.BAD_REQUEST),
     CATEGORY_HAS_BOOKS(5014, "category.has.books", HttpStatus.BAD_REQUEST),
 
     BRAND_NOT_FOUND(5007, "brand.not.found", HttpStatus.NOT_FOUND),
@@ -97,6 +98,7 @@ public enum ErrorCode {
     ORDER_RETURN_EXPIRED(4010, "order.return.expired", HttpStatus.BAD_REQUEST),
     ORDER_RETURN_INVALID_STATUS(4011, "order.return.invalid.status", HttpStatus.BAD_REQUEST),
     INVALID_DATA(4012, "invalid_data", HttpStatus.BAD_REQUEST),
+
     // MỚI: Lỗi liên quan đến Excel và File đính kèm
     EXCEL_IMPORT_FAILED(10004, "receipt.excel.import.failed", HttpStatus.BAD_REQUEST),
     EXCEL_INVALID_FORMAT(10005, "receipt.excel.invalid.format", HttpStatus.BAD_REQUEST),
@@ -133,6 +135,7 @@ public enum ErrorCode {
     COUPON_CATEGORY_MISMATCH(12007, "coupon.category.mismatch", HttpStatus.BAD_REQUEST),
     COUPON_USER_LIMIT_EXCEEDED(12008, "coupon.user.limit.exceeded", HttpStatus.BAD_REQUEST),
     COUPON_RESTORE_FAILED_CODE_EXISTED(12009, "coupon.restore.failed.code.exists", HttpStatus.BAD_REQUEST),
+    COUPON_TYPE_MISMATCH(12010, "coupon.type.mismatch", HttpStatus.BAD_REQUEST), // Đã bổ sung
 
     // ================= LỖI GIỎ HÀNG (CART - 1400x) =================
     CART_NOT_FOUND(14000, "cart.not.found", HttpStatus.NOT_FOUND),
@@ -140,19 +143,20 @@ public enum ErrorCode {
     CART_IS_EMPTY(14002, "cart.is.empty", HttpStatus.BAD_REQUEST),
     CART_ITEM_QUANTITY_INVALID(14003, "cart.item.quantity.invalid", HttpStatus.BAD_REQUEST),
 
-
     // ================= Thêm mới cho SUPPLIER (1500x) =================
     SUPPLIER_NOT_FOUND(15000, "supplier.not.found", HttpStatus.NOT_FOUND),
     SUPPLIER_NAME_NOTBLANK(15001, "supplier.name.not.blank", HttpStatus.BAD_REQUEST),
     SUPPLIER_EMAIL_EXISTED(15002, "supplier.email.exists", HttpStatus.BAD_REQUEST),
     SUPPLIER_TAX_CODE_EXISTED(15003, "supplier.tax.code.exists", HttpStatus.BAD_REQUEST),
     SUPPLIER_CANNOT_DELETE(15004, "supplier.cannot.delete", HttpStatus.BAD_REQUEST),
+    ORDER_NOT_COMPLETED(16005, "order.not.completed", HttpStatus.BAD_REQUEST),
 
     // ================= LỖI REVIEW / RATING (1600x) =================
     REVIEW_NOT_FOUND(16000, "review.not.found", HttpStatus.NOT_FOUND),
     REVIEW_ALREADY_REPLIED(16001, "review.already.replied", HttpStatus.BAD_REQUEST),
     REVIEW_REPLY_NOT_FOUND(16002, "review.reply.not.found", HttpStatus.NOT_FOUND),
-    REVIEW_ALREADY_EXISTS(16003,"review.already.exists", HttpStatus.BAD_REQUEST);
+    REVIEW_ALREADY_EXISTS(16003,"review.already.exists", HttpStatus.BAD_REQUEST),
+    EXPORT_PDF_FAILED(16004,"invoice.export.pdf.failed",HttpStatus.INTERNAL_SERVER_ERROR);
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

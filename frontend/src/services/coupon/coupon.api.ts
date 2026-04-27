@@ -1,6 +1,6 @@
 import { api } from '@/utils/axiosCustomize'
 import type { ApiResponse } from '@/defines/apiResponse'
-import type { CouponRequest, CouponResponse } from './coupon.type'
+import type { CouponRequest, CouponResponse, CouponValidateRequest } from './coupon.type'
 
 // 1. LẤY DANH SÁCH (ACTIVE)
 export const getAllCouponsApi = async () => {
@@ -14,7 +14,7 @@ export const getCouponByIdApi = async (id: string) => {
   return res.data.data
 }
 
-// 3. THÊM MỚI (Vì không có file ảnh nên truyền thẳng JSON payload)
+// 3. THÊM MỚI
 export const createCouponApi = async (payload: CouponRequest) => {
   const res = await api.post<ApiResponse<CouponResponse>>('/coupons', payload)
   return res.data
@@ -52,17 +52,11 @@ export const hardDeleteCouponApi = async (id: string) => {
   return res.data
 }
 
-// ================= API CHO CLIENT (TRANG GIỎ HÀNG) =================
+// ================= API CHO CLIENT (TRANG GIỎ HÀNG / CHECKOUT) =================
 
 // 9. VALIDATE MÃ GIẢM GIÁ
-export const validateCouponApi = async (params: {
-  code: string
-  orderTotal: number
-  currentUserId?: string
-  categoryIdsInCart?: string[]
-}) => {
-  // Vì backend dùng @GetMapping và @RequestParam, nên ta nhét object vào thuộc tính "params"
-  // Axios sẽ tự động parse thành URL: /coupons/validate?code=xxx&orderTotal=yyy
-  const res = await api.get<ApiResponse<CouponResponse>>('/coupons/validate', { params })
+export const validateCouponApi = async (payload: CouponValidateRequest) => {
+  // 👉 SỬA: Chuyển thành POST vì backend dùng @PostMapping và @RequestBody
+  const res = await api.post<ApiResponse<CouponResponse>>('/coupons/validate', payload)
   return res.data.data
 }

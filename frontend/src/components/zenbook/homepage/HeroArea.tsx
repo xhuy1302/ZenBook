@@ -100,7 +100,7 @@ export default function HeroArea() {
                 {Array.from({ length: 8 }).map((_, i) => (
                   <li key={i} className='flex items-center gap-3 px-4 py-3'>
                     <div className='w-8 h-8 rounded-lg bg-slate-100' />
-                    <div className='h-3.5 w-2/3 rounded bg-slate-100' />
+                    <div className='h-4 w-2/3 rounded bg-slate-100' />
                   </li>
                 ))}
               </ul>
@@ -114,7 +114,7 @@ export default function HeroArea() {
                     <li key={cat.id} onMouseEnter={() => handleMouseEnter(cat)}>
                       <Link
                         to={`/products?categoryIds=${cat.id}`}
-                        className={`flex items-center justify-between px-4 py-2.5 transition-all border-l-[3px]
+                        className={`flex items-center justify-between px-4 py-3 transition-all border-l-[3px]
                           ${
                             isHovered
                               ? 'bg-brand-green/10 text-brand-green border-brand-green'
@@ -133,19 +133,20 @@ export default function HeroArea() {
                               />
                             ) : (
                               <BookOpen
-                                className={`w-4 h-4 ${isHovered ? 'text-brand-green' : 'text-slate-400'}`}
+                                className={`w-4.5 h-4.5 ${isHovered ? 'text-brand-green' : 'text-slate-400'}`}
                               />
                             )}
                           </div>
+                          {/* Đã chỉnh sửa kích thước chữ danh mục cha lên 15px tại đây */}
                           <span
-                            className={`text-[13px] font-bold leading-snug transition-colors ${isHovered ? 'text-brand-green' : 'text-slate-800'}`}
+                            className={`text-[15px] font-bold leading-snug transition-colors ${isHovered ? 'text-brand-green' : 'text-slate-800'}`}
                           >
                             {cat.categoryName}
                           </span>
                         </div>
                         {hasChildren && (
                           <ChevronRight
-                            className={`w-4 h-4 shrink-0 transition-all ${isHovered ? 'translate-x-0.5 text-brand-green' : 'text-slate-300'}`}
+                            className={`w-4.5 h-4.5 shrink-0 transition-all ${isHovered ? 'translate-x-0.5 text-brand-green' : 'text-slate-300'}`}
                           />
                         )}
                       </Link>

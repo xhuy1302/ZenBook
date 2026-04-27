@@ -31,65 +31,57 @@ public class SecurityConfig {
                         // ==========================================
                         // 1. PUBLIC API (KHÔNG CẦN ĐĂNG NHẬP)
                         // ==========================================
+                        // Auth & Webhooks
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/news", "/api/v1/news/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/promotions/flash-sale/active").permitAll()
+                        .requestMatchers("/api/v1/payment/vnpay/ipn").permitAll()
+
+                        // Books, Categories, News, Promotions (Chỉ cho phép đọc)
                         .requestMatchers(HttpMethod.GET, "/api/v1/books", "/api/v1/books/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/customer/**").permitAll()
-                        .requestMatchers("/api/v1/address/**").permitAll()
-                        .requestMatchers("/api/v1/payment/vnpay/ipn").permitAll() // Webhook VNPAY
-                        .requestMatchers(HttpMethod.GET, "/api/v1/public/news/**").permitAll() // Lấy list, chi tiết, stats, featured
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/public/news/*/view").permitAll() // Tăng lượt xem công khai
-                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
-                        // Cho phép xem danh sách review public
-                        .requestMatchers(HttpMethod.GET, "/api/v1/books/*/reviews").permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/api/v1/news", "/api/v1/news/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/news", "/api/v1/news/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/public/news/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/promotions/flash-sale/active").permitAll()
+
+                        // Public APIs khác
+                        .requestMatchers(HttpMethod.GET, "/api/v1/customer/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/address/**").permitAll()
+
+                        // Public Action: Tăng view
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/public/news/*/view").permitAll()
+
 
                         // ==========================================
-                        // 2. ĐẶC QUYỀN ADMIN (CHỈ ADMIN ĐƯỢC PHÉP TRUY CẬP)
-                        // LƯU Ý: Phải đặt lên trước các rule của STAFF
+                        // 2. ĐẶC QUYỀN ADMIN (QUY TẮC CỤ THỂ ĐẶT TRƯỚC)
+                        // Chặn các hành động xóa thực thể cốt lõi hoặc can thiệp dữ liệu nhạy cảm
                         // ==========================================
-                        // Quản lý nhân sự & Người dùng
+                        // Quản lý người dùng, khuyến mãi, nhập kho (Mọi hành động)
                         .requestMatchers("/api/v1/admin/users/**").hasRole("ADMIN")
-
-                        // Quản lý dòng tiền, nhập kho, khuyến mãi lớn
                         .requestMatchers("/api/v1/admin/promotions/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/admin/receipts/**").hasRole("ADMIN")
 
-                        // Quyền THÊM/SỬA/XÓA các dữ liệu danh mục cốt lõi (STAFF chỉ được GET)
+                        // Chặn hành động Thêm/Sửa/Xóa các danh mục cốt lõi
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/categories/**", "/api/v1/admin/suppliers/**", "/api/v1/admin/authors/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/admin/categories/**", "/api/v1/admin/suppliers/**", "/api/v1/admin/authors/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/categories/**", "/api/v1/admin/suppliers/**", "/api/v1/admin/authors/**").hasRole("ADMIN")
 
-                        // Các hành động XÓA nhạy cảm đối với thực thể chính
+                        // Chặn hành động Xóa các thực thể khác
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/books/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/reviews/**").hasRole("ADMIN") // Ngăn Staff tự ý xóa đánh giá/phản hồi
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/reviews/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/news/**").hasRole("ADMIN")
 
-                        // ==========================================
-                        // 3. QUYỀN VẬN HÀNH CHUNG (ADMIN & STAFF)
-                        // ==========================================
-                        // Cho phép STAFF gọi GET để xem mọi thứ trong trang quản trị
-                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/**").hasAnyRole("ADMIN", "STAFF")
-
-                        // STAFF được làm việc với Sách (Tạo/Sửa/Upload Ảnh) - Lưu ý: Quyền XÓA đã bị chặn ở trên
-                        .requestMatchers("/api/v1/admin/books/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers(HttpMethod.POST, "/api/files/**").hasAnyRole("ADMIN", "STAFF")
-
-                        // STAFF được làm việc với Đánh giá (Duyệt/Trả lời khách)
-                        .requestMatchers("/api/v1/admin/reviews/**").hasAnyRole("ADMIN", "STAFF")
-
-                        // STAFF được viết/sửa bài Tin tức
-                        .requestMatchers("/api/v1/admin/news/**").hasAnyRole("ADMIN", "STAFF")
-
-                        // STAFF được xem Dashboard thống kê
-                        .requestMatchers("/api/v1/admin/dashboard/**").hasAnyRole("ADMIN", "STAFF")
 
                         // ==========================================
-                        // 4. API DÀNH CHO KHÁCH HÀNG (YÊU CẦU LOGIN)
+                        // 3. QUYỀN VẬN HÀNH (ADMIN + STAFF)
+                        // ==========================================
+                        // Các endpoint Admin còn lại (Dashboards, quản lý Order, tạo Book, trả lời Review, tạo News...)
+                        .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "STAFF")
+
+                        // Quản lý File Upload
+                        .requestMatchers("/api/files/**").hasAnyRole("ADMIN", "STAFF")
+
+
+                        // ==========================================
+                        // 4. CUSTOMER API (BẮT BUỘC ĐĂNG NHẬP)
                         // ==========================================
                         .requestMatchers(
                                 "/api/v1/users/update",
@@ -99,10 +91,13 @@ public class SecurityConfig {
                                 "/api/v1/orders/my-orders",
                                 "/api/v1/orders/**",
                                 "/api/v1/cart/**",
+                                "/api/v1/reviews/**", // Khách hàng được tạo/sửa review của chính họ
                                 "/api/v1/payment/create-url/**"
                         ).hasAnyRole("USER", "ADMIN", "STAFF")
 
-                        // Khóa toàn bộ các URL còn lại
+                        // ==========================================
+                        // 5. CÁC ENDPOINT CÒN LẠI (Nếu có)
+                        // ==========================================
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

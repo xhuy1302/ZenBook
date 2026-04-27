@@ -1,0 +1,51 @@
+{
+  "teams": {
+    "store": {
+      "name": "Zenbook Store.",
+      "plan": "Pro Plan"
+    },
+    "logistics": {
+      "name": "Zenbook Logistics",
+      "plan": "Startup"
+    }
+  },
+  "navMain": {
+    "books": "Book Management",
+    "booksAll": "All Books",
+    "booksCategories": "Categories",
+    "booksAuthors": "Authors",
+    "booksPublishers": "Publishers",
+    "inventory": "Inventory",
+    "inventorySuppliers": "Suppliers",
+    "inventoryReceipts": "Stock Receipts",
+    "inventoryStockCheck": "Stock Check",
+    "orders": "Orders",
+    "groupLabel": "Store Operations"
+  },
+  "systemMenus": {
+    "accounts": "Accounts",
+    "promotions": "Promotions",
+    "coupons": "Coupons",
+    "news": "Posts",
+    "reviews": "Reviews",
+    "tags": "Book Tags",
+    "settings": "Settings"
+  },
+  "user": {
+    "defaultName": "Zenbook Admin",
+    "defaultEmail": "admin@zenbook.com"
+  },
+  "teamSwitcher": {
+    "label": "Branch System",
+    "addNew": "Add new branch"
+  },
+  "navUser": {
+    "profile": "Personal Info",
+    "changePassword": "Change Password",
+    "notifications": "System Notifications",
+    "logout": "Log out"
+  },
+  "navProjects": {
+    "groupLabel": "System & Configuration"
+  }
+}

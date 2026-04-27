@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+// 👉 IMPORT THÊM useLocation
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -52,11 +53,11 @@ export default function ProductDetailPage() {
   const { t } = useTranslation('common')
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
+  const location = useLocation() // 👉 SỬ DỤNG USELOCATION
   const { addItem } = useCart()
   const [quantity, setQuantity] = useState(1)
 
-  // LẤY THÔNG TIN USER ĐANG ĐĂNG NHẬP (Sửa lại key localStorage hoặc dùng Redux/Context tùy dự án của bạn)
-  const storedUser = localStorage.getItem('user') // ví dụ: 'user' hoặc 'userInfo'
+  const storedUser = localStorage.getItem('user')
   const currentUser = storedUser ? JSON.parse(storedUser) : null
 
   const {
@@ -70,6 +71,7 @@ export default function ProductDetailPage() {
     staleTime: 5 * 60 * 1000
   })
 
+  // Tự động tăng lượt xem
   useEffect(() => {
     if (bookData?.id) {
       const viewedKey = `viewed_book_${bookData.id}`
@@ -79,6 +81,18 @@ export default function ProductDetailPage() {
       }
     }
   }, [bookData?.id])
+
+  // 👉 TỰ ĐỘNG CUỘN ĐẾN PHẦN ĐÁNH GIÁ (NẾU CÓ THẺ #reviews TRÊN URL)
+  useEffect(() => {
+    if (bookData && location.hash === '#reviews') {
+      setTimeout(() => {
+        const reviewSection = document.getElementById('reviews')
+        if (reviewSection) {
+          reviewSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 500)
+    }
+  }, [bookData, location.hash])
 
   const handleAddToCart = () => {
     if (!bookData) return
@@ -175,8 +189,8 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* TRUYỀN THÊM currentUserId VÀO COMPONENT NÀY */}
-              <section className='bg-white rounded border border-gray-100 p-5'>
+              {/* 👉 GẮN id="reviews" VÀO SECTION NÀY ĐỂ REACT SCROLL XUỐNG */}
+              <section id='reviews' className='bg-white rounded border border-gray-100 p-5'>
                 <ProductReviews bookId={bookData.id} currentUserId={currentUser?.id} />
               </section>
 

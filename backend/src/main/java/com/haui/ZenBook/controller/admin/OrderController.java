@@ -28,29 +28,55 @@ public class OrderController {
     private final OrderService orderService;
     private final UserRepository userRepository;
 
-
+    /**
+     * CLIENT: Đặt hàng mới
+     * (Tự động gửi mail Xác nhận đơn hàng bên trong Service nếu là COD)
+     */
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderCreateRequest request) {
         String email = getUsername();
-        System.out.println("👉 [DEBUG] Giá trị lấy từ Token là: '" + email + "'");
+
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // Gọi service xử lý logic và gửi mail
         OrderResponse response = orderService.createOrder(request, email, getRole(), user.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * ADMIN/USER: Chỉnh sửa thông tin đơn hàng (Khi còn PENDING)
+     */
     @PutMapping("/{id}")
     public ResponseEntity<OrderResponse> updateOrder(@PathVariable String id, @Valid @RequestBody OrderUpdateRequest request) {
         return ResponseEntity.ok(orderService.updateOrder(id, request, getUsername(), getRole()));
     }
 
+    /**
+     * ADMIN: Cập nhật trạng thái đơn hàng (Xác nhận, Giao hàng, v.v.)
+     * (Tự động gửi mail Thông báo trạng thái mới bên trong Service)
+     */
     @PatchMapping("/{id}/status")
-    public ResponseEntity<OrderResponse> updateStatus(@PathVariable String id, @Valid @RequestBody OrderStatusUpdateRequest request) {
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, request.getNewStatus(), request.getNote(), getUsername(), getRole()));
+    public ResponseEntity<OrderResponse> updateStatus(
+            @PathVariable String id,
+            @Valid @RequestBody OrderStatusUpdateRequest request) {
+
+        // request.getNote() sẽ được truyền vào mail nếu bạn muốn hiển thị lý do/ghi chú
+        OrderResponse response = orderService.updateOrderStatus(
+                id,
+                request.getNewStatus(),
+                request.getNote(),
+                getUsername(),
+                getRole()
+        );
+
+        return ResponseEntity.ok(response);
     }
 
-    // 👉 ĐÃ THÊM: startDate và endDate
+    /**
+     * ADMIN: Lấy tất cả đơn hàng (Phân trang, Lọc theo trạng thái, Ngày tháng)
+     */
     @GetMapping
     public ResponseEntity<Page<OrderResponse>> getAll(
             @RequestParam(defaultValue = "0") int page,
@@ -63,6 +89,9 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getAllOrders(status, startDate, endDate, pageable));
     }
 
+    /**
+     * CLIENT: Lấy lịch sử đơn hàng của tôi
+     */
     @GetMapping("/my-orders")
     public ResponseEntity<Page<OrderResponse>> getMy(
             @RequestParam(defaultValue = "0") int page,
@@ -72,23 +101,35 @@ public class OrderController {
         String email = getUsername();
         if (email == null) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
-        // 👉 BƯỚC QUAN TRỌNG: Tìm User để lấy ID (UUID)
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        // Truyền user.getId() (cái UUID) vào service thay vì truyền email
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return ResponseEntity.ok(orderService.getMyOrders(user.getId(), status, pageable));
     }
 
+    /**
+     * CHUNG: Lấy chi tiết 1 đơn hàng
+     */
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOne(@PathVariable String id) {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
+    /**
+     * ADMIN: Đếm số đơn hàng đang chờ (Badge thông báo)
+     */
+    @GetMapping("/count-pending")
+    public ResponseEntity<Long> getCountPending() {
+        return ResponseEntity.ok(orderService.countPendingOrders());
+    }
+
+    // --- HELPER METHODS ---
+
     private String getUsername() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) ? auth.getName() : null;
+        return (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal()))
+                ? auth.getName() : null;
     }
 
     private ActionRole getRole() {
@@ -97,10 +138,5 @@ public class OrderController {
         if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) return ActionRole.ADMIN;
         if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_STAFF"))) return ActionRole.STAFF;
         return ActionRole.USER;
-    }
-
-    @GetMapping("/count-pending")
-    public ResponseEntity<Long> getCountPending() {
-        return ResponseEntity.ok(orderService.countPendingOrders());
     }
 }

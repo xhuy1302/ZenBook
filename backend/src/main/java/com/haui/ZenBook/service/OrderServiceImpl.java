@@ -51,6 +51,10 @@ public class OrderServiceImpl implements OrderService {
     private final PromotionService promotionService;
     private final ReviewRepository reviewRepository;
 
+
+    // 👉 INJECT EmailService
+    private final EmailService emailService;
+
     private static final String PAYMENT_METHOD_COD = "COD";
     private static final String PAYMENT_METHOD_VNPAY = "VNPAY";
 
@@ -111,6 +115,10 @@ public class OrderServiceImpl implements OrderService {
             appliedCouponCodes.add(request.getShippingCouponCode());
         }
 
+        // Tách đôi totalDiscount (Phụ thuộc vào DB Order Entity hiện tại của bạn)
+        // Lưu ý: Nếu DB của bạn đã tách orderDiscount và shippingDiscount ra làm 2 trường riêng thì lưu riêng
+        // Nếu DB chỉ có discountAmount thì dùng tổng.
+        // Tôi giả định bạn đã sửa OrderEntity thành orderDiscount và shippingDiscount theo tin nhắn trước.
         double totalDiscountAmount = orderDiscount + shippingDiscount;
         double finalTotal = Math.max(rawOrderTotal - orderDiscount + shippingFee - shippingDiscount, 0);
         String combinedCoupons = String.join(", ", appliedCouponCodes);
@@ -127,6 +135,8 @@ public class OrderServiceImpl implements OrderService {
                 .status(OrderStatus.PENDING)
                 .paymentStatus(PaymentStatus.UNPAID)
                 .shippingFee(shippingFee)
+                .orderDiscount(orderDiscount)
+                .shippingDiscount(shippingDiscount)
                 .discountAmount(totalDiscountAmount)
                 .finalTotal(finalTotal)
                 .couponCode(combinedCoupons.isEmpty() ? null : combinedCoupons)
@@ -134,6 +144,7 @@ public class OrderServiceImpl implements OrderService {
 
         processOrderItems(newOrder, request.getItems());
         recordHistory(newOrder, null, OrderStatus.PENDING, actionBy, role, "Tạo đơn hàng mới với phương thức " + method.toUpperCase());
+
         OrderEntity savedOrder = orderRepository.save(newOrder);
 
         List<String> purchasedBookIds = request.getItems().stream()
@@ -148,7 +159,15 @@ public class OrderServiceImpl implements OrderService {
             couponService.incrementUsedCount(request.getShippingCouponCode());
         }
 
-        return orderMapper.toOrderResponse(savedOrder);
+        OrderResponse response = orderMapper.toOrderResponse(savedOrder);
+
+        // 👉 GỌI EMAIL SERVICE GỬI MAIL "ĐẶT HÀNG THÀNH CÔNG"
+        if (PAYMENT_METHOD_COD.equalsIgnoreCase(method)) {
+            emailService.sendOrderConfirmationEmail(response);
+        }
+        // NẾU LÀ VNPAY: Không gửi mail ở đây. Sẽ gửi mail ở bên API Xử lý Callback từ VNPAY về.
+
+        return response;
     }
 
     @Override
@@ -224,7 +243,16 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(newStatus);
         recordHistory(order, oldStatus, newStatus, actionBy, role, note);
-        return orderMapper.toOrderResponse(orderRepository.save(order));
+        OrderEntity savedOrder = orderRepository.save(order);
+
+        OrderResponse response = orderMapper.toOrderResponse(savedOrder);
+
+        // 👉 GỌI EMAIL SERVICE NẾU TRẠNG THÁI CÓ SỰ THAY ĐỔI
+        if (oldStatus != newStatus) {
+            emailService.sendOrderStatusEmail(response);
+        }
+
+        return response;
     }
 
     private void processOrderItems(OrderEntity order, List<OrderItemRequest> items) {
@@ -282,11 +310,11 @@ public class OrderServiceImpl implements OrderService {
         if (status != null) {
             return orderRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, status, p)
                     .map(orderMapper::toOrderResponse)
-                    .map(this::enrichOrderResponse); // 👉 THÊM DÒNG NÀY
+                    .map(this::enrichOrderResponse);
         }
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId, p)
                 .map(orderMapper::toOrderResponse)
-                .map(this::enrichOrderResponse); // 👉 THÊM DÒNG NÀY
+                .map(this::enrichOrderResponse);
     }
 
     @Override
@@ -295,7 +323,6 @@ public class OrderServiceImpl implements OrderService {
                 .map(orderMapper::toOrderResponse)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
-        // 👉 GỌI HÀM BỔ SUNG TRƯỚC KHI TRẢ VỀ
         return enrichOrderResponse(response);
     }
 
@@ -311,15 +338,15 @@ public class OrderServiceImpl implements OrderService {
         int next = (max == null) ? 1 : Integer.parseInt(max.substring(max.lastIndexOf("-") + 1)) + 1;
         return String.format("%s-%03d", prefix, next);
     }
+
     private OrderResponse enrichOrderResponse(OrderResponse response) {
         if (response == null || response.getDetails() == null || response.getUserId() == null) {
             return response;
         }
 
         response.getDetails().forEach(detail -> {
-            // 👉 ĐỔI TỪ KIỂM TRA THEO BOOK & USER SANG KIỂM TRA THEO ORDER_DETAIL_ID
             boolean hasReviewed = reviewRepository.existsByOrderDetailIdAndDeletedAtIsNull(
-                    detail.getId() // detail.getId() chính là OrderDetailId
+                    detail.getId()
             );
 
             detail.setIsReviewed(hasReviewed);

@@ -2,6 +2,7 @@
 
 import { BadgeCheck, Bell, ChevronsUpDown, ShieldAlert, LogOut } from 'lucide-react'
 import { useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AuthContext } from '@/context/AuthContext'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -30,6 +31,7 @@ export function NavUser({
     avatar: string
   }
 }) {
+  const { t } = useTranslation('sidebar')
   const { isMobile } = useSidebar()
   const authContext = useContext(AuthContext)
 
@@ -85,15 +87,15 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem className='cursor-pointer py-2'>
                 <BadgeCheck className='mr-2 h-4 w-4 text-muted-foreground' />
-                Thông tin cá nhân
+                {t('navUser.profile')}
               </DropdownMenuItem>
               <DropdownMenuItem className='cursor-pointer py-2'>
                 <ShieldAlert className='mr-2 h-4 w-4 text-muted-foreground' />
-                Đổi mật khẩu
+                {t('navUser.changePassword')}
               </DropdownMenuItem>
               <DropdownMenuItem className='cursor-pointer py-2'>
                 <Bell className='mr-2 h-4 w-4 text-muted-foreground' />
-                Thông báo hệ thống
+                {t('navUser.notifications')}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
@@ -102,7 +104,7 @@ export function NavUser({
               className='cursor-pointer py-2 text-red-600 focus:text-red-600 focus:bg-red-50 font-medium'
             >
               <LogOut className='mr-2 h-4 w-4' />
-              Đăng xuất
+              {t('navUser.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

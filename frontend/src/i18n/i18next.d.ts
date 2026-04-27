@@ -18,6 +18,8 @@ import enNews from './locales/en/news.json'
 import enAccount from './locales/en/account.json'
 import enSupplier from './locales/en/supplier.json'
 import enReview from './locales/en/review.json'
+import enSidebar from './locales/en/sidebar.json'
+import enCheckOut from './locales/en/checkout.json'
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -41,6 +43,8 @@ declare module 'i18next' {
       account: typeof enAccount
       supplier: typeof enSupplier
       review: typeof enReview
+      sidebar: typeof enSidebar
+      checkout: typeof enCheckOut
     }
   }
 }

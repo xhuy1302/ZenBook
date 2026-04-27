@@ -1,0 +1,51 @@
+{
+  "teams": {
+    "store": {
+      "name": "Zenbook Store.",
+      "plan": "Gói Pro"
+    },
+    "logistics": {
+      "name": "Zenbook Logistics",
+      "plan": "Khởi nghiệp"
+    }
+  },
+  "navMain": {
+    "books": "Quản lý Sách",
+    "booksAll": "Tất cả sách",
+    "booksCategories": "Danh mục",
+    "booksAuthors": "Tác giả",
+    "booksPublishers": "Nhà xuất bản",
+    "inventory": "Quản lý Kho",
+    "inventorySuppliers": "Nhà cung cấp",
+    "inventoryReceipts": "Phiếu nhập kho",
+    "inventoryStockCheck": "Kiểm kê tồn kho",
+    "orders": "Đơn hàng",
+    "groupLabel": "Nghiệp vụ cửa hàng"
+  },
+  "systemMenus": {
+    "accounts": "Tài khoản",
+    "promotions": "Khuyến mãi",
+    "coupons": "Mã giảm giá",
+    "news": "Bài viết",
+    "reviews": "Đánh giá",
+    "tags": "Tags sách",
+    "settings": "Cài đặt hệ thống"
+  },
+  "user": {
+    "defaultName": "Admin Zenbook",
+    "defaultEmail": "admin@zenbook.com"
+  },
+  "teamSwitcher": {
+    "label": "Hệ thống Chi nhánh",
+    "addNew": "Thêm chi nhánh mới"
+  },
+  "navUser": {
+    "profile": "Thông tin cá nhân",
+    "changePassword": "Đổi mật khẩu",
+    "notifications": "Thông báo hệ thống",
+    "logout": "Đăng xuất"
+  },
+  "navProjects": {
+    "groupLabel": "Hệ thống & Cấu hình"
+  }
+}
