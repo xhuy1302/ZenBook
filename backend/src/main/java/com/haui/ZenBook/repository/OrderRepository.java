@@ -55,4 +55,45 @@ public interface OrderRepository extends JpaRepository<OrderEntity, String> {
             "GROUP BY FUNCTION('MONTHNAME', o.createdAt), FUNCTION('MONTH', o.createdAt) " +
             "ORDER BY FUNCTION('MONTH', o.createdAt)")
     List<Object[]> getMonthlyRevenueRaw();
+
+
+    // 1. Theo Giờ (Dùng cho "Hôm nay")
+    @Query(value = "SELECT HOUR(created_at) as unit, SUM(final_total) as revenue, COUNT(id) as orders " +
+            "FROM orders WHERE DATE(created_at) = CURRENT_DATE AND status = 'COMPLETED' " +
+            "GROUP BY HOUR(created_at) ORDER BY unit", nativeQuery = true)
+    List<Object[]> getRevenueByHourToday();
+
+    // 2. Theo Ngày trong Tuần này
+    @Query(value = "SELECT DAYNAME(created_at) as unit, SUM(final_total) as revenue, COUNT(id) as orders " +
+            "FROM orders WHERE YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1) AND status = 'COMPLETED' " +
+            "GROUP BY DAYOFWEEK(created_at) ORDER BY DAYOFWEEK(created_at)", nativeQuery = true)
+    List<Object[]> getRevenueByDayThisWeek();
+
+    // 3. Theo Ngày trong Tháng này
+    @Query(value = "SELECT DAY(created_at) as unit, SUM(final_total) as revenue, COUNT(id) as orders " +
+            "FROM orders WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) AND status = 'COMPLETED' " +
+            "GROUP BY DAY(created_at) ORDER BY unit", nativeQuery = true)
+    List<Object[]> getRevenueByDayThisMonth();
+
+    // 4. Theo Tháng trong Năm (Cái cũ)
+    @Query(value = "SELECT MONTH(created_at) as unit, SUM(final_total) as revenue, COUNT(id) as orders " +
+            "FROM orders WHERE YEAR(created_at) = :year AND status = 'COMPLETED' " +
+            "GROUP BY MONTH(created_at) ORDER BY unit", nativeQuery = true)
+    List<Object[]> getMonthlyRevenue(int year);
+
+    // Tính tổng doanh thu trong khoảng thời gian
+    @Query("SELECT SUM(o.finalTotal) FROM OrderEntity o WHERE o.createdAt BETWEEN :start AND :end AND o.status = 'COMPLETED'")
+    Double sumRevenueBetween(LocalDateTime start, LocalDateTime end);
+
+    // Đếm số đơn hàng trong khoảng thời gian
+    @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.createdAt BETWEEN :start AND :end")
+    Long countOrdersBetween(LocalDateTime start, LocalDateTime end);
+
+    // Lấy 5 đơn hàng mới nhất
+    List<OrderEntity> findTop5ByOrderByCreatedAtDesc();
+
+    // Đếm đơn hàng đang giao (Hôm nay)
+    @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.status = 'SHIPPING'")
+    int countOrdersInShipping();
+
 }

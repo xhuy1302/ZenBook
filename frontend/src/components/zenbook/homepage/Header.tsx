@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   BookOpen,
   Search,
@@ -74,10 +75,10 @@ function UserSection({ authLoading, isAuthenticated, user, onLogout }: UserSecti
         )}
         <div className='hidden lg:flex flex-col items-start justify-center max-w-[130px]'>
           <span className='text-[11px] text-slate-500 font-medium leading-none mb-1'>
-            {isAuthenticated ? 'Xin chào,' : 'Đăng nhập'}
+            {isAuthenticated ? t('header.user.greeting') : t('header.user.login')}
           </span>
           <span className='text-sm font-semibold text-slate-700 truncate w-full leading-none'>
-            {isAuthenticated ? user?.username : t('header.account', 'Tài khoản')}
+            {isAuthenticated ? user?.username : t('header.user.myAccount')}
           </span>
         </div>
       </Link>
@@ -87,21 +88,20 @@ function UserSection({ authLoading, isAuthenticated, user, onLogout }: UserSecti
           {!isAuthenticated ? (
             <div className='p-5 flex flex-col gap-3 bg-white'>
               <p className='text-sm text-center text-slate-500 mb-2'>
-                Đăng nhập để theo dõi đơn hàng, lưu danh sách yêu thích và nhận nhiều ưu đãi hấp
-                dẫn.
+                {t('header.user.notLoggedInDesc')}
               </p>
               <Button
                 onClick={() => navigate('/login')}
                 className='w-full bg-brand-green hover:bg-brand-green-dark text-white rounded-xl h-11 font-semibold shadow-md shadow-brand-green/20'
               >
-                Đăng nhập
+                {t('header.user.loginBtn')}
               </Button>
               <Button
                 onClick={() => navigate('/signup')}
                 variant='outline'
                 className='w-full border-brand-green/30 text-brand-green hover:bg-brand-green/5 rounded-xl h-11 font-semibold'
               >
-                Tạo tài khoản mới
+                {t('header.user.signupBtn')}
               </Button>
             </div>
           ) : (
@@ -115,19 +115,19 @@ function UserSection({ authLoading, isAuthenticated, user, onLogout }: UserSecti
                   to='/customer'
                   className='flex items-center gap-3 px-5 py-3 text-sm font-medium text-slate-600 hover:bg-brand-green/5 hover:text-brand-green transition-colors'
                 >
-                  <UserCircle className='w-5 h-5 text-slate-400' /> Tài khoản của tôi
+                  <UserCircle className='w-5 h-5 text-slate-400' /> {t('header.user.myAccount')}
                 </Link>
                 <Link
                   to='/customer/orders'
                   className='flex items-center gap-3 px-5 py-3 text-sm font-medium text-slate-600 hover:bg-brand-green/5 hover:text-brand-green transition-colors'
                 >
-                  <ShoppingBag className='w-5 h-5 text-slate-400' /> Đơn hàng của tôi
+                  <ShoppingBag className='w-5 h-5 text-slate-400' /> {t('header.user.myOrders')}
                 </Link>
                 <Link
                   to='/customer/address'
                   className='flex items-center gap-3 px-5 py-3 text-sm font-medium text-slate-600 hover:bg-brand-green/5 hover:text-brand-green transition-colors'
                 >
-                  <MapPin className='w-5 h-5 text-slate-400' /> Sổ địa chỉ
+                  <MapPin className='w-5 h-5 text-slate-400' /> {t('header.user.addressBook')}
                 </Link>
               </div>
               <div className='py-2 border-t border-slate-100 bg-slate-50/50'>
@@ -135,7 +135,7 @@ function UserSection({ authLoading, isAuthenticated, user, onLogout }: UserSecti
                   onClick={onLogout}
                   className='flex items-center gap-3 px-5 py-3 text-sm font-medium text-red-600 hover:bg-red-50 w-full text-left transition-colors'
                 >
-                  <LogOut className='w-5 h-5' /> Đăng xuất
+                  <LogOut className='w-5 h-5' /> {t('header.user.logout')}
                 </button>
               </div>
             </>
@@ -149,6 +149,7 @@ function UserSection({ authLoading, isAuthenticated, user, onLogout }: UserSecti
 export default function Header() {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const { user, isLoading: authLoading, isAuthenticated, logout } = useAuth()
   const { isHeroMenuOpen, setIsHeroMenuOpen } = useMenu()
@@ -209,34 +210,37 @@ export default function Header() {
 
   const navLinks = [
     {
-      label: 'Bài viết & Blog',
+      label: t('header.nav.blog'),
       href: '/blog',
       icon: BookText,
       color: 'text-blue-500',
-      bgColor: 'group-hover:bg-blue-50'
+      bgColor: 'hover:bg-blue-50'
     },
     {
-      label: 'Tác giả nổi bật',
+      label: t('header.nav.authors'),
       href: '/authors',
       icon: Users,
       color: 'text-amber-500',
-      bgColor: 'group-hover:bg-amber-50'
+      bgColor: 'hover:bg-amber-50'
     },
     {
-      label: 'Hướng dẫn mua hàng',
+      label: t('header.nav.guide'),
       href: '/guide',
       icon: HelpCircle,
       color: 'text-emerald-500',
-      bgColor: 'group-hover:bg-emerald-50'
+      bgColor: 'hover:bg-emerald-50'
     },
     {
-      label: 'Liên hệ',
+      label: t('header.nav.contact'),
       href: '/contact',
       icon: PhoneCall,
       color: 'text-indigo-500',
-      bgColor: 'group-hover:bg-indigo-50'
+      bgColor: 'hover:bg-indigo-50'
     }
   ]
+
+  // Xác định tab đang active cho Framer Motion
+  const activeTab = isHeroMenuOpen ? 'categories' : location.pathname
 
   return (
     <header
@@ -244,6 +248,7 @@ export default function Header() {
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
+      {/* Top bar - màu xanh */}
       <div className='bg-brand-green text-white border-b border-white/10'>
         <div className='max-w-7xl mx-auto px-4 py-1 flex items-center justify-between text-[11px] lg:text-xs font-medium'>
           <div className='flex items-center -ml-2'>
@@ -255,20 +260,24 @@ export default function Header() {
               <span className='truncate text-white/90'>
                 {!isAuthenticated ? (
                   <>
-                    Giao đến: <span className='font-bold text-white'>Chọn địa chỉ</span>
+                    {t('header.delivery.label')}{' '}
+                    <span className='font-bold text-white'>
+                      {t('header.delivery.selectAddress')}
+                    </span>
                   </>
                 ) : addressLoading ? (
-                  <>Đang tải...</>
+                  <>{t('header.delivery.loading')}</>
                 ) : defaultAddress ? (
                   <>
-                    Giao đến:{' '}
+                    {t('header.delivery.label')}{' '}
                     <span className='font-bold text-white'>
                       {defaultAddress.ward}, {defaultAddress.district}, {defaultAddress.city}
                     </span>
                   </>
                 ) : (
                   <>
-                    Giao đến: <span className='font-bold text-white'>Thêm địa chỉ ngay</span>
+                    {t('header.delivery.label')}{' '}
+                    <span className='font-bold text-white'>{t('header.delivery.addAddress')}</span>
                   </>
                 )}
               </span>
@@ -279,11 +288,11 @@ export default function Header() {
           <div className='hidden md:flex items-center gap-1 -mr-2'>
             <button className='flex items-center gap-1.5 hover:bg-white/15 px-3 py-1.5 rounded-lg transition-all text-white/90'>
               <Package className='w-3.5 h-3.5 text-white/80' />
-              <span className='font-medium'>{t('header.trackOrder', 'Theo dõi đơn hàng')}</span>
+              <span className='font-medium'>{t('header.trackOrder')}</span>
             </button>
             <button className='flex items-center gap-1.5 hover:bg-white/15 px-3 py-1.5 rounded-lg transition-all text-white/90'>
               <Bell className='w-3.5 h-3.5 text-white/80' />
-              <span className='font-medium'>{t('header.newsletter', 'Thông báo')}</span>
+              <span className='font-medium'>{t('header.newsletter')}</span>
             </button>
             <div className='w-[1px] h-3.5 bg-white/20 mx-1.5 rounded-full' />
             <LocaleSwitcher />
@@ -291,6 +300,7 @@ export default function Header() {
         </div>
       </div>
 
+      {/* Main header: logo, search, user actions */}
       <div className='max-w-7xl mx-auto px-4 py-4 md:py-5'>
         <div className='flex items-center gap-4 lg:gap-8'>
           <Link to='/' className='flex items-center gap-2.5 shrink-0 group'>
@@ -307,13 +317,14 @@ export default function Header() {
             </div>
           </Link>
 
+          {/* Search bar */}
           <div className='flex-1 flex justify-center max-w-3xl mx-auto'>
             <div className='relative flex items-stretch w-full max-w-2xl h-11 border-2 border-brand-green rounded-xl bg-white focus-within:shadow-md focus-within:shadow-brand-green/10 transition-all duration-300 overflow-hidden'>
               <div className='relative flex-1 flex items-center'>
                 <Search className='absolute left-3.5 w-4 h-4 text-slate-400' />
                 <Input
                   type='search'
-                  placeholder={t('header.searchPlaceholder', 'Bạn muốn tìm sách gì hôm nay?')}
+                  placeholder={t('header.searchPlaceholder')}
                   className='pl-10 pr-4 h-full w-full border-none rounded-none focus-visible:ring-0 bg-transparent text-[14px] text-slate-700 placeholder:text-slate-400 shadow-none'
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -324,11 +335,12 @@ export default function Header() {
                 onClick={handleSearch}
                 className='h-full px-5 md:px-7 rounded-none bg-brand-green hover:bg-brand-green-dark text-white font-bold text-[13px] shrink-0 transition-colors'
               >
-                {t('header.search', 'Tìm kiếm')}
+                {t('header.search')}
               </Button>
             </div>
           </div>
 
+          {/* User actions */}
           <div className='flex items-center gap-2 shrink-0'>
             <UserSection
               authLoading={authLoading}
@@ -341,7 +353,9 @@ export default function Header() {
                 <div className='w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0'>
                   <Crown className='w-5 h-5 text-amber-500' strokeWidth={2} />
                 </div>
-                <span className='text-sm font-bold text-amber-600 hidden xl:block'>VIP</span>
+                <span className='text-sm font-bold text-amber-600 hidden xl:block'>
+                  {t('header.vip')}
+                </span>
               </div>
             )}
             <button className='flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-slate-100 transition-all group shrink-0'>
@@ -357,7 +371,7 @@ export default function Header() {
                 )}
               </div>
               <span className='text-sm font-semibold text-slate-700 hidden lg:block'>
-                Yêu thích
+                {t('header.wishlist')}
               </span>
             </button>
 
@@ -379,7 +393,7 @@ export default function Header() {
                 </div>
                 <div className='hidden lg:flex flex-col items-start'>
                   <span className='text-sm font-semibold text-slate-700 leading-none'>
-                    Giỏ hàng
+                    {t('header.cart')}
                   </span>
                 </div>
               </Link>
@@ -399,34 +413,62 @@ export default function Header() {
         </div>
       </div>
 
-      <nav className='border-t border-slate-100 bg-white relative'>
+      {/* Navigation bar đã được nâng cấp */}
+      <nav className='border-t border-slate-100 bg-white relative z-20'>
         <div className='max-w-7xl mx-auto px-4'>
-          <ul className='hidden md:flex items-center gap-3'>
-            <li>
+          <ul className='hidden md:flex items-center gap-3 relative'>
+            {/* Nút Tất cả danh mục */}
+            <li className='relative mt-1'>
+              {activeTab === 'categories' && (
+                <motion.div
+                  layoutId='nav-background'
+                  className='absolute inset-0 bg-brand-green rounded-t-lg shadow-inner'
+                  initial={false}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
               <button
                 onClick={() => setIsHeroMenuOpen(!isHeroMenuOpen)}
-                className={`flex items-center justify-start gap-3 px-5 py-3 w-[300px] text-[14px] font-bold text-white transition-all rounded-t-lg mt-1 ${
-                  isHeroMenuOpen
-                    ? 'bg-brand-green-dark shadow-inner'
-                    : 'bg-brand-green hover:bg-brand-green-dark'
+                className={`relative z-10 flex items-center justify-start gap-3 px-5 py-3 w-[300px] text-[14px] font-bold transition-colors duration-300 ${
+                  activeTab === 'categories'
+                    ? 'text-white'
+                    : 'text-slate-700 hover:text-brand-green bg-slate-50 rounded-t-lg'
                 }`}
               >
                 {isHeroMenuOpen ? <X className='w-5 h-5' /> : <Menu className='w-5 h-5' />}
-                Tất cả danh mục
+                {t('header.allCategories')}
               </button>
             </li>
 
+            {/* Các Nav Links */}
             <div className='flex items-center gap-1 ml-4'>
               {navLinks.map((link) => {
                 const Icon = link.icon
+                const isActive = activeTab === link.href
+
                 return (
-                  <li key={link.label}>
+                  <li key={link.label} className='relative flex items-center'>
+                    {isActive && (
+                      <motion.div
+                        layoutId='nav-background'
+                        className='absolute inset-0 bg-brand-green rounded-full shadow-sm'
+                        initial={false}
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      />
+                    )}
                     <Link
                       to={link.href}
-                      className={`group flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-bold text-slate-600 hover:text-slate-900 rounded-full transition-all duration-300 ${link.bgColor}`}
+                      onClick={() => setIsHeroMenuOpen(false)}
+                      className={`relative z-10 group flex items-center gap-1.5 px-4 py-2 text-[13px] font-bold transition-all duration-300 rounded-full ${
+                        isActive
+                          ? 'text-white'
+                          : `text-slate-600 hover:text-slate-900 ${link.bgColor}`
+                      }`}
                     >
                       <Icon
-                        className={`w-4 h-4 ${link.color} group-hover:scale-110 transition-transform`}
+                        className={`w-4 h-4 transition-transform group-hover:scale-110 ${
+                          isActive ? 'text-white' : link.color
+                        }`}
                       />
                       {link.label}
                     </Link>
@@ -435,13 +477,14 @@ export default function Header() {
               })}
             </div>
 
+            {/* Nút Flash Sale */}
             <li className='ml-auto py-1.5'>
               <Link
                 to='/flash-sale'
                 className='flex items-center gap-1.5 px-4 py-2 text-[13px] font-bold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 rounded-full shadow-sm hover:shadow-md transition-all group'
               >
                 <Zap className='w-4 h-4 fill-white group-hover:animate-pulse' />
-                {t('header.flashSale', 'Flash Sale')}
+                {t('header.flashSale')}
               </Link>
             </li>
           </ul>

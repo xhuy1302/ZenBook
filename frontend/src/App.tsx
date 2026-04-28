@@ -24,6 +24,9 @@ import CouponPage from './pages/admin/manage-coupon/page'
 import NewsPage from './pages/admin/manage-news/page'
 import SuplierPage from './pages/admin/manage-supplier/page'
 import ReviewPage from './pages/admin/manage-review/page'
+import ContactPage from './pages/client/contact/Contact'
+import FlashSalePage from './pages/client/flashsale/FlashSalePage'
+import WishListPage from './pages/client/wishlist'
 
 // 👉 IMPORT THÊM CÁC TAB CỦA ACCOUNT PAGE
 import ProfileTab from '@/components/zenbook/account/Profiletab'
@@ -34,9 +37,11 @@ import BlogPage from './components/zenbook/blog/Blog'
 import BlogDetailPage from './components/zenbook/blog/BlogDetail'
 import CheckoutPage from '@/pages/client/checkout/CheckoutPage'
 import OrderSuccessPage from './pages/client/order/OrderSuccessPage'
+import GuidePage from './pages/client/guide/guide'
 import OrderDetail from './components/zenbook/account/modals/OrderDetail'
 import VNPayReturn from './pages/client/payment/VNPayReturn'
 import ScrollToTop from './components/common/ScrollToTop'
+import DemoPage from './pages/admin/dashboard/doanhthu/demo'
 
 function App() {
   return (
@@ -65,6 +70,10 @@ function App() {
             <Route path='/' element={<HomePage />} />
             <Route path='/blog' element={<BlogPage />} />
             <Route path='/blog/:slug' element={<BlogDetailPage />} />
+            <Route path='/flash-sale' element={<FlashSalePage />} />
+            <Route path='/guide' element={<GuidePage />} />
+            <Route path='/contact' element={<ContactPage />} />
+            <Route path='/wish-list' element={<WishListPage />} />
             <Route path='/products' element={<ProductListPage />} />
             <Route path='/search' element={<ProductListPage />} />
             <Route path='/products/:slug' element={<ProductDetailPage />} />
@@ -111,6 +120,7 @@ function App() {
               <Route path='news' element={<NewsPage />} />
               <Route path='suppliers' element={<SuplierPage />} />
               <Route path='reviews' element={<ReviewPage />} />
+              <Route path='demo' element={<DemoPage />} />
             </Route>
           </Route>
         </Routes>

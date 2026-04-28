@@ -25,14 +25,16 @@ export default function BreadcrumbHeader() {
   }
 
   return (
-    // Để bg-transparent để nó hòa lẫn vào nền xám của trang
-    <div className='w-full bg-gray-50'>
-      <div className='max-w-7xl mx-auto px-4 h-10 flex items-center'>
+    <div className='w-full bg-gray-50 border-b border-gray-100'>
+      <div className='max-w-7xl mx-auto px-4 h-12 flex items-center'>
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link to='/' className='text-xs text-gray-500 hover:text-brand-green'>
+                <Link
+                  to='/'
+                  className='text-sm text-gray-500 hover:text-brand-green transition-colors'
+                >
                   Zenbook
                 </Link>
               </BreadcrumbLink>
@@ -48,12 +50,15 @@ export default function BreadcrumbHeader() {
                   <BreadcrumbSeparator className='text-gray-400' />
                   <BreadcrumbItem>
                     {isLast ? (
-                      <BreadcrumbPage className='text-xs font-medium text-gray-700'>
+                      <BreadcrumbPage className='text-sm font-semibold text-gray-800'>
                         {formatSegment(segment)}
                       </BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink asChild>
-                        <Link to={url} className='text-xs text-gray-500 hover:text-brand-green'>
+                        <Link
+                          to={url}
+                          className='text-sm text-gray-500 hover:text-brand-green transition-colors'
+                        >
                           {formatSegment(segment)}
                         </Link>
                       </BreadcrumbLink>

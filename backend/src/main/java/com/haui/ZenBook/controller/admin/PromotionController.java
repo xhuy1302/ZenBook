@@ -1,5 +1,6 @@
 package com.haui.ZenBook.controller.admin;
 
+import com.haui.ZenBook.dto.ApiResponse;
 import com.haui.ZenBook.dto.promotion.PromotionRequest;
 import com.haui.ZenBook.dto.promotion.PromotionResponse;
 import com.haui.ZenBook.service.PromotionService;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@RestController("adminPromotionController") // Khai báo tên Bean để không trùng với Customer
 @RequestMapping("/api/v1/promotions")
 @RequiredArgsConstructor
 public class PromotionController {
@@ -23,23 +24,39 @@ public class PromotionController {
     // ==========================================
 
     @GetMapping
-    public ResponseEntity<List<PromotionResponse>> getAllPromotions() {
-        return ResponseEntity.ok(promotionService.getAllPromotions());
+    public ResponseEntity<ApiResponse<List<PromotionResponse>>> getAllPromotions() {
+        List<PromotionResponse> data = promotionService.getAllPromotions();
+        return ResponseEntity.ok(ApiResponse.<List<PromotionResponse>>builder()
+                .data(data)
+                .message("Lấy danh sách khuyến mãi thành công")
+                .build());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PromotionResponse> getPromotionById(@PathVariable String id) {
-        return ResponseEntity.ok(promotionService.getPromotionById(id));
+    public ResponseEntity<ApiResponse<PromotionResponse>> getPromotionById(@PathVariable String id) {
+        PromotionResponse data = promotionService.getPromotionById(id);
+        return ResponseEntity.ok(ApiResponse.<PromotionResponse>builder()
+                .data(data)
+                .message("Lấy chi tiết khuyến mãi thành công")
+                .build());
     }
 
     @PostMapping
-    public ResponseEntity<PromotionResponse> createPromotion(@Valid @RequestBody PromotionRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(promotionService.createPromotion(request));
+    public ResponseEntity<ApiResponse<PromotionResponse>> createPromotion(@Valid @RequestBody PromotionRequest request) {
+        PromotionResponse data = promotionService.createPromotion(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.<PromotionResponse>builder()
+                .data(data)
+                .message("Tạo chương trình khuyến mãi thành công")
+                .build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PromotionResponse> updatePromotion(@PathVariable String id, @Valid @RequestBody PromotionRequest request) {
-        return ResponseEntity.ok(promotionService.updatePromotion(id, request));
+    public ResponseEntity<ApiResponse<PromotionResponse>> updatePromotion(@PathVariable String id, @Valid @RequestBody PromotionRequest request) {
+        PromotionResponse data = promotionService.updatePromotion(id, request);
+        return ResponseEntity.ok(ApiResponse.<PromotionResponse>builder()
+                .data(data)
+                .message("Cập nhật khuyến mãi thành công")
+                .build());
     }
 
     // ==========================================
@@ -47,42 +64,58 @@ public class PromotionController {
     // ==========================================
 
     @PatchMapping("/{id}/stop")
-    public ResponseEntity<PromotionResponse> stopPromotion(@PathVariable String id) {
-        return ResponseEntity.ok(promotionService.stopPromotion(id));
+    public ResponseEntity<ApiResponse<PromotionResponse>> stopPromotion(@PathVariable String id) {
+        PromotionResponse data = promotionService.stopPromotion(id);
+        return ResponseEntity.ok(ApiResponse.<PromotionResponse>builder()
+                .data(data)
+                .message("Đã tạm dừng khuyến mãi")
+                .build());
     }
 
     @PatchMapping("/{id}/resume")
-    public ResponseEntity<PromotionResponse> resumePromotion(@PathVariable String id) {
-        return ResponseEntity.ok(promotionService.resumePromotion(id));
+    public ResponseEntity<ApiResponse<PromotionResponse>> resumePromotion(@PathVariable String id) {
+        PromotionResponse data = promotionService.resumePromotion(id);
+        return ResponseEntity.ok(ApiResponse.<PromotionResponse>builder()
+                .data(data)
+                .message("Đã tiếp tục khuyến mãi")
+                .build());
     }
 
     // ==========================================
     // 🗑️ THÙNG RÁC & XÓA & KHÔI PHỤC
     // ==========================================
 
-    // 1. Lấy danh sách khuyến mãi đã bị xóa mềm (nằm trong thùng rác)
     @GetMapping("/trash")
-    public ResponseEntity<List<PromotionResponse>> getAllPromotionsInTrash() {
-        return ResponseEntity.ok(promotionService.getAllPromotionsInTrash());
+    public ResponseEntity<ApiResponse<List<PromotionResponse>>> getAllPromotionsInTrash() {
+        List<PromotionResponse> data = promotionService.getAllPromotionsInTrash();
+        return ResponseEntity.ok(ApiResponse.<List<PromotionResponse>>builder()
+                .data(data)
+                .message("Lấy danh sách thùng rác thành công")
+                .build());
     }
 
-    // 2. Xóa mềm (Đưa vào thùng rác) - Thay thế cho hàm delete cũ
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> softDeletePromotion(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> softDeletePromotion(@PathVariable String id) {
         promotionService.softDeletePromotion(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .message("Đã đưa khuyến mãi vào thùng rác")
+                .build());
     }
 
-    // 3. Khôi phục khuyến mãi từ thùng rác
     @PatchMapping("/{id}/restore")
-    public ResponseEntity<PromotionResponse> restorePromotion(@PathVariable String id) {
-        return ResponseEntity.ok(promotionService.restorePromotion(id));
+    public ResponseEntity<ApiResponse<PromotionResponse>> restorePromotion(@PathVariable String id) {
+        PromotionResponse data = promotionService.restorePromotion(id);
+        return ResponseEntity.ok(ApiResponse.<PromotionResponse>builder()
+                .data(data)
+                .message("Khôi phục khuyến mãi thành công")
+                .build());
     }
 
-    // 4. Xóa cứng (Xóa vĩnh viễn khỏi Database)
     @DeleteMapping("/{id}/hard")
-    public ResponseEntity<Void> hardDeletePromotion(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> hardDeletePromotion(@PathVariable String id) {
         promotionService.hardDeletePromotion(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .message("Xóa vĩnh viễn thành công")
+                .build());
     }
 }

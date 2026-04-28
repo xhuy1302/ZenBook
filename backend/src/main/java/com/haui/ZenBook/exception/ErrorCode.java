@@ -156,8 +156,13 @@ public enum ErrorCode {
     REVIEW_ALREADY_REPLIED(16001, "review.already.replied", HttpStatus.BAD_REQUEST),
     REVIEW_REPLY_NOT_FOUND(16002, "review.reply.not.found", HttpStatus.NOT_FOUND),
     REVIEW_ALREADY_EXISTS(16003,"review.already.exists", HttpStatus.BAD_REQUEST),
-    EXPORT_PDF_FAILED(16004,"invoice.export.pdf.failed",HttpStatus.INTERNAL_SERVER_ERROR);
+    EXPORT_PDF_FAILED(16004,"invoice.export.pdf.failed",HttpStatus.INTERNAL_SERVER_ERROR),
 
+    INVALID_ACTION(16006, "invalid_action", HttpStatus.BAD_REQUEST),
+    ACCESS_DENIED(16005,"access_denied",HttpStatus.BAD_REQUEST),
+
+    PROMOTION_OVERLAPPING(400, "promotion.overlapping", HttpStatus.BAD_REQUEST),
+    PROMOTION_STATUS_INVALID(400, "promotion.status_invalid", HttpStatus.BAD_REQUEST),;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;

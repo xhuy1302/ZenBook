@@ -6,6 +6,10 @@ import { Star, Minus, Plus, MapPin, ChevronDown, ChevronUp, Zap } from 'lucide-r
 import type { BookResponse } from '@/services/book/book.type'
 import { getAddressesApi } from '@/services/customer/customer.api'
 import { getActiveFlashSaleApi } from '@/services/promotion/promotion.api'
+import { getAllCouponsApi } from '@/services/coupon/coupon.api' // 👉 Đã thêm Import API Coupon
+import type { CouponResponse } from '@/services/coupon/coupon.type' // 👉 Đã thêm Import Type
+import { DiscountType, CouponType } from '@/defines/coupon.enum' // 👉 Đã thêm Import Enum
+
 import AddressDialog from '../account/modals/AddressDialog'
 
 export interface FlashSaleInfo {
@@ -83,13 +87,6 @@ function CountdownTimer({ endTime }: { endTime: string }) {
   )
 }
 
-const VOUCHERS = [
-  { id: '1', icon: '🟡', label: 'Mã giảm 10k - cho đơn hàng từ 150k' },
-  { id: '2', icon: '🟢', label: 'Mã freeship 20k - cho đơn hàng từ 300k' },
-  { id: '3', icon: '🔵', label: 'Zalopay: giảm 50k cho bạn mới' },
-  { id: '4', icon: '🟣', label: 'Quà tặng móc khóa ZenBook' }
-]
-
 export default function ProductInfo({
   book,
   quantity,
@@ -100,15 +97,24 @@ export default function ProductInfo({
   const [showAllVouchers, setShowAllVouchers] = useState(false)
   const [addressDialogOpen, setAddressDialogOpen] = useState(false)
 
+  // 1. Fetch Addresses
   const { data: addresses, isLoading: loadingAddress } = useQuery({
     queryKey: ['addresses'],
     queryFn: getAddressesApi,
     staleTime: 5 * 60 * 1000
   })
 
+  // 2. Fetch Active Flash Sale
   const { data: promotionRaw } = useQuery({
     queryKey: ['promotion', 'active-flash-sale'],
     queryFn: getActiveFlashSaleApi,
+    staleTime: 5 * 60 * 1000
+  })
+
+  // 3. Fetch Coupons (Vouchers) 👉 ĐÃ THÊM MỚI
+  const { data: couponsData, isLoading: loadingCoupons } = useQuery({
+    queryKey: ['coupons', 'active'],
+    queryFn: getAllCouponsApi,
     staleTime: 5 * 60 * 1000
   })
 
@@ -119,14 +125,11 @@ export default function ProductInfo({
   let activeFlashSaleInfo: FlashSaleInfo | undefined = flashSaleInfo
 
   if (!activeFlashSaleInfo && flashBook && targetEndDate) {
-    // 👉 ĐÃ SỬA: Lấy đúng số lượng đã bán thực tế, không cộng thêm 5
     const actualSold = book.soldQuantity && book.soldQuantity > 0 ? book.soldQuantity : 0
     const currentStock = flashBook.stockQuantity || 0
 
-    // Ước lượng tổng số lượng Flash Sale ban đầu (đã bán + tồn kho)
     const totalFlashSaleQty = Math.max(actualSold + currentStock, 1)
 
-    // 👉 ĐÃ SỬA: Thanh tiến trình tối thiểu 3% để nhìn không bị lẹm, nhưng tối đa 100%
     let percent = Math.round((actualSold / totalFlashSaleQty) * 100)
     if (percent < 3) percent = 3
     if (percent > 100) percent = 100
@@ -155,7 +158,45 @@ export default function ProductInfo({
     if (quantity < (book.stockQuantity ?? 0)) onQuantityChange(quantity + 1)
   }
 
-  const displayedVouchers = showAllVouchers ? VOUCHERS : VOUCHERS.slice(0, 2)
+  // 👉 ĐÃ THÊM MỚI: Xử lý dữ liệu Coupon từ API
+  const formatCouponLabel = (coupon: CouponResponse) => {
+    let label = ''
+
+    // Xử lý giá trị giảm
+    if (coupon.discountType === DiscountType.FIXED_AMOUNT) {
+      // Giảm tiền mặt
+      label = `Giảm ${fmt(coupon.discountValue)}đ`
+    } else {
+      // Giảm phần trăm
+      label = `Giảm ${coupon.discountValue}%`
+      if (coupon.maxDiscountAmount) {
+        label += ` (tối đa ${fmt(coupon.maxDiscountAmount)}đ)`
+      }
+    }
+
+    // Xử lý điều kiện đơn hàng tối thiểu
+    if (coupon.minOrderValue > 0) {
+      label += ` - cho đơn từ ${fmt(coupon.minOrderValue)}đ`
+    }
+
+    return label
+  }
+
+  const getCouponIcon = (coupon: CouponResponse) => {
+    // Tùy chỉnh icon theo loại coupon (CouponType)
+    if (coupon.couponType === CouponType.SHIPPING) return '🟢'
+    if (coupon.couponType === CouponType.ORDER) return '🔵'
+    return '🟡' // Mặc định cho Order/System
+  }
+
+  const activeVouchers = (couponsData || []).map((coupon) => ({
+    id: coupon.id,
+    icon: getCouponIcon(coupon),
+    label: formatCouponLabel(coupon)
+  }))
+
+  // Cắt bớt danh sách hiển thị nếu không show tất cả
+  const displayedVouchers = showAllVouchers ? activeVouchers : activeVouchers.slice(0, 2)
 
   return (
     <div className='flex flex-col gap-4'>
@@ -303,28 +344,37 @@ export default function ProductInfo({
           <p className='text-[14px] font-bold text-slate-800'>
             {t('product.relatedOffers', 'Ưu đãi liên quan')}
           </p>
-          <button
-            onClick={() => setShowAllVouchers(!showAllVouchers)}
-            className='text-[13px] text-[#c92127] hover:underline flex items-center gap-1 font-semibold'
-          >
-            {showAllVouchers ? t('product.collapse') : t('product.seeMore')}
-            {showAllVouchers ? (
-              <ChevronUp className='w-3.5 h-3.5' />
-            ) : (
-              <ChevronDown className='w-3.5 h-3.5' />
-            )}
-          </button>
-        </div>
-        <div className='flex gap-2.5 flex-wrap'>
-          {displayedVouchers.map((v) => (
-            <div
-              key={v.id}
-              className='flex items-center gap-2 border border-dashed border-brand-green/50 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium text-slate-700 cursor-pointer hover:border-brand-green hover:text-brand-green transition-colors bg-brand-green/5'
+          {activeVouchers.length > 2 && (
+            <button
+              onClick={() => setShowAllVouchers(!showAllVouchers)}
+              className='text-[13px] text-[#c92127] hover:underline flex items-center gap-1 font-semibold'
             >
-              <span className='text-base leading-none'>{v.icon}</span>
-              <span>{v.label}</span>
-            </div>
-          ))}
+              {showAllVouchers ? t('product.collapse') : t('product.seeMore')}
+              {showAllVouchers ? (
+                <ChevronUp className='w-3.5 h-3.5' />
+              ) : (
+                <ChevronDown className='w-3.5 h-3.5' />
+              )}
+            </button>
+          )}
+        </div>
+
+        <div className='flex gap-2.5 flex-wrap'>
+          {loadingCoupons ? (
+            <span className='text-[12.5px] text-slate-400 italic'>Đang tải mã giảm giá...</span>
+          ) : displayedVouchers.length > 0 ? (
+            displayedVouchers.map((v) => (
+              <div
+                key={v.id}
+                className='flex items-center gap-2 border border-dashed border-brand-green/50 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium text-slate-700 cursor-pointer hover:border-brand-green hover:text-brand-green transition-colors bg-brand-green/5'
+              >
+                <span className='text-base leading-none'>{v.icon}</span>
+                <span>{v.label}</span>
+              </div>
+            ))
+          ) : (
+            <span className='text-[12.5px] text-slate-400'>Hiện không có ưu đãi nào.</span>
+          )}
         </div>
       </div>
 

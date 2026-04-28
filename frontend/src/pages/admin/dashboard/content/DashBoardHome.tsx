@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   AreaChart,
   Area,
@@ -28,200 +28,33 @@ import {
   BookMarked,
   Wallet
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { format } from 'date-fns'
+import { vi, enUS } from 'date-fns/locale'
 
-/* ── DATA ── */
-const revenueData = [
-  { month: 'T1', revenue: 42, orders: 210 },
-  { month: 'T2', revenue: 58, orders: 290 },
-  { month: 'T3', revenue: 51, orders: 255 },
-  { month: 'T4', revenue: 74, orders: 370 },
-  { month: 'T5', revenue: 68, orders: 340 },
-  { month: 'T6', revenue: 89, orders: 445 },
-  { month: 'T7', revenue: 95, orders: 475 },
-  { month: 'T8', revenue: 82, orders: 410 },
-  { month: 'T9', revenue: 110, orders: 550 },
-  { month: 'T10', revenue: 104, orders: 520 },
-  { month: 'T11', revenue: 138, orders: 690 },
-  { month: 'T12', revenue: 162, orders: 810 }
-]
+import { getDashboardOverviewApi, exportDashboardExcelApi } from '@/services/dashboard/db.api'
+import type { DashboardData } from '@/services/dashboard/db.type'
 
-const categoryData = [
-  { name: 'Văn học', value: 34 },
-  { name: 'Kỹ năng', value: 28 },
-  { name: 'Kinh tế', value: 19 },
-  { name: 'Khoa học', value: 11 },
-  { name: 'Thiếu nhi', value: 8 }
-]
+type StatusKey =
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled'
+  | 'pending'
+  | 'confirmed'
+  | 'packing'
+  | 'returned'
 
-const topBooks = [
-  {
-    id: 1,
-    title: 'Đắc Nhân Tâm',
-    author: 'Dale Carnegie',
-    sold: 1842,
-    revenue: '55.3M',
-    stock: 240,
-    trend: 'up',
-    cover: '#1a4d2e'
-  },
-  {
-    id: 2,
-    title: 'Nhà Giả Kim',
-    author: 'Paulo Coelho',
-    sold: 1590,
-    revenue: '47.7M',
-    stock: 185,
-    trend: 'up',
-    cover: '#4a2000'
-  },
-  {
-    id: 3,
-    title: 'Sapiens',
-    author: 'Yuval Noah Harari',
-    sold: 1230,
-    revenue: '61.5M',
-    stock: 92,
-    trend: 'down',
-    cover: '#1a2a4a'
-  },
-  {
-    id: 4,
-    title: 'Tôi Tài Giỏi, Bạn Cũng Thế',
-    author: 'Adam Khoo',
-    sold: 980,
-    revenue: '29.4M',
-    stock: 310,
-    trend: 'up',
-    cover: '#3d1a00'
-  },
-  {
-    id: 5,
-    title: 'Mindset',
-    author: 'Carol S. Dweck',
-    sold: 860,
-    revenue: '34.4M',
-    stock: 47,
-    trend: 'down',
-    cover: '#1a3a3a'
-  }
-]
-
-const recentOrders = [
-  {
-    id: '#ZB-8821',
-    customer: 'Nguyễn Minh Anh',
-    avatar: 'NM',
-    time: '5 phút trước',
-    items: 3,
-    total: '285,000₫',
-    status: 'processing'
-  },
-  {
-    id: '#ZB-8820',
-    customer: 'Trần Bảo Châu',
-    avatar: 'TC',
-    time: '18 phút trước',
-    items: 1,
-    total: '89,000₫',
-    status: 'shipped'
-  },
-  {
-    id: '#ZB-8819',
-    customer: 'Phạm Hữu Lộc',
-    avatar: 'PL',
-    time: '34 phút trước',
-    items: 5,
-    total: '612,000₫',
-    status: 'delivered'
-  },
-  {
-    id: '#ZB-8818',
-    customer: 'Lê Khánh Linh',
-    avatar: 'LL',
-    time: '1 giờ trước',
-    items: 2,
-    total: '178,000₫',
-    status: 'delivered'
-  },
-  {
-    id: '#ZB-8817',
-    customer: 'Vũ Đức Thành',
-    avatar: 'VT',
-    time: '2 giờ trước',
-    items: 4,
-    total: '396,000₫',
-    status: 'cancelled'
-  }
-]
-
-const alerts = [
-  { book: 'Mindset', stock: 47, threshold: 50 },
-  { book: 'Atomic Habits', stock: 23, threshold: 50 },
-  { book: 'Hội Chứng Phòng Tám', stock: 11, threshold: 50 }
-]
-
-const metrics = [
-  {
-    label: 'Doanh thu tháng',
-    value: '1.62 tỷ',
-    change: '+23.4%',
-    up: true,
-    sub: 'so với tháng trước',
-    icon: Wallet,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-500/10'
-  },
-  {
-    label: 'Đơn hàng',
-    value: '3,240',
-    change: '+18.2%',
-    up: true,
-    sub: 'so với tháng trước',
-    icon: ShoppingBag,
-    color: 'text-sky-500',
-    bg: 'bg-sky-500/10'
-  },
-  {
-    label: 'Sách đã bán',
-    value: '8,910',
-    change: '+31.7%',
-    up: true,
-    sub: 'so với tháng trước',
-    icon: BookMarked,
-    color: 'text-amber-500',
-    bg: 'bg-amber-500/10'
-  },
-  {
-    label: 'Khách mới',
-    value: '642',
-    change: '-4.1%',
-    up: false,
-    sub: 'so với tháng trước',
-    icon: Users,
-    color: 'text-rose-500',
-    bg: 'bg-rose-500/10'
-  }
-]
-
-type StatusKey = 'processing' | 'shipped' | 'delivered' | 'cancelled'
-
-const statusConfig: Record<StatusKey, { label: string; cls: string }> = {
-  processing: {
-    label: 'Đang xử lý',
-    cls: 'bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20'
-  },
-  shipped: {
-    label: 'Đang giao',
-    cls: 'bg-sky-500/10 text-sky-600 dark:text-sky-500 border-sky-500/20'
-  },
-  delivered: {
-    label: 'Hoàn thành',
-    cls: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20'
-  },
-  cancelled: {
-    label: 'Đã huỷ',
-    cls: 'bg-rose-500/10 text-rose-600 dark:text-rose-500 border-rose-500/20'
-  }
+// Chỉ lưu CSS class ở ngoài, label sẽ được dịch ở bên trong component
+const statusStyles: Record<StatusKey, string> = {
+  pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  confirmed: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  packing: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+  shipped: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
+  delivered: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  processing: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  returned: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  cancelled: 'bg-rose-500/10 text-rose-600 border-rose-500/20'
 }
 
 interface TooltipProps {
@@ -242,31 +75,172 @@ const CustomTooltip: React.FC<TooltipProps> = ({ active, payload, label }) => {
 
 /* ════════════════════════════════════════════════════ */
 export default function DashboardHome() {
-  const [chartPeriod, setChartPeriod] = useState<string>('Năm')
+  // 👉 1. HOOKS PHẢI NẰM TRONG COMPONENT
+  const { t, i18n } = useTranslation('dashboard') // Khai báo namespace 'dashboard'
+
+  const [period, setPeriod] = useState<string>('month')
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+
+  // Xác định locale cho date-fns dựa trên ngôn ngữ hiện tại
+  const dateLocale = i18n.language === 'vi' ? vi : enUS
+
+  // 👉 2. HÀM EXPORT CŨNG PHẢI NẰM TRONG COMPONENT
+  const handleExport = async () => {
+    try {
+      const blobData = await exportDashboardExcelApi(period)
+      const url = window.URL.createObjectURL(new Blob([blobData]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute(
+        'download',
+        `${t('export.fileName')}_${period}_${format(new Date(), 'ddMMyyyy_HHmm')}.xlsx`
+      )
+
+      document.body.appendChild(link)
+      link.click()
+
+      link.parentNode?.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Lỗi khi xuất file Excel:', error)
+      alert(t('export.error'))
+    }
+  }
+
+  // Fetch Dữ liệu từ Backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const response = await getDashboardOverviewApi(period)
+        setData(response)
+      } catch (error) {
+        console.error('Lỗi khi tải Dashboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [period])
+
+  // Dùng useMemo cho metrics để tự động cập nhật khi ngôn ngữ đổi
+  const dynamicMetrics = useMemo(() => {
+    if (!data) return []
+    return [
+      {
+        label: t('metrics.revenue'),
+        value: data.metrics.revenue.value,
+        change: data.metrics.revenue.change,
+        up: data.metrics.revenue.up,
+        sub: t('metrics.compareSub'),
+        icon: Wallet,
+        color: 'text-emerald-500',
+        bg: 'bg-emerald-500/10'
+      },
+      {
+        label: t('metrics.orders'),
+        value: data.metrics.orders.value,
+        change: data.metrics.orders.change,
+        up: data.metrics.orders.up,
+        sub: t('metrics.compareSub'),
+        icon: ShoppingBag,
+        color: 'text-sky-500',
+        bg: 'bg-sky-500/10'
+      },
+      {
+        label: t('metrics.booksSold'),
+        value: data.metrics.booksSold.value,
+        change: data.metrics.booksSold.change,
+        up: data.metrics.booksSold.up,
+        sub: t('metrics.compareSub'),
+        icon: BookMarked,
+        color: 'text-amber-500',
+        bg: 'bg-amber-500/10'
+      },
+      {
+        label: t('metrics.newCustomers'),
+        value: data.metrics.newCustomers.value,
+        change: data.metrics.newCustomers.change,
+        up: data.metrics.newCustomers.up,
+        sub: t('metrics.compareSub'),
+        icon: Users,
+        color: 'text-rose-500',
+        bg: 'bg-rose-500/10'
+      }
+    ]
+  }, [data, t, i18n.language])
+
+  const categoryColors = ['#10b981', '#0ea5e9', '#f59e0b', '#8b5cf6', '#f43f5e']
+
+  const totalYearRevenue = useMemo(
+    () => data?.revenueData.reduce((sum, item) => sum + item.revenue, 0) || 0,
+    [data]
+  )
+
+  const bestMonth = useMemo(
+    () =>
+      data?.revenueData.reduce(
+        (prev, current) => (prev.revenue > current.revenue ? prev : current),
+        data.revenueData[0] || { month: 'T1', revenue: 0 }
+      ) || { month: 'T1', revenue: 0 },
+    [data]
+  )
+
+  if (loading || !data) {
+    return (
+      <div className='flex items-center justify-center h-screen w-full'>
+        <div className='animate-pulse flex flex-col items-center'>
+          <div className='h-12 w-12 bg-primary/20 rounded-full mb-4'></div>
+          <p className='text-muted-foreground font-medium'>{t('loading')}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className='flex flex-col gap-6 p-6'>
       {/* ── PAGE TITLE & ACTIONS ── */}
       <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
         <div>
-          <h1 className='text-2xl font-bold tracking-tight text-foreground'>Tổng quan ZenBook</h1>
-          <p className='text-sm text-muted-foreground mt-1'>
-            Thứ Hai, 27 tháng 4, 2026 &nbsp;·&nbsp; Cập nhật lúc 14:32
+          <h1 className='text-2xl font-bold tracking-tight text-foreground'>{t('title')}</h1>
+          <p className='text-sm text-muted-foreground mt-1 capitalize'>
+            {format(new Date(), t('datePattern'), { locale: dateLocale })}
           </p>
         </div>
         <div className='flex items-center gap-3'>
-          <button className='flex items-center gap-2 bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 px-4 py-2 rounded-md text-sm font-medium transition-colors'>
-            <Filter size={14} /> Lọc
-          </button>
-          <button className='flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-4 py-2 rounded-md text-sm font-medium transition-colors'>
-            <Download size={14} /> Xuất báo cáo
+          <div className='relative flex items-center'>
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className='appearance-none bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 pl-9 pr-8 py-2 rounded-md text-sm font-medium transition-colors outline-none cursor-pointer focus:ring-2 focus:ring-primary/20'
+            >
+              <option value='today'>{t('filter.today')}</option>
+              <option value='week'>{t('filter.week')}</option>
+              <option value='month'>{t('filter.month')}</option>
+              <option value='year'>{t('filter.year')}</option>
+            </select>
+            <Filter
+              size={14}
+              className='absolute left-3 pointer-events-none text-secondary-foreground'
+            />
+            <ChevronDown
+              size={14}
+              className='absolute right-3 pointer-events-none text-secondary-foreground opacity-50'
+            />
+          </div>
+          <button
+            onClick={handleExport}
+            className='flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none px-4 py-2 rounded-md text-sm font-medium transition-colors'
+          >
+            <Download size={14} /> {t('export.button')}
           </button>
         </div>
       </div>
 
       {/* ── 1. METRIC CARDS ── */}
       <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        {metrics.map((m, i) => (
+        {dynamicMetrics.map((m, i) => (
           <div
             key={i}
             className='bg-card text-card-foreground p-6 rounded-xl border border-border shadow-sm transition-all hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5'
@@ -295,33 +269,27 @@ export default function DashboardHome() {
 
       {/* ── 2. CHARTS ── */}
       <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-        {/* Revenue Chart */}
         <div className='bg-card text-card-foreground p-6 rounded-xl border border-border shadow-sm lg:col-span-2 flex flex-col'>
           <div className='flex justify-between items-center mb-6'>
             <div>
-              <h2 className='text-lg font-semibold'>Doanh thu & Đơn hàng</h2>
-              <p className='text-xs text-muted-foreground mt-1'>Tổng năm 2025: 1,073M₫</p>
-            </div>
-            <div className='flex gap-2'>
-              {['Tuần', 'Tháng', 'Năm'].map((p) => (
-                <button
-                  key={p}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
-                    chartPeriod === p
-                      ? 'bg-primary/10 text-primary border-primary/20'
-                      : 'bg-transparent text-muted-foreground border-transparent hover:bg-secondary hover:border-border'
-                  }`}
-                  onClick={() => setChartPeriod(p)}
-                >
-                  {p}
-                </button>
-              ))}
+              <h2 className='text-lg font-semibold'>{t('charts.revenue.title')}</h2>
+              <p className='text-xs text-muted-foreground mt-1'>
+                {t('charts.revenue.yearTotal')} {new Date().getFullYear()}:{' '}
+                {totalYearRevenue.toLocaleString('en-US', {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1
+                })}{' '}
+                M₫
+              </p>
             </div>
           </div>
 
           <div className='flex-1 min-h-[220px]'>
             <ResponsiveContainer width='100%' height='100%'>
-              <AreaChart data={revenueData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+              <AreaChart
+                data={data.revenueData}
+                margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
+              >
                 <defs>
                   <linearGradient id='revGrad' x1='0' y1='0' x2='0' y2='1'>
                     <stop offset='0%' stopColor='hsl(var(--primary))' stopOpacity={0.2} />
@@ -363,45 +331,62 @@ export default function DashboardHome() {
           <div className='flex gap-6 mt-4 pt-4 border-t border-border items-center'>
             <div className='flex items-center gap-2'>
               <div className='w-2 h-2 rounded-sm bg-primary' />
-              <span className='text-xs text-muted-foreground'>Doanh thu (triệu đồng)</span>
+              <span className='text-xs text-muted-foreground'>{t('charts.revenue.legend')}</span>
             </div>
             <div className='flex items-center gap-1.5 text-emerald-500 text-xs font-semibold'>
               <TrendingUp size={14} />
-              Tháng cao nhất: T12 — 162M₫
+              {t('charts.revenue.bestMonth')}: {bestMonth.month} —{' '}
+              {bestMonth.revenue.toLocaleString('en-US', {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1
+              })}{' '}
+              M₫
             </div>
           </div>
         </div>
 
         {/* Category Breakdown */}
         <div className='bg-card text-card-foreground p-6 rounded-xl border border-border shadow-sm flex flex-col'>
-          <h2 className='text-lg font-semibold mb-1'>Danh mục bán chạy</h2>
-          <p className='text-xs text-muted-foreground mb-6'>Tháng 12 / 2025</p>
+          <h2 className='text-lg font-semibold mb-1'>{t('charts.categories.title')}</h2>
+          <p className='text-xs text-muted-foreground mb-6'>
+            {t('charts.categories.month')} {new Date().getMonth() + 1} / {new Date().getFullYear()}
+          </p>
 
           <div className='space-y-5 flex-1'>
-            {categoryData.map((cat, i) => {
-              const colors = ['#10b981', '#0ea5e9', '#f59e0b', '#8b5cf6', '#f43f5e'] // Tailwind colors
-              return (
-                <div key={i}>
-                  <div className='flex justify-between items-center mb-2'>
-                    <span className='text-sm font-medium text-foreground'>{cat.name}</span>
-                    <span className='text-sm font-bold' style={{ color: colors[i] }}>
-                      {cat.value}%
-                    </span>
+            {data.categoryData.length === 0 ? (
+              <div className='text-sm text-muted-foreground italic text-center mt-10'>
+                {t('charts.categories.empty')}
+              </div>
+            ) : (
+              data.categoryData.map((cat, i) => {
+                const color = categoryColors[i % categoryColors.length]
+                return (
+                  <div key={i}>
+                    <div className='flex justify-between items-center mb-2'>
+                      <span className='text-sm font-medium text-foreground'>{cat.name}</span>
+                      <span className='text-sm font-bold' style={{ color }}>
+                        {cat.value}%
+                      </span>
+                    </div>
+                    <div className='h-1.5 w-full bg-secondary rounded-full overflow-hidden'>
+                      <div
+                        className='h-full rounded-full transition-all duration-1000 ease-in-out'
+                        style={{ width: `${cat.value}%`, backgroundColor: color }}
+                      />
+                    </div>
                   </div>
-                  <div className='h-1.5 w-full bg-secondary rounded-full overflow-hidden'>
-                    <div
-                      className='h-full rounded-full'
-                      style={{ width: `${cat.value}%`, backgroundColor: colors[i] }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
 
-          <div className='mt-6 p-4 bg-primary/5 rounded-lg border border-primary/10'>
-            <div className='text-xs text-muted-foreground mb-1 font-medium'>Tổng đơn vị bán</div>
-            <div className='text-2xl font-bold text-primary'>8,910</div>
+          <div className='mt-6 p-4 bg-primary/5 rounded-lg border border-primary/10 flex justify-between items-center'>
+            <div className='text-xs text-muted-foreground font-medium'>
+              {t('charts.categories.totalSold')}
+            </div>
+            <div className='text-xl font-bold text-primary'>
+              {data.metrics.booksSold.value.replace(/[^0-9.,]/g, '')}
+            </div>
           </div>
         </div>
       </div>
@@ -411,91 +396,118 @@ export default function DashboardHome() {
         {/* Top Books */}
         <div className='bg-card text-card-foreground p-6 rounded-xl border border-border shadow-sm'>
           <div className='flex justify-between items-center mb-6'>
-            <h2 className='text-lg font-semibold'>Sách bán chạy</h2>
+            <h2 className='text-lg font-semibold'>{t('lists.topBooks.title')}</h2>
             <button className='flex items-center gap-1 text-xs text-primary font-medium hover:underline'>
-              Xem tất cả <ChevronRight size={14} />
+              {t('lists.seeAll')} <ChevronRight size={14} />
             </button>
           </div>
 
           <div className='space-y-4'>
-            {topBooks.map((book, i) => (
-              <div
-                key={book.id}
-                className='flex items-center gap-3 pb-4 border-b border-border last:border-0 last:pb-0'
-              >
-                <span className='text-xs font-bold text-muted-foreground w-4 shrink-0'>
-                  0{i + 1}
-                </span>
-                <div
-                  className='w-9 h-12 rounded bg-secondary shrink-0 flex items-end justify-center pb-1 shadow-sm'
-                  style={{ backgroundColor: book.cover }}
-                >
-                  <div className='w-1 h-3/4 bg-white/20 rounded-sm' />
-                </div>
-                <div className='flex-1 min-w-0'>
-                  <div className='text-sm font-semibold truncate text-foreground'>{book.title}</div>
-                  <div className='text-xs text-muted-foreground mt-0.5'>{book.author}</div>
-                </div>
-                <div className='text-right shrink-0'>
-                  <div className='text-sm font-bold text-primary'>{book.sold}</div>
-                  <div className='text-[10px] text-muted-foreground mt-0.5'>{book.revenue}</div>
-                </div>
-                <div className='shrink-0 pl-1'>
-                  {book.trend === 'up' ? (
-                    <ArrowUpRight size={16} className='text-emerald-500' />
-                  ) : (
-                    <ArrowDownRight size={16} className='text-rose-500' />
-                  )}
-                </div>
+            {data.topBooks.length === 0 ? (
+              <div className='text-sm text-muted-foreground italic text-center'>
+                {t('lists.topBooks.empty')}
               </div>
-            ))}
+            ) : (
+              data.topBooks.map((book, i) => (
+                <div
+                  key={book.id}
+                  className='flex items-center gap-3 pb-4 border-b border-border last:border-0 last:pb-0'
+                >
+                  <span className='text-xs font-bold text-muted-foreground w-4 shrink-0'>
+                    0{i + 1}
+                  </span>
+                  <div
+                    className='w-9 h-12 rounded bg-secondary shrink-0 flex items-end justify-center pb-1 shadow-sm'
+                    style={{ backgroundColor: book.cover }}
+                  >
+                    <div className='w-1 h-3/4 bg-white/20 rounded-sm' />
+                  </div>
+                  <div className='flex-1 min-w-0'>
+                    <div
+                      className='text-sm font-semibold truncate text-foreground'
+                      title={book.title}
+                    >
+                      {book.title}
+                    </div>
+                    <div
+                      className='text-xs text-muted-foreground mt-0.5 truncate'
+                      title={book.author}
+                    >
+                      {book.author}
+                    </div>
+                  </div>
+                  <div className='text-right shrink-0'>
+                    <div className='text-sm font-bold text-primary'>{book.sold}</div>
+                    <div className='text-[10px] text-muted-foreground mt-0.5'>{book.revenue}</div>
+                  </div>
+                  <div className='shrink-0 pl-1'>
+                    {book.trend === 'up' ? (
+                      <ArrowUpRight size={16} className='text-emerald-500' />
+                    ) : (
+                      <ArrowDownRight size={16} className='text-rose-500' />
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
         {/* Recent Orders */}
         <div className='bg-card text-card-foreground p-6 rounded-xl border border-border shadow-sm'>
           <div className='flex justify-between items-center mb-6'>
-            <h2 className='text-lg font-semibold'>Đơn hàng gần đây</h2>
+            <h2 className='text-lg font-semibold'>{t('lists.recentOrders.title')}</h2>
             <button className='flex items-center gap-1 text-xs text-primary font-medium hover:underline'>
-              Tất cả đơn <ChevronRight size={14} />
+              {t('lists.recentOrders.seeAll')} <ChevronRight size={14} />
             </button>
           </div>
 
           <div className='space-y-4'>
-            {recentOrders.map((order, i) => {
-              const s = statusConfig[order.status as StatusKey]
-              return (
-                <div
-                  key={i}
-                  className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border last:border-0 last:pb-0'
-                >
-                  <div className='flex items-center gap-3'>
-                    <div className='w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-foreground'>
-                      {order.avatar}
-                    </div>
-                    <div>
-                      <div className='text-sm font-semibold text-foreground'>{order.customer}</div>
-                      <div className='text-xs text-muted-foreground mt-0.5'>
-                        {order.id} • {order.time}
+            {data.recentOrders.length === 0 ? (
+              <div className='text-sm text-muted-foreground italic text-center'>
+                {t('lists.recentOrders.empty')}
+              </div>
+            ) : (
+              data.recentOrders.map((order, i) => {
+                const sCls =
+                  statusStyles[order.status as StatusKey] || 'bg-gray-500/10 text-gray-600'
+                const sLabel = t(`status.${order.status}`, { defaultValue: order.status })
+
+                return (
+                  <div
+                    key={i}
+                    className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border last:border-0 last:pb-0'
+                  >
+                    <div className='flex items-center gap-3'>
+                      <div className='w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-foreground'>
+                        {order.avatar}
+                      </div>
+                      <div>
+                        <div className='text-sm font-semibold text-foreground'>
+                          {order.customer}
+                        </div>
+                        <div className='text-xs text-muted-foreground mt-0.5'>
+                          {order.id} • {order.time}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className='flex items-center gap-3 sm:gap-4 sm:ml-auto pl-12 sm:pl-0'>
-                    <div className='text-right flex-1 sm:flex-none'>
-                      <div className='text-sm font-bold text-foreground'>{order.total}</div>
-                      <div className='text-[10px] text-muted-foreground mt-0.5'>
-                        {order.items} cuốn
+                    <div className='flex items-center gap-3 sm:gap-4 sm:ml-auto pl-12 sm:pl-0'>
+                      <div className='text-right flex-1 sm:flex-none'>
+                        <div className='text-sm font-bold text-foreground'>{order.total}</div>
+                        <div className='text-[10px] text-muted-foreground mt-0.5'>
+                          {order.items} {t('lists.recentOrders.items')}
+                        </div>
                       </div>
+                      <span
+                        className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border whitespace-nowrap ${sCls}`}
+                      >
+                        {sLabel}
+                      </span>
                     </div>
-                    <span
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border whitespace-nowrap ${s.cls}`}
-                    >
-                      {s.label}
-                    </span>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
         </div>
 
@@ -505,61 +517,71 @@ export default function DashboardHome() {
           <div className='bg-card text-card-foreground p-6 rounded-xl border border-border shadow-sm'>
             <div className='flex items-center gap-2 mb-5'>
               <AlertCircle size={18} className='text-amber-500' />
-              <h2 className='text-base font-semibold'>Cảnh báo tồn kho</h2>
+              <h2 className='text-base font-semibold'>{t('alerts.title')}</h2>
             </div>
-
             <div className='space-y-3'>
-              {alerts.map((a, i) => (
-                <div
-                  key={i}
-                  className='flex items-center gap-3 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg'
-                >
-                  <div className='w-8 h-10 rounded bg-amber-500/10 shrink-0 flex items-center justify-center'>
-                    <BookOpen size={16} className='text-amber-600 dark:text-amber-500' />
-                  </div>
-                  <div className='flex-1 min-w-0'>
-                    <div className='text-sm font-semibold truncate text-foreground'>{a.book}</div>
-                    <div className='text-xs text-amber-600 dark:text-amber-500/80 font-medium mt-0.5'>
-                      Còn {a.stock} cuốn
-                    </div>
-                  </div>
-                  <button className='px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-500 rounded-md text-xs font-bold transition-colors'>
-                    Nhập
-                  </button>
+              {data.alerts.length === 0 ? (
+                <div className='text-sm text-emerald-600 font-medium bg-emerald-500/10 p-3 rounded-lg text-center'>
+                  {t('alerts.safe')}
                 </div>
-              ))}
+              ) : (
+                data.alerts.map((a, i) => (
+                  <div
+                    key={i}
+                    className='flex items-center gap-3 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg'
+                  >
+                    <div className='w-8 h-10 rounded bg-amber-500/10 shrink-0 flex items-center justify-center'>
+                      <BookOpen size={16} className='text-amber-600 dark:text-amber-500' />
+                    </div>
+                    <div className='flex-1 min-w-0'>
+                      <div
+                        className='text-sm font-semibold truncate text-foreground'
+                        title={a.book}
+                      >
+                        {a.book}
+                      </div>
+                      <div className='text-xs text-amber-600 dark:text-amber-500/80 font-medium mt-0.5'>
+                        {t('alerts.left')} {a.stock} {t('alerts.unit')}
+                      </div>
+                    </div>
+                    <button className='px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-500 rounded-md text-xs font-bold transition-colors shrink-0'>
+                      {t('alerts.importBtn')}
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
           {/* Quick Stats */}
           <div className='bg-card text-card-foreground p-6 rounded-xl border border-border shadow-sm flex-1'>
-            <h2 className='text-base font-semibold mb-5'>Hôm nay</h2>
+            <h2 className='text-base font-semibold mb-5'>{t('todayStats.title')}</h2>
             <div className='space-y-4'>
               {[
                 {
-                  label: 'Đơn hàng mới',
-                  value: '47',
+                  label: t('todayStats.newOrders'),
+                  value: data.todayStats.newOrders,
                   icon: ShoppingBag,
                   color: 'text-sky-500',
                   bg: 'bg-sky-500/10'
                 },
                 {
-                  label: 'Khách ghé thăm',
-                  value: '1,204',
+                  label: t('todayStats.visitors'),
+                  value: data.todayStats.visitors.toLocaleString(),
                   icon: Users,
                   color: 'text-purple-500',
                   bg: 'bg-purple-500/10'
                 },
                 {
-                  label: 'Sách đánh giá',
-                  value: '23',
+                  label: t('todayStats.reviews'),
+                  value: data.todayStats.reviews,
                   icon: Star,
                   color: 'text-amber-500',
                   bg: 'bg-amber-500/10'
                 },
                 {
-                  label: 'Đang giao hàng',
-                  value: '31',
+                  label: t('todayStats.shipping'),
+                  value: data.todayStats.shipping,
                   icon: Truck,
                   color: 'text-emerald-500',
                   bg: 'bg-emerald-500/10'

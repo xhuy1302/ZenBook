@@ -61,4 +61,6 @@ public interface BookRepository extends JpaRepository<BookEntity, String>, JpaSp
     @EntityGraph(attributePaths = {"authors", "categories", "publisher", "promotions"})
     @Query("SELECT b FROM BookEntity b WHERE b.status = :status AND b.deletedAt IS NULL AND b.award IS NOT NULL AND b.award != '' ORDER BY b.createdAt DESC")
     List<BookEntity> findTopAwardBooks(@Param("status") BookStatus status, Pageable pageable);
+    // Lấy sách sắp hết hàng (<= 50)
+    List<BookEntity> findTop10ByStockQuantityLessThanEqualOrderByStockQuantityAsc(int threshold);
 }

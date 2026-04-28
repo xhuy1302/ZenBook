@@ -33,7 +33,43 @@
     "logout": "Đăng xuất"
   },
   "footer": {
-    "copyright": "© {{year}} VTech. Bảo lưu mọi quyền.",
+    "tagline": "Điểm đến hàng đầu cho sách thuộc mọi thể loại. Bộ sưu tập được tuyển chọn, giá cạnh tranh và giao hàng nhanh.",
+    "about": {
+      "title": "Về ZenBook",
+      "links": [
+        "Câu chuyện của chúng tôi",
+        "Tuyển dụng",
+        "Báo chí",
+        "Blog",
+        "Chương trình liên kết"
+      ]
+    },
+    "support": {
+      "title": "Hỗ trợ khách hàng",
+      "links": [
+        "Trung tâm trợ giúp",
+        "Liên hệ chúng tôi",
+        "Trạng thái đơn hàng",
+        "Đổi trả & Hoàn tiền",
+        "Thẻ quà tặng"
+      ]
+    },
+    "policies": {
+      "title": "Chính sách",
+      "links": [
+        "Chính sách bảo mật",
+        "Điều khoản dịch vụ",
+        "Chính sách cookie",
+        "Trợ năng",
+        "Sơ đồ trang"
+      ]
+    },
+    "paymentTitle": "Phương thức thanh toán",
+    "newsletterTitle": "Bản tin",
+    "newsletterDesc": "Nhận gợi ý sách tuyển chọn hàng tuần.",
+    "emailPlaceholder": "Email của bạn",
+    "copyright": "© {year} ZenBook. Tất cả quyền được bảo lưu.",
+    "madeWith": "Làm với tình yêu dành cho những người yêu sách.",
     "privacy": "Chính sách bảo mật",
     "terms": "Điều khoản dịch vụ",
     "help": "Trung tâm trợ giúp"
@@ -56,7 +92,6 @@
     "sortDesc": "Giảm dần",
     "hide": "Ẩn cột"
   },
-
   "datatableView": {
     "view": "Hiển thị",
     "toggleColumns": "Ẩn / hiện cột"
@@ -65,7 +100,7 @@
     "deliverTo": "Giao đến:",
     "location": "Hà Nội 10000",
     "trackOrder": "Theo dõi đơn hàng",
-    "newsletter": "Bản tin",
+    "newsletter": "Thông báo",
     "searchPlaceholder": "Tìm kiếm theo tên sách, tác giả, ISBN...",
     "search": "Tìm",
     "account": "Tài khoản",
@@ -73,11 +108,33 @@
     "cart": "Giỏ hàng",
     "allCategories": "Tất cả danh mục",
     "flashSale": "Flash Sale",
+    "vip": "VIP",
+    "user": {
+      "greeting": "Xin chào,",
+      "login": "Đăng nhập",
+      "notLoggedInDesc": "Đăng nhập để theo dõi đơn hàng, lưu danh sách yêu thích và nhận nhiều ưu đãi hấp dẫn.",
+      "loginBtn": "Đăng nhập",
+      "signupBtn": "Tạo tài khoản mới",
+      "myAccount": "Tài khoản của tôi",
+      "myOrders": "Đơn hàng của tôi",
+      "addressBook": "Sổ địa chỉ",
+      "logout": "Đăng xuất"
+    },
+    "delivery": {
+      "label": "Giao đến:",
+      "selectAddress": "Chọn địa chỉ",
+      "loading": "Đang tải...",
+      "addAddress": "Thêm địa chỉ ngay"
+    },
     "nav": {
       "hot": "Sách Hot",
       "newArrivals": "Mới về",
       "bestSellers": "Bán chạy",
-      "promotion": "Khuyến mãi"
+      "promotion": "Khuyến mãi",
+      "blog": "Bài viết & Blog",
+      "authors": "Tác giả nổi bật",
+      "guide": "Hướng dẫn mua hàng",
+      "contact": "Liên hệ"
     }
   },
   "hero": {
@@ -171,45 +228,6 @@
         "comment": "Kho sách đa dạng và giao diện rất gọn gàng. Tôi thích tính năng duyệt theo danh mục. Sách được đóng gói cẩn thận và giao hàng đúng hẹn."
       }
     }
-  },
-  "footer": {
-    "tagline": "Điểm đến hàng đầu cho sách thuộc mọi thể loại. Bộ sưu tập được tuyển chọn, giá cạnh tranh và giao hàng nhanh.",
-    "about": {
-      "title": "Về ZenBook",
-      "links": [
-        "Câu chuyện của chúng tôi",
-        "Tuyển dụng",
-        "Báo chí",
-        "Blog",
-        "Chương trình liên kết"
-      ]
-    },
-    "support": {
-      "title": "Hỗ trợ khách hàng",
-      "links": [
-        "Trung tâm trợ giúp",
-        "Liên hệ chúng tôi",
-        "Trạng thái đơn hàng",
-        "Đổi trả & Hoàn tiền",
-        "Thẻ quà tặng"
-      ]
-    },
-    "policies": {
-      "title": "Chính sách",
-      "links": [
-        "Chính sách bảo mật",
-        "Điều khoản dịch vụ",
-        "Chính sách cookie",
-        "Trợ năng",
-        "Sơ đồ trang"
-      ]
-    },
-    "paymentTitle": "Phương thức thanh toán",
-    "newsletterTitle": "Bản tin",
-    "newsletterDesc": "Nhận gợi ý sách tuyển chọn hàng tuần.",
-    "emailPlaceholder": "Email của bạn",
-    "copyright": "© {year} ZenBook. Tất cả quyền được bảo lưu.",
-    "madeWith": "Làm với tình yêu dành cho những người yêu sách."
   },
   "cart": {
     "title": "giỏ hàng",

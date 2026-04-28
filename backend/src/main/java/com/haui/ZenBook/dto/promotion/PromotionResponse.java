@@ -1,5 +1,6 @@
 package com.haui.ZenBook.dto.promotion;
 
+import com.haui.ZenBook.dto.category.CategoryFilterResponse;
 import com.haui.ZenBook.enums.DiscountType;
 import com.haui.ZenBook.enums.PromotionStatus;
 import lombok.Data;
@@ -34,8 +35,10 @@ public class PromotionResponse {
         private Double rating;
         private Integer reviews;
         private Integer discount;
-
+        private List<String> categoryNames;
         private List<AuthorDto> authors;
+
+        private List<CategoryFilterResponse> categories;
     }
 
     @Data

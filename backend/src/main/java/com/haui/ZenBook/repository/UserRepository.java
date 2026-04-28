@@ -53,5 +53,6 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
 
     List<UserEntity> findAllByStatusAndDeletedAtIsNotNullOrderByDeletedAtDesc(UserStatus status);
 
-
+    @Query("SELECT COUNT(u) FROM UserEntity u WHERE u.createdAt BETWEEN :start AND :end")
+    Long countNewUsersBetween(LocalDateTime start, LocalDateTime end);
 }
