@@ -20,6 +20,7 @@ import enSupplier from './locales/en/supplier.json'
 import enReview from './locales/en/review.json'
 import enSidebar from './locales/en/sidebar.json'
 import enCheckOut from './locales/en/checkout.json'
+import enDashBoard from './locales/en/dashboard.json'
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -45,6 +46,7 @@ declare module 'i18next' {
       review: typeof enReview
       sidebar: typeof enSidebar
       checkout: typeof enCheckOut
+      dashboard: typeof enDashBoard
     }
   }
 }

@@ -173,19 +173,44 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse updateOrder(String orderId, OrderUpdateRequest request, String actionBy, ActionRole role) {
+        // 1. Tìm đơn hàng
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new AppException(ErrorCode.ORDER_CANNOT_UPDATE);
+        // 2. KIỂM TRA QUYỀN HẠN (Security Check)
+        // Nếu người thực hiện là USER, họ chỉ được phép sửa đơn hàng CỦA CHÍNH HỌ
+        if (role == ActionRole.USER) {
+            // Kiểm tra xem actionBy (thường là email hoặc userId) có khớp với chủ đơn không
+            if (!order.getCustomerEmail().equalsIgnoreCase(actionBy) && !order.getUserId().equals(actionBy)) {
+                throw new AppException(ErrorCode.ACCESS_DENIED);
+            }
         }
 
+        // Nếu là STAFF/ADMIN nhưng lại đang sửa đơn của CHÍNH MÌNH thông qua giao diện quản trị
+        // (Tùy vào chính sách bảo mật, thường là để tránh gian lận thông tin giao hàng)
+        if ((role == ActionRole.STAFF || role == ActionRole.ADMIN) &&
+                (order.getCustomerEmail().equalsIgnoreCase(actionBy))) {
+            // Có thể log cảnh báo hoặc cho phép nhưng ghi chú kỹ trong lịch sử
+            log.warn("Staff/Admin {} đang chỉnh sửa thông tin đơn hàng của chính họ", actionBy);
+        }
+
+        // 3. KIỂM TRA TRẠNG THÁI
+        // Chỉ được sửa thông tin giao hàng khi đơn vẫn đang PENDING
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new AppException(ErrorCode.ORDER_CANNOT_UPDATE, "Không thể chỉnh sửa đơn hàng đã được xử lý hoặc đã hủy");
+        }
+
+        // 4. CẬP NHẬT THÔNG TIN
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setShippingAddress(request.getShippingAddress());
         order.setNote(request.getNote());
 
-        recordHistory(order, OrderStatus.PENDING, OrderStatus.PENDING, actionBy, role, "Chỉnh sửa thông tin giao hàng");
+        // 5. GHI LẠI LỊCH SỬ (History)
+        String historyNote = (role == ActionRole.USER) ? "Khách hàng tự cập nhật thông tin" : "Nhân viên cập nhật thông tin theo yêu cầu";
+        recordHistory(order, OrderStatus.PENDING, OrderStatus.PENDING, actionBy, role, historyNote);
+
+        // 6. LƯU VÀ TRẢ VỀ
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
@@ -194,6 +219,15 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse updateOrderStatus(String orderId, OrderStatus newStatus, String note, String actionBy, ActionRole role) {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+        // 👉 1. CHẶN STAFF/ADMIN TỰ DUYỆT ĐƠN CỦA MÌNH (Bảo mật nội bộ)
+        boolean isOwner = (actionBy != null) &&
+                (actionBy.equals(order.getUserId()) || actionBy.equalsIgnoreCase(order.getCustomerEmail()));
+
+        if (isOwner && role != ActionRole.USER && newStatus != OrderStatus.CANCELLED) {
+            throw new AppException(ErrorCode.INVALID_ACTION);
+        }
+
         OrderStatus oldStatus = order.getStatus();
 
         if (oldStatus == OrderStatus.CANCELLED || oldStatus == OrderStatus.RETURNED) {
@@ -222,7 +256,7 @@ public class OrderServiceImpl implements OrderService {
         if (!valid) throw new AppException(ErrorCode.ORDER_STATUS_INVALID);
 
         if (newStatus == OrderStatus.COMPLETED) {
-            if (PAYMENT_METHOD_COD.equalsIgnoreCase(order.getPaymentMethod())) {
+            if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
                 order.setPaymentStatus(PaymentStatus.PAID);
             }
         }

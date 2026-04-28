@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/invoices")
+@RequestMapping("/api/v1/admin/invoices")
 @RequiredArgsConstructor
 public class OrderExportController {
 

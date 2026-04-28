@@ -1,24 +1,50 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { Zap, ChevronRight, ChevronLeft, ShoppingCart, Loader2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Zap, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
-import { getActiveFlashSaleApi } from '@/services/promotion/promotion.api'
+import { getTodayFlashSalesApi } from '@/services/promotion/promotion.api'
 import type { BookResponse } from '@/services/book/book.type'
-import { useCart } from '@/context/CartContext'
+import type { PromotionResponse } from '@/services/promotion/promotion.type'
+import BookCard from '@/components/zenbook/homepage/BookCard'
 
-function useCountdown(endDateString?: string) {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function formatSessionTabLabel(dateString: string) {
+  const date = new Date(dateString)
+  const now = new Date()
+
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear()
+
+  if (isToday) {
+    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  return `Ngày ${day}/${month}`
+}
+
+function useCountdown(session?: PromotionResponse) {
   const [timeLeft, setTimeLeft] = useState(0)
 
+  const targetDate = useMemo(() => {
+    if (!session) return 0
+    return session.status === 'SCHEDULED'
+      ? new Date(session.startDate).getTime()
+      : new Date(session.endDate).getTime()
+  }, [session])
+
   useEffect(() => {
-    if (!endDateString) return
-    const targetDate = new Date(endDateString).getTime()
+    if (!targetDate) return
     const calculateTimeLeft = () => {
       const now = new Date().getTime()
       const distance = Math.floor((targetDate - now) / 1000)
@@ -27,251 +53,224 @@ function useCountdown(endDateString?: string) {
     calculateTimeLeft()
     const interval = setInterval(calculateTimeLeft, 1000)
     return () => clearInterval(interval)
-  }, [endDateString])
+  }, [targetDate])
 
   const hours = String(Math.floor(timeLeft / 3600)).padStart(2, '0')
   const minutes = String(Math.floor((timeLeft % 3600) / 60)).padStart(2, '0')
   const seconds = String(timeLeft % 60).padStart(2, '0')
+
   return { hours, minutes, seconds, isEnded: timeLeft <= 0 }
 }
 
 const ITEMS_PER_PAGE = 5
 
-export default function FlashSale() {
+// ─── Main Component ──────────────────────────────────────────────────────────
+
+export default function FlashSaleWidget() {
   const { t } = useTranslation('common')
   const [page, setPage] = useState(0)
-  const { addItem } = useCart()
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
 
-  const { data: promotion, isLoading } = useQuery({
-    queryKey: ['promotion', 'active-flash-sale'],
-    queryFn: getActiveFlashSaleApi,
+  const { data: rawSessions = [], isLoading } = useQuery({
+    queryKey: ['today-flash-sales-widget'],
+    queryFn: getTodayFlashSalesApi,
     staleTime: 5 * 60 * 1000
   })
 
-  const { hours, minutes, seconds, isEnded } = useCountdown(promotion?.endDate)
+  // 👉 CHỈ LẤY ACTIVE VÀ SCHEDULED (Bỏ Expired)
+  const sessions = useMemo(() => {
+    return rawSessions.filter((s) => s.status !== 'EXPIRED')
+  }, [rawSessions])
 
-  const books: BookResponse[] = promotion?.books ?? []
-  const totalPages = Math.ceil(books.length / ITEMS_PER_PAGE)
-  const visibleBooks = books.slice(page * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE + ITEMS_PER_PAGE)
+  useEffect(() => {
+    if (sessions.length > 0 && !selectedSessionId) {
+      const active = sessions.find((s) => s.status === 'ACTIVE')
+      const upcoming = sessions.find((s) => s.status === 'SCHEDULED')
+      setSelectedSessionId(active?.id || upcoming?.id || sessions[0].id)
+    }
+  }, [sessions, selectedSessionId])
 
-  const canPrev = page > 0
-  const canNext = page < totalPages - 1
+  const currentSession = useMemo(
+    () => sessions.find((s) => s.id === selectedSessionId),
+    [sessions, selectedSessionId]
+  )
 
-  const handleAddToCart = (e: React.MouseEvent, book: BookResponse) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const { hours, minutes, seconds, isEnded } = useCountdown(currentSession)
 
-    addItem({
-      id: book.id || '',
-      title: book.title || '',
-      thumbnail: book.thumbnail || '/images/placeholder-book.jpg',
-      price: book.salePrice || 0,
-      stock: book.stockQuantity || 0,
-      originalPrice: book.originalPrice,
-      author: book.authors?.[0]?.name
-    })
+  const booksToRender = useMemo(() => {
+    if (!currentSession?.books) return []
+    return currentSession.books.map((b) => ({ ...b, slug: b.id }) as unknown as BookResponse)
+  }, [currentSession])
 
-    toast.success(t('cart.addSuccess', 'Đã thêm vào giỏ hàng!'))
-  }
+  const totalPages = Math.ceil(booksToRender.length / ITEMS_PER_PAGE)
+  const visibleBooks = booksToRender.slice(
+    page * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE + ITEMS_PER_PAGE
+  )
 
   if (isLoading) {
     return (
       <section className='max-w-7xl mx-auto px-4 py-4'>
-        <div className='rounded-xl bg-brand-red-light border border-brand-red/20 h-[350px] flex items-center justify-center'>
-          <Loader2 className='w-8 h-8 animate-spin text-brand-red' />
+        <div className='rounded-xl bg-slate-50 h-[380px] flex items-center justify-center border border-dashed border-slate-200'>
+          <Loader2 className='w-8 h-8 animate-spin text-brand-green' />
         </div>
       </section>
     )
   }
 
-  if (!promotion || books.length === 0 || isEnded) return null
+  if (sessions.length === 0) return null
+
+  const isScheduled = currentSession?.status === 'SCHEDULED'
+  // Nếu session kết thúc ngay lúc đang xem (isEnded), ta cũng coi như expired
+  const isNowExpired = isEnded && currentSession?.status === 'ACTIVE'
 
   return (
     <section className='max-w-7xl mx-auto px-4 py-4'>
-      <div className='rounded-xl bg-[#FDE2E4] border border-brand-red/20 overflow-hidden'>
-        {/* Header */}
-        <div className='bg-white m-3 rounded-lg px-4 py-3 flex items-center justify-between shadow-sm'>
-          <div className='flex items-center gap-4'>
-            <div className='flex items-center text-brand-red font-black text-xl italic tracking-tight uppercase'>
-              FLASH <Zap className='w-6 h-6 text-yellow-400 fill-yellow-400 mx-1' /> SALE
+      <div
+        className={cn(
+          'rounded-xl border overflow-hidden shadow-sm transition-colors duration-500',
+          isScheduled ? 'bg-emerald-50 border-emerald-200' : 'bg-[#FDE2E4] border-brand-red/20',
+          isNowExpired && 'bg-slate-100 border-slate-200'
+        )}
+      >
+        {/* ── Header Banner ── */}
+        <div className='bg-white m-3 rounded-lg px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm'>
+          <div className='flex flex-wrap items-center gap-4'>
+            <div
+              className={cn(
+                'flex items-center font-black text-xl italic tracking-tight uppercase',
+                isScheduled
+                  ? 'text-emerald-600'
+                  : isNowExpired
+                    ? 'text-slate-500'
+                    : 'text-brand-red'
+              )}
+            >
+              FLASH{' '}
+              <Zap
+                className={cn(
+                  'w-6 h-6 mx-1 fill-current',
+                  isScheduled ? 'text-emerald-400' : 'text-yellow-400'
+                )}
+              />{' '}
+              SALE
             </div>
 
-            {/* Countdown */}
-            <div className='flex items-center gap-2'>
-              <span className='text-sm font-medium text-neutral-700 hidden sm:block'>
-                {t('flashSale.endsIn', 'Kết thúc sau:')}
-              </span>
-              <div className='flex items-center gap-1.5'>
-                <div className='bg-black text-white font-mono font-bold text-base px-2.5 py-1 rounded'>
-                  {hours}
-                </div>
-                <span className='font-bold text-black text-lg'>:</span>
-                <div className='bg-black text-white font-mono font-bold text-base px-2.5 py-1 rounded'>
-                  {minutes}
-                </div>
-                <span className='font-bold text-black text-lg'>:</span>
-                <div className='bg-black text-white font-mono font-bold text-base px-2.5 py-1 rounded'>
-                  {seconds}
+            <div className='flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg'>
+              {sessions.map((session) => {
+                const isActiveTab = selectedSessionId === session.id
+                return (
+                  <button
+                    key={session.id}
+                    onClick={() => {
+                      setSelectedSessionId(session.id)
+                      setPage(0)
+                    }}
+                    className={cn(
+                      'px-3 py-1 rounded-md text-[11px] font-bold transition-all border',
+                      isActiveTab
+                        ? session.status === 'SCHEDULED'
+                          ? 'bg-emerald-600 text-white border-emerald-600'
+                          : 'bg-brand-red text-white border-brand-red'
+                        : 'bg-transparent border-transparent text-slate-500 hover:bg-white'
+                    )}
+                  >
+                    {formatSessionTabLabel(session.startDate)}
+                    {session.status === 'SCHEDULED' && (
+                      <span className='ml-1 w-1.5 h-1.5 bg-white rounded-full inline-block animate-pulse' />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Countdown Section */}
+            {!isNowExpired && (
+              <div className='flex items-center gap-2 px-3 border-l border-slate-200 hidden sm:flex'>
+                <span
+                  className={cn(
+                    'text-[12px] font-bold uppercase',
+                    isScheduled ? 'text-emerald-600' : 'text-slate-500'
+                  )}
+                >
+                  {isScheduled ? 'Chuẩn bị bắt đầu' : t('flashSale.endsIn')}:
+                </span>
+                <div className='flex items-center gap-1'>
+                  {[hours, minutes, seconds].map((unit, i) => (
+                    <div key={i} className='flex items-center gap-1'>
+                      <div
+                        className={cn(
+                          'text-white font-mono font-bold text-sm px-2 py-0.5 rounded',
+                          isScheduled ? 'bg-emerald-600' : 'bg-slate-800'
+                        )}
+                      >
+                        {unit}
+                      </div>
+                      {i < 2 && <span className='font-bold text-slate-800'>:</span>}
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
+            {isNowExpired && (
+              <span className='text-xs font-bold uppercase text-slate-400 border-l px-3'>
+                Đã kết thúc
+              </span>
+            )}
           </div>
 
           <Button
             variant='ghost'
             size='sm'
-            className='text-brand-green hover:text-brand-green-dark hover:bg-brand-green-light text-sm gap-1'
+            className='text-brand-green font-bold text-sm gap-1 hover:bg-emerald-50'
             asChild
           >
             <Link to='/flash-sale'>
-              {t('bookGrid.viewAll', 'Xem tất cả')} <ChevronRight className='w-4 h-4' />
+              {t('bookGrid.viewAll')} <ChevronRight className='w-4 h-4' />
             </Link>
           </Button>
         </div>
 
-        {/* Book Grid + Nav Buttons */}
-        <div className='relative px-4 pb-4'>
-          {canPrev && (
+        {/* ── Book Grid ── */}
+        <div className='relative px-4 pb-5'>
+          {page > 0 && (
             <button
               onClick={() => setPage((p) => p - 1)}
-              className='absolute left-0 top-1/2 -translate-y-1/2 z-10
-                         w-10 h-10 rounded-full bg-white shadow-md border border-border
-                         flex items-center justify-center hover:bg-neutral-50 transition-colors'
+              className='absolute left-1 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white shadow-lg border flex items-center justify-center hover:bg-slate-50'
             >
-              <ChevronLeft className='w-5 h-5 text-neutral-600' />
+              <ChevronLeft className='w-5 h-5 text-slate-600' />
             </button>
           )}
-
-          {canNext && (
+          {page < totalPages - 1 && (
             <button
               onClick={() => setPage((p) => p + 1)}
-              className='absolute right-0 top-1/2 -translate-y-1/2 z-10
-                         w-10 h-10 rounded-full bg-white shadow-md border border-border
-                         flex items-center justify-center hover:bg-neutral-50 transition-colors'
+              className='absolute right-1 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white shadow-lg border flex items-center justify-center hover:bg-slate-50'
             >
-              <ChevronRight className='w-5 h-5 text-neutral-600' />
+              <ChevronRight className='w-5 h-5 text-slate-600' />
             </button>
           )}
 
-          {/* 5 Books */}
-          <div className='grid grid-cols-5 gap-4 mx-4'>
-            {visibleBooks.map((book) => {
-              const salePrice = book.salePrice || 0
+          <div
+            className={cn(
+              'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 px-2',
+              isScheduled && '[&_button]:hidden' // 👉 CHỈ ẨN NÚT (Button), KHÔNG ẨN LINK (a) ĐỂ VẪN CLICK XEM CHI TIẾT ĐƯỢC
+            )}
+          >
+            {visibleBooks.map((book) => (
+              <div key={book.id} className='h-full relative group overflow-hidden rounded-xl'>
+                <BookCard book={book} viewMode='grid' />
 
-              // 👉 LOGIC TÍNH TOÁN MỚI: Dựa vào tồn kho và số lượng đã bán
-              const soldQty = book.soldQuantity || 0
-              const stockQty = book.stockQuantity || 0
-              const totalQty = soldQty + stockQty
-
-              // Tính % thanh tiến trình (tối thiểu để 5% để thanh có một dải màu nhỏ cho đẹp mắt)
-              const stockPercent =
-                totalQty > 0 ? Math.max(Math.round((soldQty / totalQty) * 100), 5) : 5
-
-              const discountPercent =
-                book.originalPrice && book.originalPrice > salePrice
-                  ? Math.round(((book.originalPrice - salePrice) / book.originalPrice) * 100)
-                  : null
-
-              return (
-                <div
-                  key={book.id}
-                  className='bg-white rounded-lg border border-transparent hover:border-brand-red overflow-hidden
-               hover:shadow-md transition-all duration-200 group flex flex-col p-3 relative'
-                >
-                  {/* Image Container */}
-                  <div className='relative w-full aspect-[3/4] mb-2 flex justify-center'>
-                    <Link to={`/products/${book.slug || book.id}`}>
-                      <img
-                        src={book.thumbnail || '/images/placeholder-book.jpg'}
-                        alt={book.title}
-                        className='absolute inset-0 w-full h-full object-contain'
-                        onError={(e) => {
-                          ;(e.target as HTMLImageElement).src = '/images/placeholder-book.jpg'
-                        }}
-                      />
-
-                      {discountPercent && (
-                        <Badge className='absolute top-0 left-0 bg-brand-red text-white text-[11px] font-bold px-1.5 py-0.5 rounded-sm border-0'>
-                          -{discountPercent}%
-                        </Badge>
-                      )}
-                    </Link>
-
-                    <div className='absolute inset-0 bg-black/5 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
-                      <Button
-                        size='sm'
-                        onClick={(e) => handleAddToCart(e, book)}
-                        disabled={stockQty === 0}
-                        className='h-8 px-3 text-xs bg-brand-green hover:bg-brand-green-dark text-primary-foreground gap-1.5 shadow-lg rounded-md pointer-events-auto'
-                      >
-                        <ShoppingCart className='w-3.5 h-3.5' />
-                        {t('bookCard.quickAdd', 'Thêm giỏ')}
-                      </Button>
-                    </div>
+                {/* Badge Sắp mở bán: Vuông, sát góc, chìm vào card */}
+                {isScheduled && (
+                  <div className='absolute top-0 right-0 z-20'>
+                    <span className='bg-emerald-500 text-white text-[9px] font-black px-2 py-1 uppercase shadow-sm'>
+                      Sắp mở bán
+                    </span>
                   </div>
-
-                  {/* Info Container */}
-                  <div className='flex flex-col flex-1'>
-                    <Link to={`/products/${book.slug || book.id}`} className='mb-1'>
-                      <h3
-                        className='text-[13px] font-bold text-slate-800 line-clamp-2 leading-snug hover:text-brand-red transition-colors cursor-pointer'
-                        title={book.title}
-                      >
-                        {book.title}
-                      </h3>
-                    </Link>
-
-                    <div className='mt-auto flex flex-col gap-1.5'>
-                      <div className='h-4 flex items-end'>
-                        {book.originalPrice && book.originalPrice > salePrice && (
-                          <span className='text-[12px] font-semibold text-slate-400 line-through'>
-                            {new Intl.NumberFormat('vi-VN').format(book.originalPrice)} ₫
-                          </span>
-                        )}
-                      </div>
-
-                      <span className='text-[16px] font-black text-brand-red leading-none mb-1.5'>
-                        {new Intl.NumberFormat('vi-VN').format(salePrice)} ₫
-                      </span>
-
-                      {/* 👉 THANH TIẾN TRÌNH (PROGRESS BAR) */}
-                      <div className='relative w-full h-[18px] bg-red-100 rounded-full overflow-hidden flex items-center justify-center border border-red-200/50'>
-                        <div
-                          className='absolute left-0 top-0 bottom-0 bg-gradient-to-r from-red-400 to-brand-red rounded-full transition-all duration-500'
-                          style={{ width: `${stockPercent}%` }}
-                        />
-                        <span className='relative z-10 text-[10px] text-white font-bold tracking-widest uppercase drop-shadow-md mt-px'>
-                          {stockPercent >= 90
-                            ? 'Sắp cháy hàng'
-                            : soldQty === 0
-                              ? 'Vừa mở bán'
-                              : `Đã bán ${soldQty}`}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-
-            {visibleBooks.length < ITEMS_PER_PAGE &&
-              Array.from({ length: ITEMS_PER_PAGE - visibleBooks.length }).map((_, i) => (
-                <div key={`empty-${i}`} className='bg-transparent' />
-              ))}
+                )}
+              </div>
+            ))}
           </div>
-
-          {/* Dot indicators */}
-          {totalPages > 1 && (
-            <div className='flex justify-center gap-2 mt-4'>
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPage(i)}
-                  className={`h-2 rounded-full transition-all ${i === page ? 'w-6 bg-brand-red' : 'w-2 bg-neutral-300'}`}
-                />
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </section>

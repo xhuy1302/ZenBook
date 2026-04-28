@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface PromotionRepository extends JpaRepository<PromotionEntity, String> {
@@ -28,4 +28,11 @@ public interface PromotionRepository extends JpaRepository<PromotionEntity, Stri
     List<PromotionEntity> findByStatusAndStartDateBefore(PromotionStatus status, LocalDateTime time);
 
     List<PromotionEntity> findByStatusAndEndDateBefore(PromotionStatus status, LocalDateTime time);
+
+    @Query("SELECT p FROM PromotionEntity p WHERE p.status = 'ACTIVE' AND p.deleted = false")
+    List<PromotionEntity> findActivePromotions();
+
+    List<PromotionEntity> findByStatusAndDeletedFalse(PromotionStatus status);
+
+    List<PromotionEntity> findByDeletedFalseAndStatusInOrderByStatusAscStartDateAsc(Collection<PromotionStatus> statuses);
 }

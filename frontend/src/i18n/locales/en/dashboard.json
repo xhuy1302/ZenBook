@@ -1,0 +1,74 @@
+{
+  "title": "ZenBook Overview",
+  "loading": "Loading ZenBook data...",
+  "datePattern": "EEEE, MMMM dd, yyyy ' · Updated at' HH:mm",
+  "filter": {
+    "today": "Today",
+    "week": "This Week",
+    "month": "This Month",
+    "year": "This Year"
+  },
+  "export": {
+    "button": "Export Report",
+    "fileName": "ZenBook_Report",
+    "error": "An error occurred while exporting!"
+  },
+  "metrics": {
+    "revenue": "Revenue",
+    "orders": "Orders",
+    "booksSold": "Books Sold",
+    "newCustomers": "New Customers",
+    "compareSub": "vs previous period"
+  },
+  "charts": {
+    "revenue": {
+      "title": "Revenue & Orders",
+      "yearTotal": "Year Total",
+      "legend": "Revenue (Millions)",
+      "bestMonth": "Best Month"
+    },
+    "categories": {
+      "title": "Top Categories",
+      "month": "Month",
+      "empty": "No category data available",
+      "totalSold": "Total Books Sold (this period)"
+    }
+  },
+  "lists": {
+    "seeAll": "See All",
+    "topBooks": {
+      "title": "Top Selling Books",
+      "empty": "No top books data available"
+    },
+    "recentOrders": {
+      "title": "Recent Orders",
+      "seeAll": "All Orders",
+      "empty": "No recent orders",
+      "items": "items"
+    }
+  },
+  "alerts": {
+    "title": "Low Stock Alerts",
+    "safe": "All books are sufficiently stocked!",
+    "left": "Left",
+    "unit": "pcs",
+    "importBtn": "Restock"
+  },
+  "todayStats": {
+    "title": "Today",
+    "newOrders": "New Orders",
+    "visitors": "Visitors",
+    "reviews": "Book Reviews",
+    "shipping": "Shipping Now"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "packing": "Packing",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "processing": "Processing",
+    "returned": "Returned",
+    "cancelled": "Cancelled"
+  }
+}

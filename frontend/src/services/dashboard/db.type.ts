@@ -1,43 +1,75 @@
-export interface RevenueChartData {
+// 1. Metric Item cho 4 thẻ tổng quan
+export interface MetricItem {
+  value: string
+  change: string
+  up: boolean
+}
+
+export interface DashboardMetrics {
+  revenue: MetricItem
+  orders: MetricItem
+  booksSold: MetricItem
+  newCustomers: MetricItem
+}
+
+// 2. Biểu đồ doanh thu
+export interface MonthlyRevenue {
   month: string
   revenue: number
-  profit: number
+  orders: number
 }
 
-export interface LowStockBook {
-  id: string
+// 3. Biểu đồ danh mục
+export interface CategoryStat {
+  name: string
+  value: number
+}
+
+// 4. Top sách bán chạy
+export interface TopBook {
+  id: string // Backend đã đổi sang String
   title: string
-  stockQuantity: number
+  author: string
+  sold: number
+  revenue: string
+  stock: number
+  trend: string
+  cover: string
 }
 
-export interface CategoryChartData {
-  category: string
-  sales: number
-  fill: string
-}
-
-export interface VisitorChartData {
-  month: string
-  newVisitors: number
-  returningVisitors: number
-}
-
+// 5. Đơn hàng gần đây
 export interface RecentOrder {
   id: string
-  orderCode: string
-  customerName: string
-  finalTotal: number
+  customer: string
+  avatar: string
+  time: string
+  items: number
+  total: string
   status: string
 }
 
-export interface DashboardSummary {
-  totalRevenue: number
-  newOrdersCount: number
-  totalCustomers: number
-  lowStockCount: number
-  revenueChart: RevenueChartData[]
-  categoryChart: CategoryChartData[]
-  visitorChart: VisitorChartData[]
+// 6. Cảnh báo tồn kho
+export interface StockAlert {
+  book: string
+  stock: number
+  threshold: number
+}
+
+// 7. Thống kê hôm nay
+export interface TodayStats {
+  newOrders: number
+  visitors: number
+  reviews: number
+  shipping: number
+}
+
+// === INTERFACE GỐC BAO BỌC TẤT CẢ ===
+export interface DashboardData {
+  metrics: DashboardMetrics
+  revenueData: MonthlyRevenue[]
+  categoryData: CategoryStat[]
+  topBooks: TopBook[]
   recentOrders: RecentOrder[]
-  lowStockBooks?: LowStockBook[]
+  alerts: StockAlert[]
+  todayStats: TodayStats
 }

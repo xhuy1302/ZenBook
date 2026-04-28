@@ -1,5 +1,6 @@
 package com.haui.ZenBook.service;
 
+import com.haui.ZenBook.dto.category.CategoryFilterResponse;
 import com.haui.ZenBook.dto.promotion.PromotionRequest;
 import com.haui.ZenBook.dto.promotion.PromotionResponse;
 import com.haui.ZenBook.entity.BookEntity;
@@ -17,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +33,14 @@ public class PromotionServiceImpl implements PromotionService {
     @Transactional
     public PromotionResponse createPromotion(PromotionRequest request) {
         validateDates(request.getStartDate(), request.getEndDate());
+        List<BookEntity> books = bookRepository.findAllById(request.getBookIds());
+
+        validateOverlappingPromotions(books, request.getStartDate(), request.getEndDate(), null);
+
         PromotionEntity entity = promotionMapper.toEntity(request);
         entity.setStatus(determineStatus(request.getStartDate(), request.getEndDate()));
         entity.setDeleted(false);
 
-        List<BookEntity> books = bookRepository.findAllById(request.getBookIds());
         Set<BookEntity> bookSet = new HashSet<>(books);
         entity.setBooks(bookSet);
 
@@ -43,14 +49,19 @@ public class PromotionServiceImpl implements PromotionService {
             book.getPromotions().add(entity);
         }
 
-        return promotionMapper.toResponse(promotionRepository.save(entity));
+        return mapPromotionToResponse(promotionRepository.save(entity));
     }
 
     @Override
     @Transactional
     public PromotionResponse updatePromotion(String id, PromotionRequest request) {
         validateDates(request.getStartDate(), request.getEndDate());
-        PromotionEntity existing = promotionRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
+        PromotionEntity existing = promotionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
+
+        List<BookEntity> newBooks = bookRepository.findAllById(request.getBookIds());
+
+        validateOverlappingPromotions(newBooks, request.getStartDate(), request.getEndDate(), id);
 
         if (existing.getBooks() != null) {
             existing.getBooks().forEach(b -> b.getPromotions().remove(existing));
@@ -64,7 +75,6 @@ public class PromotionServiceImpl implements PromotionService {
         existing.setEndDate(request.getEndDate());
         existing.setStatus(determineStatus(request.getStartDate(), request.getEndDate()));
 
-        List<BookEntity> newBooks = bookRepository.findAllById(request.getBookIds());
         Set<BookEntity> newBookSet = new HashSet<>(newBooks);
         existing.setBooks(newBookSet);
 
@@ -73,7 +83,7 @@ public class PromotionServiceImpl implements PromotionService {
             book.getPromotions().add(existing);
         }
 
-        return promotionMapper.toResponse(promotionRepository.save(existing));
+        return mapPromotionToResponse(promotionRepository.save(existing));
     }
 
     private void validateDates(LocalDateTime start, LocalDateTime end) {
@@ -87,21 +97,129 @@ public class PromotionServiceImpl implements PromotionService {
         return PromotionStatus.ACTIVE;
     }
 
-    @Override public PromotionResponse stopPromotion(String id) { PromotionEntity e = promotionRepository.findById(id).orElseThrow(); e.setStatus(PromotionStatus.PAUSED); return promotionMapper.toResponse(promotionRepository.save(e)); }
-    @Override public List<PromotionResponse> getAllPromotions() { return promotionRepository.findAllByDeletedFalseOrderByCreatedAtDesc().stream().map(promotionMapper::toResponse).toList(); }
-    @Override public PromotionResponse getPromotionById(String id) { return promotionMapper.toResponse(promotionRepository.findById(id).orElseThrow()); }
-    @Override public void softDeletePromotion(String id) { PromotionEntity e = promotionRepository.findById(id).orElseThrow(); e.setDeleted(true); e.setStatus(PromotionStatus.PAUSED); promotionRepository.save(e); }
-    @Override public void hardDeletePromotion(String id) { PromotionEntity e = promotionRepository.findById(id).orElseThrow(); if (e.getBooks() != null) e.getBooks().forEach(b -> b.getPromotions().remove(e)); promotionRepository.delete(e); }
-    @Override public PromotionResponse restorePromotion(String id) { PromotionEntity e = promotionRepository.findById(id).orElseThrow(); e.setDeleted(false); e.setStatus(determineStatus(e.getStartDate(), e.getEndDate())); return promotionMapper.toResponse(promotionRepository.save(e)); }
-    @Override public PromotionResponse resumePromotion(String id) { PromotionEntity e = promotionRepository.findById(id).orElseThrow(); if (e.getStatus() != PromotionStatus.PAUSED) throw new RuntimeException("Error"); e.setStatus(determineStatus(e.getStartDate(), e.getEndDate())); return promotionMapper.toResponse(promotionRepository.save(e)); }
-    @Override public List<PromotionResponse> getAllPromotionsInTrash() { return promotionRepository.findByDeletedTrue().stream().map(promotionMapper::toResponse).toList(); }
-    @Override public PromotionResponse getActiveFlashSale() { List<PromotionEntity> list = promotionRepository.findActiveFlashSales(); return (list != null && !list.isEmpty()) ? promotionMapper.toResponse(list.get(0)) : null; }
+    private void validateOverlappingPromotions(List<BookEntity> books, LocalDateTime start, LocalDateTime end, String currentPromoId) {
+        for (BookEntity book : books) {
+            if (book.getPromotions() != null) {
+                for (PromotionEntity existingPromo : book.getPromotions()) {
+                    if (currentPromoId != null && existingPromo.getId().equals(currentPromoId)) continue;
+                    if (existingPromo.isDeleted() || existingPromo.getStatus() == PromotionStatus.EXPIRED) continue;
 
-    // 👉 ĐÃ FIX: Hàm tính giá trị khuyến mãi thực tế
+                    boolean isOverlapping = !start.isAfter(existingPromo.getEndDate())
+                            && !end.isBefore(existingPromo.getStartDate());
+
+                    if (isOverlapping) {
+                        throw new AppException(ErrorCode.PROMOTION_OVERLAPPING);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public PromotionResponse stopPromotion(String id) {
+        PromotionEntity e = promotionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
+        e.setStatus(PromotionStatus.PAUSED);
+        return mapPromotionToResponse(promotionRepository.save(e));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PromotionResponse> getAllPromotions() {
+        return promotionRepository.findAllByDeletedFalseOrderByCreatedAtDesc().stream()
+                .map(this::mapPromotionToResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PromotionResponse getPromotionById(String id) {
+        return mapPromotionToResponse(promotionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND)));
+    }
+
+    @Override
+    @Transactional
+    public void softDeletePromotion(String id) {
+        PromotionEntity e = promotionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
+        e.setDeleted(true);
+        e.setStatus(PromotionStatus.PAUSED);
+        promotionRepository.save(e);
+    }
+
+    @Override
+    @Transactional
+    public void hardDeletePromotion(String id) {
+        PromotionEntity e = promotionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
+        if (e.getBooks() != null) e.getBooks().forEach(b -> b.getPromotions().remove(e));
+        promotionRepository.delete(e);
+    }
+
+    @Override
+    @Transactional
+    public PromotionResponse restorePromotion(String id) {
+        PromotionEntity e = promotionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
+        e.setDeleted(false);
+        e.setStatus(determineStatus(e.getStartDate(), e.getEndDate()));
+        return mapPromotionToResponse(promotionRepository.save(e));
+    }
+
+    @Override
+    @Transactional
+    public PromotionResponse resumePromotion(String id) {
+        PromotionEntity e = promotionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
+        if (e.getStatus() != PromotionStatus.PAUSED) throw new AppException(ErrorCode.PROMOTION_STATUS_INVALID);
+        e.setStatus(determineStatus(e.getStartDate(), e.getEndDate()));
+        return mapPromotionToResponse(promotionRepository.save(e));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PromotionResponse> getAllPromotionsInTrash() {
+        return promotionRepository.findByDeletedTrue().stream()
+                .map(this::mapPromotionToResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PromotionResponse getActiveFlashSale() {
+        List<PromotionEntity> list = promotionRepository.findActiveFlashSales();
+        return (list != null && !list.isEmpty()) ? mapPromotionToResponse(list.get(0)) : null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PromotionResponse> getFlashSalesByDate(LocalDateTime date) {
+        // Đã thêm EXPIRED vào danh sách lấy dữ liệu
+        return promotionRepository.findByDeletedFalseAndStatusInOrderByStatusAscStartDateAsc(
+                        List.of(PromotionStatus.ACTIVE, PromotionStatus.SCHEDULED, PromotionStatus.EXPIRED)
+                ).stream()
+                .map(this::mapPromotionToResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryFilterResponse> getCategoriesByPromotionId(String promotionId) {
+        PromotionEntity promotion = promotionRepository.findById(promotionId)
+                .orElseThrow(() -> new AppException(ErrorCode.PROMOTION_NOT_FOUND));
+
+        return promotion.getBooks().stream()
+                .flatMap(book -> book.getCategories().stream())
+                .distinct()
+                .map(cat -> new CategoryFilterResponse(cat.getId(), cat.getCategoryName(), 0L))
+                .toList();
+    }
+
     @Override
     public double getPromotionalPrice(BookEntity book) {
         if (book == null || book.getSalePrice() == null) return 0.0;
-
         Set<PromotionEntity> promotions = book.getPromotions();
         if (promotions == null || promotions.isEmpty()) return 0.0;
 
@@ -110,13 +228,9 @@ public class PromotionServiceImpl implements PromotionService {
         boolean hasActivePromo = false;
 
         for (PromotionEntity promo : promotions) {
-            // Chỉ tính những promotion đang ACTIVE và chưa bị xóa
             if (promo.getStatus() == PromotionStatus.ACTIVE && !promo.isDeleted()) {
                 hasActivePromo = true;
                 double currentPrice = basePrice;
-
-                // Tính toán dựa trên loại hình giảm giá
-                // ⚠️ Chú ý: Hãy sửa lại tên PERCENTAGE và FIXED_AMOUNT cho khớp với Enum DiscountType của bạn
                 switch (promo.getDiscountType().name()) {
                     case "PERCENTAGE":
                     case "PERCENT":
@@ -128,15 +242,28 @@ public class PromotionServiceImpl implements PromotionService {
                         currentPrice = basePrice - promo.getDiscountValue();
                         break;
                 }
+                if (currentPrice < minPrice) minPrice = currentPrice;
+            }
+        }
+        return hasActivePromo ? Math.max(minPrice, 0.0) : 0.0;
+    }
 
-                // Luôn lấy giá thấp nhất (nếu sách tham gia nhiều CTKM)
-                if (currentPrice < minPrice) {
-                    minPrice = currentPrice;
+    private PromotionResponse mapPromotionToResponse(PromotionEntity entity) {
+        if (entity == null) return null;
+        PromotionResponse response = promotionMapper.toResponse(entity);
+        if (entity.getBooks() != null && response.getBooks() != null) {
+            Map<String, BookEntity> bookEntityMap = entity.getBooks().stream()
+                    .collect(Collectors.toMap(BookEntity::getId, b -> b));
+            for (PromotionResponse.PromotionBookDto dto : response.getBooks()) {
+                BookEntity bookEntity = bookEntityMap.get(dto.getId());
+                if (bookEntity != null && bookEntity.getCategories() != null) {
+                    List<CategoryFilterResponse> catDtos = bookEntity.getCategories().stream()
+                            .map(cat -> new CategoryFilterResponse(cat.getId(), cat.getCategoryName(), 0L))
+                            .collect(Collectors.toList());
+                    dto.setCategories(catDtos);
                 }
             }
         }
-
-        // Nếu tính toán ra số âm thì trả về 0, nếu không có KM active thì trả về 0.0
-        return hasActivePromo ? Math.max(minPrice, 0.0) : 0.0;
+        return response;
     }
 }

@@ -56,7 +56,7 @@ export default function CropAvatarModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* Đã thêm z-[70] vào DialogContent để đè lên Header (z-[60]) */}
-      <DialogContent className='sm:max-w-[500px] z-[70] rounded-2xl'>
+      <DialogContent className='sm:max-w-[500px] z-[111111] rounded-2xl'>
         <DialogHeader>
           <DialogTitle className='text-[18px]'>Chỉnh sửa ảnh đại diện</DialogTitle>
         </DialogHeader>
