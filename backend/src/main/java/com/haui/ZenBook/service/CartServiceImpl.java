@@ -84,6 +84,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CartResponse getCart(String userId) {
         CartEntity cart = getOrCreateCart(userId);
         return buildCartResponse(cart);

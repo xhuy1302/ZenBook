@@ -1,5 +1,6 @@
 package com.haui.ZenBook.repository;
 
+import com.haui.ZenBook.chatbot.tool.dto.AiBookDto;
 import com.haui.ZenBook.dto.book.PriceRangeResponse;
 import com.haui.ZenBook.entity.BookEntity;
 import com.haui.ZenBook.enums.BookStatus;
@@ -63,4 +64,19 @@ public interface BookRepository extends JpaRepository<BookEntity, String>, JpaSp
     List<BookEntity> findTopAwardBooks(@Param("status") BookStatus status, Pageable pageable);
     // Lấy sách sắp hết hàng (<= 50)
     List<BookEntity> findTop10ByStockQuantityLessThanEqualOrderByStockQuantityAsc(int threshold);
+
+    @Query("""
+        SELECT DISTINCT new com.haui.ZenBook.chatbot.tool.dto.AiBookDto$SearchResponse(
+            b.id, 
+            b.title, 
+            b.salePrice, 
+            b.stockQuantity
+        )
+        FROM BookEntity b 
+        LEFT JOIN b.authors a
+        WHERE (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+           OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND b.status = 'ACTIVE'
+    """)
+    List<AiBookDto.SearchResponse> searchBooksForAi(@Param("keyword") String keyword, Pageable pageable);
 }

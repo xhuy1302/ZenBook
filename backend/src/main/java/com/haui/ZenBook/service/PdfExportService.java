@@ -25,7 +25,8 @@ public class PdfExportService {
         try {
             OrderResponse order = orderService.getOrderById(orderId);
 
-            if (!"CONFIRMED".equals(order.getStatus().name())) {
+            if ("PENDING".equals(order.getStatus().name())
+                    || "CANCELLED".equals(order.getStatus().name())) {
                 throw new AppException(ErrorCode.ORDER_NOT_COMPLETED);
             }
 

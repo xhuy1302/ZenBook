@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
 import {
   Dialog,
@@ -113,7 +114,7 @@ export default function AddressDialog({
       axios
         .get(`${API_BASE_URL}/provinces`)
         .then((res) => setProvinces(res.data.data || []))
-        .catch(() => console.error('Lỗi lấy danh sách tỉnh từ Backend'))
+        .catch(() => toast.error('Không lấy được danh sách tỉnh'))
     }
   }, [open, initialData, reset])
 
@@ -125,7 +126,7 @@ export default function AddressDialog({
         axios
           .get(`${API_BASE_URL}/districts?province_id=${province.ProvinceID}`)
           .then((res) => setDistricts(res.data.data || []))
-          .catch(() => console.error('Lỗi lấy danh sách Quận/Huyện'))
+          .catch(() => toast.error('Không lấy được danh sách quận / huyện'))
       }
     } else {
       setDistricts([])
@@ -140,7 +141,7 @@ export default function AddressDialog({
         axios
           .get(`${API_BASE_URL}/wards?district_id=${district.DistrictID}`)
           .then((res) => setWards(res.data.data || []))
-          .catch(() => console.error('Lỗi lấy danh sách Phường/Xã'))
+          .catch(() => toast.error('Không lấy được danh sách phường / xã'))
       }
     } else {
       setWards([])

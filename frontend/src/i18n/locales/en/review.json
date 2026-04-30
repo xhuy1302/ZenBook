@@ -41,7 +41,10 @@
   "status": {
     "PENDING": "Pending",
     "APPROVED": "Approved",
-    "REJECTED": "Rejected"
+    "REJECTED": "Rejected",
+    "APPROVEDescription": "Display the review publicly on the product page",
+    "PENDINGDescription": "Hidden from the product page but still stored in the system",
+    "REJECTEDDescription": "Violates policy — spam, inappropriate language"
   },
   "dialog": {
     "view": {
@@ -70,5 +73,14 @@
       "cancel": "Cancel",
       "require": "Please enter the reply content!"
     }
+  },
+  "form": {
+    "status": {
+      "label": "Select status",
+      "current": "Current"
+    },
+    "cancel": "Cancel",
+    "confirmChange": "Confirm change",
+    "saving": "Saving..."
   }
 }

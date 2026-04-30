@@ -2,9 +2,10 @@ import { api } from '@/utils/axiosCustomize'
 import type { ApiResponse } from '@/defines/apiResponse'
 import type { CouponRequest, CouponResponse, CouponValidateRequest } from './coupon.type'
 
-// 1. LẤY DANH SÁCH (ACTIVE)
-export const getAllCouponsApi = async () => {
-  const res = await api.get<ApiResponse<CouponResponse[]>>('/coupons')
+export const getAllCouponsApi = async (userId?: string) => {
+  const res = await api.get<ApiResponse<CouponResponse[]>>('/coupons', {
+    params: { userId } // 👉 Truyền userId xuống dưới dạng query param
+  })
   return res.data.data
 }
 
@@ -55,8 +56,10 @@ export const hardDeleteCouponApi = async (id: string) => {
 // ================= API CHO CLIENT (TRANG GIỎ HÀNG / CHECKOUT) =================
 
 // 9. VALIDATE MÃ GIẢM GIÁ
+// Ví dụ trong coupon.api.ts (chỉ để kiểm tra, nếu có rồi thì bỏ qua)
 export const validateCouponApi = async (payload: CouponValidateRequest) => {
-  // 👉 SỬA: Chuyển thành POST vì backend dùng @PostMapping và @RequestBody
-  const res = await api.post<ApiResponse<CouponResponse>>('/coupons/validate', payload)
+  const res = await api.get<ApiResponse<CouponResponse>>('/coupons/validate', {
+    params: payload // Truyền toàn bộ payload xuống làm query params
+  })
   return res.data.data
 }

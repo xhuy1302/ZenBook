@@ -9,7 +9,6 @@ import {
   Heart,
   ShoppingCart,
   MapPin,
-  Package,
   Bell,
   ChevronDown,
   Menu,
@@ -20,7 +19,6 @@ import {
   Crown,
   Zap,
   BookText,
-  Users,
   HelpCircle,
   PhoneCall
 } from 'lucide-react'
@@ -34,6 +32,8 @@ import { useQuery } from '@tanstack/react-query'
 import { getAddressesApi } from '@/services/customer/customer.api'
 import { useCart } from '@/context/CartContext'
 import { useMenu } from '@/context/MenuContext'
+import NotificationPopover from '@/pages/client/notice/NotificationPopover'
+import { getWishlistCountApi } from '@/services/wishlist/wishlist.api'
 
 interface UserSectionProps {
   authLoading: boolean
@@ -156,7 +156,13 @@ export default function Header() {
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const { totalItems } = useCart()
-  const wishlistCount = 7
+  const { data: wishlistData } = useQuery({
+    queryKey: ['wishlist-count'],
+    queryFn: getWishlistCountApi,
+    enabled: isAuthenticated
+  })
+
+  const wishlistCount = wishlistData?.count || 0
 
   const queryFromUrl = searchParams.get('q') || ''
   const [searchQuery, setSearchQuery] = useState(queryFromUrl)
@@ -208,6 +214,7 @@ export default function Header() {
     navigate('/')
   }
 
+  // 👉 Đã xóa "Tác giả nổi bật" khỏi mảng này
   const navLinks = [
     {
       label: t('header.nav.blog'),
@@ -215,13 +222,6 @@ export default function Header() {
       icon: BookText,
       color: 'text-blue-500',
       bgColor: 'hover:bg-blue-50'
-    },
-    {
-      label: t('header.nav.authors'),
-      href: '/authors',
-      icon: Users,
-      color: 'text-amber-500',
-      bgColor: 'hover:bg-amber-50'
     },
     {
       label: t('header.nav.guide'),
@@ -239,7 +239,6 @@ export default function Header() {
     }
   ]
 
-  // Xác định tab đang active cho Framer Motion
   const activeTab = isHeroMenuOpen ? 'categories' : location.pathname
 
   return (
@@ -248,7 +247,7 @@ export default function Header() {
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
-      {/* Top bar - màu xanh */}
+      {/* 1. TOP BAR */}
       <div className='bg-brand-green text-white border-b border-white/10'>
         <div className='max-w-7xl mx-auto px-4 py-1 flex items-center justify-between text-[11px] lg:text-xs font-medium'>
           <div className='flex items-center -ml-2'>
@@ -286,21 +285,22 @@ export default function Header() {
           </div>
 
           <div className='hidden md:flex items-center gap-1 -mr-2'>
-            <button className='flex items-center gap-1.5 hover:bg-white/15 px-3 py-1.5 rounded-lg transition-all text-white/90'>
-              <Package className='w-3.5 h-3.5 text-white/80' />
-              <span className='font-medium'>{t('header.trackOrder')}</span>
-            </button>
-            <button className='flex items-center gap-1.5 hover:bg-white/15 px-3 py-1.5 rounded-lg transition-all text-white/90'>
-              <Bell className='w-3.5 h-3.5 text-white/80' />
-              <span className='font-medium'>{t('header.newsletter')}</span>
-            </button>
+            {isAuthenticated ? (
+              <NotificationPopover />
+            ) : (
+              <button className='flex items-center gap-1.5 hover:bg-white/15 px-3 py-1.5 rounded-lg transition-all text-white/90'>
+                <Bell className='w-3.5 h-3.5 text-white/80' />
+                <span className='font-medium'>{t('header.newsletter')}</span>
+              </button>
+            )}
+
             <div className='w-[1px] h-3.5 bg-white/20 mx-1.5 rounded-full' />
             <LocaleSwitcher />
           </div>
         </div>
       </div>
 
-      {/* Main header: logo, search, user actions */}
+      {/* 2. MAIN HEADER */}
       <div className='max-w-7xl mx-auto px-4 py-4 md:py-5'>
         <div className='flex items-center gap-4 lg:gap-8'>
           <Link to='/' className='flex items-center gap-2.5 shrink-0 group'>
@@ -319,13 +319,13 @@ export default function Header() {
 
           {/* Search bar */}
           <div className='flex-1 flex justify-center max-w-3xl mx-auto'>
-            <div className='relative flex items-stretch w-full max-w-2xl h-11 border-2 border-brand-green rounded-xl bg-white focus-within:shadow-md focus-within:shadow-brand-green/10 transition-all duration-300 overflow-hidden'>
+            <div className='relative flex items-stretch w-full max-w-2xl h-11 border-2 border-brand-green rounded-xl bg-white overflow-hidden'>
               <div className='relative flex-1 flex items-center'>
                 <Search className='absolute left-3.5 w-4 h-4 text-slate-400' />
                 <Input
                   type='search'
                   placeholder={t('header.searchPlaceholder')}
-                  className='pl-10 pr-4 h-full w-full border-none rounded-none focus-visible:ring-0 bg-transparent text-[14px] text-slate-700 placeholder:text-slate-400 shadow-none'
+                  className='pl-10 pr-4 h-full w-full border-none focus-visible:ring-0 bg-transparent text-[14px]'
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -333,32 +333,36 @@ export default function Header() {
               </div>
               <Button
                 onClick={handleSearch}
-                className='h-full px-5 md:px-7 rounded-none bg-brand-green hover:bg-brand-green-dark text-white font-bold text-[13px] shrink-0 transition-colors'
+                className='h-full px-7 bg-brand-green hover:bg-brand-green-dark text-white font-bold text-[13px] transition-colors'
               >
                 {t('header.search')}
               </Button>
             </div>
           </div>
 
-          {/* User actions */}
-          <div className='flex items-center gap-2 shrink-0'>
-            <UserSection
-              authLoading={authLoading}
-              isAuthenticated={isAuthenticated}
-              user={user}
-              onLogout={handleLogout}
-            />
+          <div className='flex items-center gap-1 sm:gap-2 shrink-0'>
+            {/* 👉 SẮP XẾP LẠI: VIP -> Wishlist -> Cart -> UserSection */}
+
+            {/* 1. Link VIP */}
             {isAuthenticated && (
-              <div className='hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition-all cursor-pointer shrink-0'>
-                <div className='w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0'>
+              <Link
+                to='/zenbokvip'
+                className='hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition-all group shrink-0'
+              >
+                <div className='w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0 group-hover:bg-amber-100 transition-colors'>
                   <Crown className='w-5 h-5 text-amber-500' strokeWidth={2} />
                 </div>
                 <span className='text-sm font-bold text-amber-600 hidden xl:block'>
                   {t('header.vip')}
                 </span>
-              </div>
+              </Link>
             )}
-            <button className='flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-slate-100 transition-all group shrink-0'>
+
+            {/* 2. Link Wishlist */}
+            <Link
+              to='/wish-list'
+              className='flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-slate-100 transition-all group shrink-0'
+            >
               <div className='relative flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 group-hover:bg-rose-50 transition-colors'>
                 <Heart
                   className='w-5 h-5 text-slate-600 group-hover:text-rose-500 transition-colors'
@@ -373,31 +377,36 @@ export default function Header() {
               <span className='text-sm font-semibold text-slate-700 hidden lg:block'>
                 {t('header.wishlist')}
               </span>
-            </button>
+            </Link>
 
-            <div className='relative group shrink-0'>
-              <Link
-                to={isAuthenticated ? '/cart' : '/login'}
-                className='flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-slate-100 transition-all'
-              >
-                <div className='relative flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 group-hover:bg-brand-green/10 transition-colors'>
-                  <ShoppingCart
-                    className='w-5 h-5 text-slate-600 group-hover:text-brand-green transition-colors'
-                    strokeWidth={1.5}
-                  />
-                  {totalItems > 0 && (
-                    <span className='absolute -top-1 -right-1 bg-brand-green text-white min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full border-2 border-white'>
-                      {totalItems}
-                    </span>
-                  )}
-                </div>
-                <div className='hidden lg:flex flex-col items-start'>
-                  <span className='text-sm font-semibold text-slate-700 leading-none'>
-                    {t('header.cart')}
+            {/* 3. Link Giỏ hàng */}
+            <Link
+              to={isAuthenticated ? '/cart' : '/login'}
+              className='flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-slate-100 transition-all shrink-0'
+            >
+              <div className='relative flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 group-hover:bg-brand-green/10 transition-colors'>
+                <ShoppingCart
+                  className='w-5 h-5 text-slate-600 group-hover:text-brand-green transition-colors'
+                  strokeWidth={1.5}
+                />
+                {totalItems > 0 && (
+                  <span className='absolute -top-1 -right-1 bg-brand-green text-white min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full border-2 border-white'>
+                    {totalItems}
                   </span>
-                </div>
-              </Link>
-            </div>
+                )}
+              </div>
+              <span className='text-sm font-semibold text-slate-700 hidden lg:block'>
+                {t('header.cart')}
+              </span>
+            </Link>
+
+            {/* 4. Tài khoản (UserSection) */}
+            <UserSection
+              authLoading={authLoading}
+              isAuthenticated={isAuthenticated}
+              user={user}
+              onLogout={handleLogout}
+            />
 
             <button
               className='ml-1 p-2 rounded-xl hover:bg-slate-100 transition-colors md:hidden bg-slate-50'
@@ -413,17 +422,15 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Navigation bar đã được nâng cấp */}
+      {/* 3. NAVIGATION BAR */}
       <nav className='border-t border-slate-100 bg-white relative z-20'>
         <div className='max-w-7xl mx-auto px-4'>
           <ul className='hidden md:flex items-center gap-3 relative'>
-            {/* Nút Tất cả danh mục */}
             <li className='relative mt-1'>
               {activeTab === 'categories' && (
                 <motion.div
                   layoutId='nav-background'
                   className='absolute inset-0 bg-brand-green rounded-t-lg shadow-inner'
-                  initial={false}
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
@@ -440,19 +447,16 @@ export default function Header() {
               </button>
             </li>
 
-            {/* Các Nav Links */}
             <div className='flex items-center gap-1 ml-4'>
               {navLinks.map((link) => {
                 const Icon = link.icon
                 const isActive = activeTab === link.href
-
                 return (
                   <li key={link.label} className='relative flex items-center'>
                     {isActive && (
                       <motion.div
                         layoutId='nav-background'
                         className='absolute inset-0 bg-brand-green rounded-full shadow-sm'
-                        initial={false}
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       />
                     )}
@@ -477,7 +481,6 @@ export default function Header() {
               })}
             </div>
 
-            {/* Nút Flash Sale */}
             <li className='ml-auto py-1.5'>
               <Link
                 to='/flash-sale'

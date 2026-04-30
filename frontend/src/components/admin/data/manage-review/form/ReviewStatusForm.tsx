@@ -3,6 +3,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CheckCircle2, EyeOff, XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next' // <-- thêm
 import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
@@ -11,35 +12,12 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { ReviewStatus } from '@/defines/review.enum'
 import { reviewStatusSchema, type ReviewStatusFormValues } from '../schema/ReviewStatus.schema'
 
-const STATUS_CONFIG = [
-  {
-    value: ReviewStatus.APPROVED,
-    label: 'Phê duyệt',
-    description: 'Hiển thị đánh giá công khai trên trang sản phẩm',
-    Icon: CheckCircle2,
-    colorClass: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    activeClass: 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-300',
-    iconClass: 'text-emerald-500'
-  },
-  {
-    value: ReviewStatus.PENDING,
-    label: 'Ẩn tạm thời',
-    description: 'Ẩn khỏi trang sản phẩm nhưng vẫn lưu trong hệ thống',
-    Icon: EyeOff,
-    colorClass: 'border-amber-200 bg-amber-50 text-amber-700',
-    activeClass: 'border-amber-500 bg-amber-50 ring-2 ring-amber-300',
-    iconClass: 'text-amber-500'
-  },
-  {
-    value: ReviewStatus.REJECTED,
-    label: 'Từ chối',
-    description: 'Vi phạm chính sách — spam, ngôn từ không phù hợp',
-    Icon: XCircle,
-    colorClass: 'border-red-200 bg-red-50 text-red-700',
-    activeClass: 'border-red-500 bg-red-50 ring-2 ring-red-300',
-    iconClass: 'text-red-500'
-  }
-] as const
+// Icon map giữ nguyên
+const STATUS_ICONS = {
+  [ReviewStatus.APPROVED]: CheckCircle2,
+  [ReviewStatus.PENDING]: EyeOff,
+  [ReviewStatus.REJECTED]: XCircle
+}
 
 interface ReviewStatusFormProps {
   currentStatus?: ReviewStatus
@@ -54,6 +32,8 @@ export function ReviewStatusForm({
   onSubmit,
   onCancel
 }: ReviewStatusFormProps) {
+  const { t } = useTranslation('review') // dùng namespace 'review'
+
   const form = useForm<ReviewStatusFormValues>({
     resolver: zodResolver(reviewStatusSchema),
     defaultValues: {
@@ -72,75 +52,94 @@ export function ReviewStatusForm({
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <div className='grid gap-3' role='radiogroup' aria-label='Chọn trạng thái'>
-                  {STATUS_CONFIG.map(
-                    ({ value, label, description, Icon, activeClass, iconClass }) => {
-                      const isSelected = field.value === value
-                      const isCurrent = currentStatus === value
+                <div className='grid gap-3' role='radiogroup' aria-label={t('form.status.label')}>
+                  {Object.values(ReviewStatus).map((status) => {
+                    const Icon = STATUS_ICONS[status]
+                    const isSelected = field.value === status
+                    const isCurrent = currentStatus === status
 
-                      return (
-                        <label
-                          key={value}
-                          htmlFor={`status-${value}`}
+                    const colorConfig = {
+                      [ReviewStatus.APPROVED]: {
+                        activeClass: 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-300',
+                        iconClass: 'text-emerald-500',
+                        baseClass: 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      },
+                      [ReviewStatus.PENDING]: {
+                        activeClass: 'border-amber-500 bg-amber-50 ring-2 ring-amber-300',
+                        iconClass: 'text-amber-500',
+                        baseClass: 'border-amber-200 bg-amber-50 text-amber-700'
+                      },
+                      [ReviewStatus.REJECTED]: {
+                        activeClass: 'border-red-500 bg-red-50 ring-2 ring-red-300',
+                        iconClass: 'text-red-500',
+                        baseClass: 'border-red-200 bg-red-50 text-red-700'
+                      }
+                    }[status]
+
+                    return (
+                      <label
+                        key={status}
+                        htmlFor={`status-${status}`}
+                        className={cn(
+                          'flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-150',
+                          isSelected
+                            ? colorConfig.activeClass
+                            : `border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50`
+                        )}
+                      >
+                        <input
+                          type='radio'
+                          id={`status-${status}`}
+                          value={status}
+                          checked={isSelected}
+                          onChange={() => field.onChange(status)}
+                          className='sr-only'
+                        />
+                        <Icon
                           className={cn(
-                            'flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-150',
-                            isSelected
-                              ? activeClass
-                              : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
+                            'h-5 w-5 mt-0.5 shrink-0',
+                            isSelected ? colorConfig.iconClass : 'text-slate-300'
                           )}
-                        >
-                          <input
-                            type='radio'
-                            id={`status-${value}`}
-                            value={value}
-                            checked={isSelected}
-                            onChange={() => field.onChange(value)}
-                            className='sr-only'
-                          />
-                          <Icon
-                            className={cn(
-                              'h-5 w-5 mt-0.5 shrink-0',
-                              isSelected ? iconClass : 'text-slate-300'
-                            )}
-                          />
-                          <div className='flex-1 min-w-0'>
-                            <div className='flex items-center gap-2'>
-                              <span
-                                className={cn(
-                                  'text-sm font-semibold',
-                                  isSelected ? '' : 'text-slate-700'
-                                )}
-                              >
-                                {label}
-                              </span>
-                              {isCurrent && (
-                                <span className='inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500'>
-                                  Hiện tại
-                                </span>
-                              )}
-                            </div>
-                            <p
+                        />
+                        <div className='flex-1 min-w-0'>
+                          <div className='flex items-center gap-2'>
+                            <span
                               className={cn(
-                                'text-xs mt-0.5',
-                                isSelected ? 'opacity-80' : 'text-slate-400'
+                                'text-sm font-semibold',
+                                isSelected ? '' : 'text-slate-700'
                               )}
                             >
-                              {description}
-                            </p>
+                              {t(`status.${status}`)} {/* label */}
+                            </span>
+                            {isCurrent && (
+                              <span className='inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500'>
+                                {t('form.status.current')}
+                              </span>
+                            )}
                           </div>
-                          {/* Radio dot */}
-                          <div
+                          <p
                             className={cn(
-                              'w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-all',
-                              isSelected ? `border-current ${iconClass}` : 'border-slate-300'
+                              'text-xs mt-0.5',
+                              isSelected ? 'opacity-80' : 'text-slate-400'
                             )}
                           >
-                            {isSelected && <div className='w-2 h-2 rounded-full bg-current' />}
-                          </div>
-                        </label>
-                      )
-                    }
-                  )}
+                            {t(`status.${status}Description`)} {/* description */}
+                          </p>
+                        </div>
+                        {/* Radio dot */}
+                        <div
+                          className={cn(
+                            'w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-all',
+                            isSelected
+                              ? `border-current ${colorConfig.iconClass}`
+                              : 'border-slate-300'
+                          )}
+                        >
+                          {isSelected && <div className='w-2 h-2 rounded-full bg-current' />}
+                        </div>
+                      </label>
+                    )
+                  })}
                 </div>
               </FormControl>
               <FormMessage className='text-xs' />
@@ -159,7 +158,7 @@ export function ReviewStatusForm({
               disabled={isLoading}
               className='h-9 px-4 text-sm border-slate-200 text-slate-600'
             >
-              Huỷ
+              {t('form.cancel')}
             </Button>
           )}
           <Button
@@ -168,7 +167,7 @@ export function ReviewStatusForm({
             disabled={isLoading || !selectedStatus || selectedStatus === currentStatus}
             className='h-9 px-5 text-sm font-medium gap-1.5 bg-slate-800 hover:bg-slate-900 text-white min-w-[120px]'
           >
-            {isLoading ? 'Đang lưu...' : 'Xác nhận thay đổi'}
+            {isLoading ? t('form.saving') : t('form.confirmChange')}
           </Button>
         </div>
       </form>

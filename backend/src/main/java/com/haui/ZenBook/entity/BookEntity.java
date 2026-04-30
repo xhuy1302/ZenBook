@@ -113,9 +113,13 @@ public class BookEntity extends BaseEntity {
     @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
     private Set<NewsEntity> relatedNews;
 
+    // Thêm vào trong class BookEntity
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
+    private List<WishlistEntity> favoredByUsers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<ReviewEntity> reviews = new ArrayList<>();
     public void addReview(ReviewEntity review) {
         reviews.add(review);

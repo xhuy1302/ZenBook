@@ -1,0 +1,31 @@
+{
+  "title": "My Wishlist",
+  "description": "Save your favorite books and revisit them anytime.",
+  "totalItems": "Total Items",
+  "empty": {
+    "title": "Your wishlist is empty",
+    "description": "Looks like you haven't added any books to your wishlist yet. Discover our top picks and save your favorites!",
+    "cta": "Continue Shopping"
+  },
+  "toolbar": {
+    "searchPlaceholder": "Search wishlist...",
+    "sortBy": {
+      "newest": "Newest Added",
+      "priceAsc": "Price: Low to High",
+      "priceDesc": "Price: High to Low"
+    }
+  },
+  "newsletter": {
+    "title": "Stay Updated with ZenBook",
+    "description": "Get notified about new releases, exclusive offers, and personalized book recommendations.",
+    "placeholder": "Enter your email",
+    "subscribe": "Subscribe"
+  },
+  "error": {
+    "loginRequired": "Please login to view your wishlist!"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "wishlist": "Wishlist"
+  }
+}

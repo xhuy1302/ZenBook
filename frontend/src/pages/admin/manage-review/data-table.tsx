@@ -34,14 +34,16 @@ import {
 import { X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { ReviewSummaryResponse } from '@/services/review/review.type'
 
-interface DataTableProps<TData, TValue> {
-  data: TData[]
-  columns: ColumnDef<TData, TValue>[]
+interface DataTableProps {
+  data: ReviewSummaryResponse[]
+  columns: ColumnDef<ReviewSummaryResponse>[]
+  viewedReviews: Set<string>
 }
 
-export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
+export function DataTable({ data, columns, viewedReviews }: DataTableProps) {
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [rowSelection, setRowSelection] = useState({})
   const { t } = useTranslation('review')
@@ -64,7 +66,6 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
   return (
     <>
       <div className='flex items-center gap-2 py-4'>
-        {/* Tìm kiếm theo nội dung đánh giá */}
         <Input
           placeholder={t('filters.search')}
           value={(table.getColumn('contentSnippet')?.getFilterValue() as string) ?? ''}
@@ -74,7 +75,6 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
           className='max-w-sm'
         />
 
-        {/* Lọc theo Trạng thái */}
         <Select
           value={(table.getColumn('status')?.getFilterValue() as string) ?? 'all'}
           onValueChange={(value) =>
@@ -120,15 +120,22 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const isViewed = viewedReviews.has(row.original.id)
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className={!isViewed ? 'bg-blue-50/40' : ''}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className='text-center h-24'>

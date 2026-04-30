@@ -20,7 +20,8 @@ import {
   Star,
   RefreshCcw,
   MessageSquarePlus,
-  ImageIcon
+  ImageIcon,
+  Ticket // 👉 Đã thêm icon Ticket vào đây
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -63,7 +64,7 @@ function StarRow({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg' }
 }
 
 export default function OrderDetail() {
-  const { id } = useParams<{ id: string }>()
+  const { orderCode } = useParams<{ orderCode: string }>()
   const { t } = useTranslation('account')
 
   // 👉 Khởi tạo queryClient
@@ -75,14 +76,10 @@ export default function OrderDetail() {
     book: { id: string; title: string; image?: string }
   } | null>(null)
 
-  const {
-    data: order,
-    isLoading,
-    isError
-  } = useQuery({
-    queryKey: ['order-detail', id],
-    queryFn: () => orderService.getById(id!),
-    enabled: !!id
+  const { data: order, isLoading } = useQuery({
+    queryKey: ['order-detail', orderCode],
+    queryFn: () => orderService.getById(orderCode!),
+    enabled: !!orderCode
   })
 
   const getBannerConfig = (status: string) => {
@@ -108,7 +105,7 @@ export default function OrderDetail() {
   const handleReviewSuccess = () => {
     setReviewTarget(null) // Đóng modal
     // Báo cho React Query xóa cache cũ đi và gọi lại API getById ngầm bên dưới
-    queryClient.invalidateQueries({ queryKey: ['order-detail', id] })
+    queryClient.invalidateQueries({ queryKey: ['order-detail', orderCode] })
   }
 
   if (isLoading) {
@@ -121,7 +118,7 @@ export default function OrderDetail() {
     )
   }
 
-  if (isError || !order) {
+  if (!order) {
     return (
       <div className='flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl shadow-sm'>
         <FileText className='w-16 h-16 text-slate-300 mb-4' />
@@ -143,8 +140,6 @@ export default function OrderDetail() {
   return (
     <div className='min-h-screen pb-10'>
       <div className='max-w-4xl mx-auto flex flex-col gap-4 pt-2 px-4 sm:px-0'>
-        {/* ... (Phần Header, Banner, Địa chỉ, Timeline giữ nguyên) ... */}
-
         {/* HEADER & BANNER */}
         <div className='bg-white shadow-sm border border-slate-100 rounded-2xl overflow-hidden'>
           <div className='flex items-center justify-between p-4 border-b border-slate-100'>
@@ -246,7 +241,7 @@ export default function OrderDetail() {
 
           <div className='flex flex-col divide-y divide-slate-100'>
             {/* 👉 Fix TypeScript: Khai báo rõ item: any hoặc OrderDetail nếu bạn đã có thuộc tính bookSlug */}
-            {order.details?.map((item: any, index: number) => {
+            {order.details?.map((item: OrderDetail, index: number) => {
               // 👉 SỬA LỖI 1: Ưu tiên dùng slug, nếu không có mới dùng ID
               const productUrl = `/products/${item.bookSlug || item.bookId}`
 
@@ -349,7 +344,7 @@ export default function OrderDetail() {
           </div>
         </div>
 
-        {/* CHI TIẾT THANH TOÁN */}
+        {/* CHI TIẾT THANH TOÁN (ĐÃ FIX) */}
         <div className='bg-white shadow-sm border border-slate-100 rounded-2xl flex flex-col md:flex-row justify-end p-6'>
           <div className='w-full md:w-96 flex flex-col gap-3 text-[13px]'>
             <div className='flex justify-between items-center text-slate-500 font-medium'>
@@ -358,25 +353,47 @@ export default function OrderDetail() {
                 {formatCurrency(order.totalItemsPrice)}
               </span>
             </div>
+
             <div className='flex justify-between items-center text-slate-500 font-medium'>
               <span>Phí vận chuyển</span>
               <span className='text-slate-800 font-bold'>{formatCurrency(order.shippingFee)}</span>
             </div>
-            {order.discountAmount > 0 && (
+
+            {/* MỚI THÊM: Logic hiển thị Giảm giá đơn hàng */}
+            {order.orderDiscount > 0 && (
               <div className='flex justify-between items-center text-slate-500 font-medium'>
-                <span>Giảm giá</span>
+                <span className='flex items-center gap-1.5'>
+                  <Ticket className='w-4 h-4 text-brand-green' />
+                  Voucher / Quà tặng
+                </span>
                 <span className='text-brand-green font-bold'>
-                  -{formatCurrency(order.discountAmount)}
+                  -{formatCurrency(order.orderDiscount)}
                 </span>
               </div>
             )}
+
+            {/* MỚI THÊM: Logic hiển thị Giảm giá vận chuyển */}
+            {order.shippingDiscount > 0 && (
+              <div className='flex justify-between items-center text-slate-500 font-medium'>
+                <span className='flex items-center gap-1.5'>
+                  <Truck className='w-4 h-4 text-brand-green' />
+                  Hỗ trợ vận chuyển
+                </span>
+                <span className='text-brand-green font-bold'>
+                  -{formatCurrency(order.shippingDiscount)}
+                </span>
+              </div>
+            )}
+
             <Separator className='my-2 bg-slate-100' />
+
             <div className='flex justify-between items-center'>
               <span className='text-slate-800 font-black uppercase tracking-wide'>Thành tiền</span>
               <span className='text-2xl font-black text-brand-green'>
                 {formatCurrency(order.finalTotal)}
               </span>
             </div>
+
             <div className='flex justify-between items-center text-slate-500 border-t border-dashed border-slate-200 pt-3 mt-2'>
               <span className='flex items-center gap-2 font-medium'>
                 <Receipt className='w-4 h-4 text-slate-400' /> Phương thức thanh toán

@@ -1,17 +1,13 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Ticket, Truck, Info, Check, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { Ticket, Truck, Check, Loader2, Gift } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery } from '@tanstack/react-query'
+import { cn } from '@/lib/utils'
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -33,31 +29,43 @@ interface VoucherDialogProps {
     shippingCoupon: CouponResponse | null
   ) => void
   categoryIdsInCart?: string[]
+  currentUserId?: string
 }
 
-export default function VoucherDialog({
+export default function VoucherSheet({
   open,
   onOpenChange,
   subtotal,
   currentOrderCoupon,
   currentShippingCoupon,
   onApplyCoupons,
-  categoryIdsInCart
+  categoryIdsInCart,
+  currentUserId
 }: VoucherDialogProps) {
+  const { t } = useTranslation('checkout')
   const [inputCode, setInputCode] = useState('')
   const [isValidating, setIsValidating] = useState(false)
 
   const [selectedShipping, setSelectedShipping] = useState<CouponResponse | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<CouponResponse | null>(null)
 
-  // Fetch danh sách vouchers
   const { data: allCoupons = [], isLoading: isFetching } = useQuery({
-    queryKey: ['coupons-active'],
-    queryFn: getAllCouponsApi,
-    enabled: open // Chỉ fetch khi mở dialog
+    queryKey: ['coupons-active', currentUserId],
+    queryFn: () => getAllCouponsApi(currentUserId),
+    enabled: open
   })
 
-  // Đồng bộ state khi mở lại Dialog
+  const myVisibleCoupons = allCoupons.filter(
+    (v) => !v.userId || (currentUserId && v.userId === currentUserId)
+  )
+
+  const shippingVouchers = myVisibleCoupons.filter(
+    (v) => v.couponType === 'SHIPPING' && v.status === 'ACTIVE'
+  )
+  const orderVouchers = myVisibleCoupons.filter(
+    (v) => (v.couponType === 'ORDER' || v.code.includes('BIRTHDAY')) && v.status === 'ACTIVE'
+  )
+
   useEffect(() => {
     if (open) {
       setSelectedShipping(currentShippingCoupon)
@@ -66,309 +74,257 @@ export default function VoucherDialog({
     }
   }, [open, currentShippingCoupon, currentOrderCoupon])
 
-  // Lọc voucher đang hoạt động
-  const shippingVouchers = allCoupons.filter(
-    (v) => v.couponType === 'SHIPPING' && v.status === 'ACTIVE'
-  )
-  const orderVouchers = allCoupons.filter((v) => v.couponType === 'ORDER' && v.status === 'ACTIVE')
-
-  // Hàm xử lý chọn/bỏ chọn voucher
   const handleSelect = async (voucher: CouponResponse) => {
-    // Nếu click lại mã đang chọn -> Bỏ chọn
     if (voucher.couponType === 'SHIPPING' && selectedShipping?.id === voucher.id) {
       setSelectedShipping(null)
       return
     }
-    if (voucher.couponType === 'ORDER' && selectedOrder?.id === voucher.id) {
+    if (
+      (voucher.couponType === 'ORDER' || voucher.code.includes('BIRTHDAY')) &&
+      selectedOrder?.id === voucher.id
+    ) {
       setSelectedOrder(null)
       return
     }
-
-    // UX: Chặn bấm gọi API nếu chưa đạt giá trị tối thiểu
     if (subtotal < voucher.minOrderValue) {
-      toast.error(`Đơn hàng chưa đạt tối thiểu ${formatVND(voucher.minOrderValue)} để dùng mã này.`)
+      toast.error(`Đơn hàng chưa đạt tối thiểu ${formatVND(voucher.minOrderValue)}`)
       return
     }
-
     setIsValidating(true)
     try {
       const validCoupon = await validateCouponApi({
         code: voucher.code,
         orderTotal: subtotal,
         couponType: voucher.couponType,
-        categoryIdsInCart
+        categoryIdsInCart,
+        currentUserId
       })
-
-      if (voucher.couponType === 'SHIPPING') {
-        setSelectedShipping(validCoupon)
-      } else {
-        setSelectedOrder(validCoupon)
-      }
+      if (voucher.couponType === 'SHIPPING') setSelectedShipping(validCoupon)
+      else setSelectedOrder(validCoupon)
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } }
-      toast.error(axiosErr?.response?.data?.message ?? 'Mã không hợp lệ hoặc không đủ điều kiện!')
+      const message = err instanceof Error ? err.message : 'Mã không hợp lệ hoặc đã hết hạn!'
+      toast.error(message)
     } finally {
       setIsValidating(false)
     }
   }
 
-  // Hàm xử lý khi người dùng nhập tay mã giảm giá
   const handleApplyInputCode = async () => {
     if (!inputCode.trim()) return
-
-    // Tìm mã trong danh sách fetch được để biết CouponType
-    const found = allCoupons.find((c) => c.code.toUpperCase() === inputCode.toUpperCase().trim())
-
+    const found = myVisibleCoupons.find(
+      (c) => c.code.toUpperCase() === inputCode.toUpperCase().trim()
+    )
     if (!found) {
-      toast.error('Mã giảm giá không tồn tại hoặc đã hết hạn!')
+      toast.error(t('toast.couponInvalid'))
       return
     }
-
     await handleSelect(found)
     setInputCode('')
   }
 
-  // Xác nhận & Gửi lên component cha
   const handleConfirm = () => {
     onApplyCoupons(selectedOrder, selectedShipping)
     onOpenChange(false)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[480px] p-0 gap-0 overflow-hidden bg-muted/30'>
-        <DialogHeader className='p-4 border-b bg-background'>
-          <DialogTitle className='text-lg font-bold text-zinc-900'>
-            Chọn ZenBook Voucher
-          </DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      {/* Thêm h-full để đảm bảo chiều cao cố định cho việc cuộn */}
+      <SheetContent
+        side='left'
+        className='w-full sm:max-w-[420px] p-0 flex flex-col bg-slate-50 h-full'
+      >
+        <SheetHeader className='p-4 border-b bg-white shadow-sm shrink-0'>
+          <SheetTitle className='text-lg font-bold text-zinc-900'>
+            {t('voucher.sheetTitle')}
+          </SheetTitle>
+        </SheetHeader>
 
-        {/* --- Ô nhập mã --- */}
-        <div className='p-4 bg-background flex items-center gap-3 border-b shadow-sm z-10 relative'>
-          <span className='text-sm font-medium text-muted-foreground shrink-0 whitespace-nowrap'>
-            Mã Voucher
-          </span>
+        <div className='p-4 bg-white flex items-center gap-2 border-b shrink-0'>
           <Input
-            placeholder='Nhập mã giảm giá...'
+            placeholder={t('voucher.inputPlaceholder')}
             value={inputCode}
             onChange={(e) => setInputCode(e.target.value)}
-            className='uppercase bg-muted/50 focus-visible:ring-brand-green'
+            className='uppercase bg-slate-50 focus-visible:ring-brand-green h-10 text-[13px]'
             onKeyDown={(e) => e.key === 'Enter' && handleApplyInputCode()}
           />
           <Button
             disabled={!inputCode || isValidating}
             onClick={handleApplyInputCode}
-            className='bg-brand-green hover:bg-brand-green-dark disabled:bg-muted'
+            className='bg-brand-green hover:bg-brand-green-dark h-10 px-5 text-[13px]'
           >
-            {isValidating ? <Loader2 className='w-4 h-4 animate-spin' /> : 'Áp dụng'}
+            {isValidating ? <Loader2 className='w-4 h-4 animate-spin' /> : t('voucher.apply')}
           </Button>
         </div>
 
-        {/* --- Danh sách Voucher --- */}
-        <ScrollArea className='max-h-[50vh] p-4 bg-gray-50'>
-          {isFetching ? (
-            <div className='flex flex-col items-center justify-center py-10 text-muted-foreground'>
-              <Loader2 className='w-8 h-8 animate-spin mb-2 text-brand-green' />
-              <p className='text-sm'>Đang tải danh sách mã...</p>
-            </div>
-          ) : (
-            <>
-              {/* Nhóm Freeship */}
-              {shippingVouchers.length > 0 && (
-                <div className='mb-6'>
-                  <h3 className='text-sm font-medium text-zinc-700 mb-3 flex items-center gap-2'>
-                    Mã Miễn Phí Vận Chuyển
-                    <span className='text-[10px] font-normal bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full'>
-                      Chọn 1 mã
-                    </span>
-                  </h3>
-                  <div className='space-y-3'>
-                    {shippingVouchers.map((voucher) => (
-                      <VoucherCard
-                        key={voucher.id}
-                        voucher={voucher}
-                        subtotal={subtotal}
-                        isSelected={selectedShipping?.id === voucher.id}
-                        onSelect={() => handleSelect(voucher)}
-                      />
-                    ))}
+        {/* ScrollArea flex-1 sẽ tự động chiếm không gian còn lại */}
+        <ScrollArea className='flex-1 w-full'>
+          <div className='p-4 space-y-6 pb-10'>
+            {isFetching ? (
+              <div className='flex flex-col items-center justify-center py-12'>
+                <Loader2 className='w-8 h-8 animate-spin mb-3 text-brand-green' />
+                <p className='text-[13px] text-gray-500'>{t('voucher.loading')}</p>
+              </div>
+            ) : (
+              <>
+                {shippingVouchers.length > 0 && (
+                  <div>
+                    <h3 className='text-[13px] font-bold text-zinc-700 mb-3 flex items-center gap-2'>
+                      <Truck className='w-4 h-4' /> {t('voucher.freeShipping')}
+                    </h3>
+                    <div className='grid gap-3'>
+                      {shippingVouchers.map((v) => (
+                        <VoucherCard
+                          key={v.id}
+                          voucher={v}
+                          subtotal={subtotal}
+                          isSelected={selectedShipping?.id === v.id}
+                          onSelect={() => handleSelect(v)}
+                          t={t}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Nhóm Giảm giá Đơn Hàng */}
-              {orderVouchers.length > 0 && (
-                <div>
-                  <h3 className='text-sm font-medium text-zinc-700 mb-3 flex items-center gap-2'>
-                    Mã Giảm Giá
-                    <span className='text-[10px] font-normal bg-brand-green/20 text-brand-green-dark px-2 py-0.5 rounded-full'>
-                      Chọn 1 mã
-                    </span>
-                  </h3>
-                  <div className='space-y-3'>
-                    {orderVouchers.map((voucher) => (
-                      <VoucherCard
-                        key={voucher.id}
-                        voucher={voucher}
-                        subtotal={subtotal}
-                        isSelected={selectedOrder?.id === voucher.id}
-                        onSelect={() => handleSelect(voucher)}
-                      />
-                    ))}
+                {orderVouchers.length > 0 && (
+                  <div>
+                    <h3 className='text-[13px] font-bold text-zinc-700 mb-3 flex items-center gap-2'>
+                      <Ticket className='w-4 h-4' /> {t('voucher.orderDiscount')}
+                    </h3>
+                    <div className='grid gap-3'>
+                      {orderVouchers.map((v) => (
+                        <VoucherCard
+                          key={v.id}
+                          voucher={v}
+                          subtotal={subtotal}
+                          isSelected={selectedOrder?.id === v.id}
+                          onSelect={() => handleSelect(v)}
+                          t={t}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {shippingVouchers.length === 0 && orderVouchers.length === 0 && (
-                <div className='text-center py-8 text-gray-500 text-sm'>
-                  Hiện chưa có mã giảm giá nào.
-                </div>
-              )}
-            </>
-          )}
+                {myVisibleCoupons.length === 0 && (
+                  <div className='text-center py-10 bg-white rounded-xl border border-dashed border-gray-300 text-gray-400'>
+                    <Gift className='w-8 h-8 mx-auto mb-2 opacity-20' />
+                    <p className='text-[13px]'>{t('voucher.noVoucher')}</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </ScrollArea>
 
-        {/* --- Footer Xác nhận --- */}
-        <DialogFooter className='p-4 border-t bg-background shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]'>
-          <div className='w-full flex items-center justify-between'>
-            <div className='text-sm text-muted-foreground'>
-              Đã chọn:{' '}
-              <span className='font-bold text-brand-green text-base'>
-                {[selectedShipping, selectedOrder].filter(Boolean).length}
-              </span>{' '}
-              mã
-            </div>
-            <div className='flex gap-3'>
-              <Button variant='outline' onClick={() => onOpenChange(false)}>
-                Trở lại
+        <SheetFooter className='p-4 border-t bg-white shrink-0'>
+          <div className='w-full flex flex-col gap-3'>
+            <p className='text-[12px] text-gray-500 text-center'>{t('voucher.maxSelection')}</p>
+            <div className='flex gap-2'>
+              <Button variant='outline' className='flex-1 h-11' onClick={() => onOpenChange(false)}>
+                {t('voucher.cancel')}
               </Button>
               <Button
                 onClick={handleConfirm}
-                disabled={isValidating}
-                className='bg-brand-green hover:bg-brand-green-dark text-white min-w-[120px]'
+                className='bg-brand-green hover:bg-brand-green-dark flex-1 h-11 text-white font-bold'
               >
-                Đồng ý
+                {t('voucher.confirm')}
               </Button>
             </div>
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
 
-// --- COMPONENT THẺ VOUCHER (UI RĂNG CƯA) ---
 function VoucherCard({
   voucher,
   isSelected,
   subtotal,
-  onSelect
+  onSelect,
+  t
 }: {
   voucher: CouponResponse
   isSelected: boolean
   subtotal: number
   onSelect: () => void
+  t: any
 }) {
-  const isShipping = voucher.couponType === 'SHIPPING'
   const isEligible = subtotal >= voucher.minOrderValue
-
-  // Xanh dương cho Freeship, Xanh lá cho Đơn hàng
-  const colorClass = isShipping ? 'bg-blue-500' : 'bg-brand-green'
-  const selectedBorderClass = isShipping
-    ? 'border-blue-500 ring-blue-500/50'
-    : 'border-brand-green ring-brand-green/50'
-  const checkboxColorClass = isShipping
-    ? 'bg-blue-500 border-blue-500'
-    : 'bg-brand-green border-brand-green'
-
-  // Render Description
-  let discountLabel = ''
-  if (voucher.discountType === 'PERCENTAGE') {
-    discountLabel = `Giảm ${voucher.discountValue}%`
-    if (voucher.maxDiscountAmount) {
-      discountLabel += ` (Tối đa ${formatVND(voucher.maxDiscountAmount)})`
-    }
-  } else {
-    discountLabel = `Giảm ${formatVND(voucher.discountValue)}`
-  }
+  const isBirthday = voucher.code.includes('BDAY')
+  const isRedeemed = !!voucher.userId && !isBirthday
+  const missingAmount = voucher.minOrderValue - subtotal
+  const expiryDate = new Date(voucher.endDate).toLocaleDateString('vi-VN')
 
   return (
     <div
       onClick={() => isEligible && onSelect()}
-      className={`relative flex h-[116px] rounded-lg overflow-hidden border shadow-sm transition-all
-        ${!isEligible ? 'opacity-50 bg-gray-100 grayscale-[0.5] cursor-not-allowed' : 'cursor-pointer hover:border-gray-400 bg-white'}
-        ${isSelected ? `${selectedBorderClass} ring-1` : 'border-border'}
-      `}
+      className={cn(
+        'relative flex min-h-[100px] rounded-lg overflow-hidden border transition-all cursor-pointer bg-white shadow-sm',
+        isSelected
+          ? 'border-brand-green ring-1 ring-brand-green bg-brand-green/5'
+          : 'border-slate-200 hover:border-slate-300',
+        !isEligible && 'opacity-60 grayscale-[0.5] cursor-not-allowed'
+      )}
     >
-      {/* Cột trái (Màu nhận diện + Icon) */}
+      {/* Left side label */}
       <div
-        className={`w-[110px] shrink-0 ${colorClass} flex flex-col items-center justify-center text-white p-2 relative`}
+        className={cn(
+          'w-24 flex-shrink-0 flex flex-col items-center justify-center text-white relative px-2 text-center',
+          voucher.couponType === 'SHIPPING' ? 'bg-sky-500' : 'bg-brand-green'
+        )}
       >
-        {isShipping ? <Truck className='h-8 w-8 mb-1' /> : <Ticket className='h-8 w-8 mb-1' />}
-        <span className='text-[11px] text-center font-bold leading-tight'>
-          ZenBook
-          <br />
-          {isShipping ? 'Freeship' : 'Voucher'}
-        </span>
-
-        {/* Răng cưa giả lập bằng viền đứt */}
-        <div className='absolute top-0 -right-[1px] h-full w-[2px] border-l-[4px] border-dotted border-white/90 mix-blend-screen'></div>
+        {voucher.couponType === 'SHIPPING' ? (
+          <Truck className='h-7 w-7' />
+        ) : (
+          <Ticket className='h-7 w-7' />
+        )}
+        <p className='text-[10px] font-bold mt-1 uppercase'>ZENBOOK</p>
+        {/* Đường răng cưa giả */}
+        <div className='absolute top-0 right-0 h-full w-[4px] bg-[radial-gradient(circle_at_center,_#f8fafc_2px,_transparent_0)] bg-[length:4px_8px] z-10' />
       </div>
 
-      {/* Cột phải (Thông tin) */}
-      <div className='flex-1 p-3 pl-4 flex flex-col justify-between min-w-0'>
-        <div className='flex justify-between items-start gap-2'>
-          <div className='min-w-0 flex-1'>
-            <h4 className='text-sm font-bold text-zinc-900 truncate'>{voucher.code}</h4>
-            <p className='text-xs text-gray-600 mt-1 font-medium truncate'>{discountLabel}</p>
-            <p className='text-[11px] text-gray-500 mt-0.5'>
-              Đơn Tối Thiểu {formatVND(voucher.minOrderValue)}
-            </p>
-          </div>
-
-          <button
-            className='text-gray-400 hover:text-gray-600 shrink-0'
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Info className='h-4 w-4' />
-          </button>
-        </div>
-
-        <div className='flex justify-between items-end mt-2'>
-          <div className='flex flex-col'>
-            {/* Thanh tiến trình / Thông báo */}
-            {!isEligible && (
-              <span className='text-[10px] font-medium text-rose-500 mb-0.5'>
-                Mua thêm {formatVND(voucher.minOrderValue - subtotal)} để áp dụng
-              </span>
-            )}
-            <span className='text-[10px] text-gray-500'>
-              HSD: {new Date(voucher.endDate).toLocaleDateString('vi-VN')}
-            </span>
-          </div>
-
-          {/* Custom Checkbox */}
-          <div className='shrink-0 ml-2'>
+      {/* Right side content */}
+      <div className='flex-1 p-3 flex flex-col justify-between min-w-0'>
+        <div>
+          <div className='flex justify-between items-start'>
+            <div className='min-w-0 flex-1'>
+              <h4 className='text-[14px] font-bold text-slate-900 truncate mb-1'>{voucher.code}</h4>
+              <p className='text-[13px] font-bold text-brand-green-dark'>
+                {t('voucher.discount')}{' '}
+                {voucher.discountType === 'PERCENTAGE'
+                  ? `${voucher.discountValue}%`
+                  : formatVND(voucher.discountValue)}
+              </p>
+            </div>
             <div
-              className={`w-5 h-5 rounded-full border-[1.5px] flex items-center justify-center transition-colors
-              ${isSelected ? `${checkboxColorClass} text-white` : 'border-gray-300 bg-transparent'}
-              ${!isEligible ? 'bg-gray-200 border-gray-300' : ''}
-            `}
+              className={cn(
+                'w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-1',
+                isSelected ? 'bg-brand-green border-brand-green text-white' : 'border-slate-300'
+              )}
             >
               {isSelected && <Check className='h-3 w-3 stroke-[3]' />}
             </div>
           </div>
+
+          <p className='text-[11px] text-slate-500 mt-1'>
+            {t('voucher.minOrder')} {formatVND(voucher.minOrderValue)}
+          </p>
+        </div>
+
+        <div className='mt-2 pt-2 border-t border-dashed border-slate-100 flex justify-between items-center'>
+          {/* Fix hiển thị ngày: Nếu t() lỗi placeholder, ta dùng text trực tiếp */}
+          <p className='text-[10px] text-slate-400 font-medium'>HSD: {expiryDate}</p>
+
+          {!isEligible && (
+            <span className='text-[10px] text-rose-500 font-bold bg-rose-50 px-1.5 py-0.5 rounded'>
+              Thiếu {formatVND(missingAmount)}
+            </span>
+          )}
         </div>
       </div>
-
-      {/* Ribbon "Số lượng có hạn" nếu sắp hết */}
-      {isEligible && voucher.usageLimit && voucher.usageLimit - voucher.usedCount < 10 && (
-        <div className='absolute top-0 left-0'>
-          <div className='bg-rose-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-br-md uppercase tracking-wider'>
-            Sắp hết
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -15,7 +15,7 @@ import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 interface CancelOrderModalProps {
   open: boolean
   onClose: () => void
-  orderId: string
+  orderCode: string
   onConfirm: (reason: string) => void
 }
 
@@ -28,7 +28,7 @@ const CANCEL_REASONS = [
   'Lý do khác'
 ]
 
-export function CancelOrderModal({ open, onClose, orderId, onConfirm }: CancelOrderModalProps) {
+export function CancelOrderModal({ open, onClose, onConfirm }: CancelOrderModalProps) {
   const [selectedReason, setSelectedReason] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 

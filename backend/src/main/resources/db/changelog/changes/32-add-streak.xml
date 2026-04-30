@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+    <changeSet id="add-streak-column-to-point-history" author="vuxuanhuy">
+        <addColumn tableName="point_histories"> <column name="streak" type="INT" defaultValueNumeric="1" remarks="Lưu chuỗi ngày điểm danh liên tiếp">
+            <constraints nullable="false"/>
+        </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

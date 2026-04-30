@@ -16,9 +16,9 @@ export const orderService = {
     return responseObj as unknown as Order
   },
 
-  // 2. CẬP NHẬT ĐƠN HÀNG
-  update: async (id: string, data: OrderUpdateRequest): Promise<Order> => {
-    const res = await api.put<unknown>(`/orders/${id}`, data)
+  // 2. CẬP NHẬT ĐƠN HÀNG (👉 Đã đổi id thành orderCode)
+  update: async (orderCode: string, data: OrderUpdateRequest): Promise<Order> => {
+    const res = await api.put<unknown>(`/orders/${orderCode}`, data)
     const responseObj = res as unknown as Record<string, unknown>
 
     if (responseObj?.data) {
@@ -75,7 +75,6 @@ export const orderService = {
   },
 
   // 4. LẤY ĐƠN HÀNG CỦA TÔI (CUSTOMER)
-  // 👉 ĐÃ THÊM: param status để lọc theo tab
   getMyOrders: async (params: {
     page: number
     size: number
@@ -101,7 +100,6 @@ export const orderService = {
     }
 
     if (pageObj) {
-      // 👉 ĐÃ FIX: Hỗ trợ format trả về "page": { size, number, totalElements, totalPages }
       const pageInfo = pageObj.page ? (pageObj.page as Record<string, unknown>) : pageObj
 
       return {
@@ -116,12 +114,12 @@ export const orderService = {
     return { content: [], totalElements: 0, totalPages: 0, number: 0, size: 0 }
   },
 
-  // 5. CẬP NHẬT TRẠNG THÁI
+  // 5. CẬP NHẬT TRẠNG THÁI (👉 Đã đổi id thành orderCode)
   updateStatus: async (
-    id: string,
+    orderCode: string,
     data: { newStatus: OrderStatus; note?: string }
   ): Promise<Order> => {
-    const res = await api.patch<unknown>(`/orders/${id}/status`, data)
+    const res = await api.patch<unknown>(`/orders/${orderCode}/status`, data)
     const responseObj = res as unknown as Record<string, unknown>
 
     if (responseObj?.data) {
@@ -133,9 +131,9 @@ export const orderService = {
     return responseObj as unknown as Order
   },
 
-  // 6. LẤY CHI TIẾT 1 ĐƠN HÀNG
-  getById: async (id: string): Promise<Order> => {
-    const res = await api.get<unknown>(`/orders/${id}`)
+  // 6. LẤY CHI TIẾT 1 ĐƠN HÀNG (👉 Đã đổi id thành orderCode)
+  getById: async (orderCode: string): Promise<Order> => {
+    const res = await api.get<unknown>(`/orders/${orderCode}`)
     const responseObj = res as unknown as Record<string, unknown>
 
     if (responseObj?.data) {

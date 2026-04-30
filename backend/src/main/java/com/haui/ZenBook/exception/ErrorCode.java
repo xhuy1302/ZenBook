@@ -162,7 +162,10 @@ public enum ErrorCode {
     ACCESS_DENIED(16005,"access_denied",HttpStatus.BAD_REQUEST),
 
     PROMOTION_OVERLAPPING(400, "promotion.overlapping", HttpStatus.BAD_REQUEST),
-    PROMOTION_STATUS_INVALID(400, "promotion.status_invalid", HttpStatus.BAD_REQUEST),;
+    PROMOTION_STATUS_INVALID(400, "promotion.status_invalid", HttpStatus.BAD_REQUEST),
+
+    ALREADY_CHECKED_IN(16010, "already.checked.in", HttpStatus.BAD_REQUEST),
+    ;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;

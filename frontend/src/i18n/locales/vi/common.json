@@ -299,5 +299,25 @@
     "beFirstReview": "Hãy là người đầu tiên mua và đánh giá nhé!",
     "star": "sao",
     "relatedBooks": "Sách cùng thể loại"
+  },
+  "membership": {
+    "title": "Trung tâm thành viên",
+    "subtitle": "Tích lũy chi tiêu, thăng hạng đặc quyền",
+    "checkInNow": "ĐIỂM DANH NGAY",
+    "checkInSuccess": "Điểm danh thành công!",
+    "checkInAlready": "Hôm nay bạn đã điểm danh rồi!",
+    "cardHolder": "Chủ thẻ",
+    "accumulatedPoints": "Điểm tích lũy",
+    "progress": "Tiến độ lên hạng",
+    "maxTier": "Cấp độ cao nhất",
+    "needMore": "Chỉ cần",
+    "toReach": "để đạt hạng",
+    "unlockNow": "Mở khóa ngay",
+    "rulesTitle": "Quy tắc tích lũy ZPoints",
+    "shopping": "Mua sắm",
+    "shoppingRule": "Mặc định 1.000đ = 1 ZP. Điểm nhân theo hệ số Hạng Thành Viên.",
+    "review": "Đánh giá sản phẩm",
+    "reviewRule": "Nhận +100 ZP cho mỗi đánh giá có kèm hình ảnh/video.",
+    "perksTitle": "Quyền lợi các Hạng Thành Viên"
   }
 }

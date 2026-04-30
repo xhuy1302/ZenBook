@@ -31,8 +31,14 @@ public class SecurityConfig {
                         // ==========================================
                         // 1. PUBLIC API (KHÁCH VÃNG LAI)
                         // ==========================================
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/payment/vnpay/ipn").permitAll()
+                        .requestMatchers("/api/v1/chat").permitAll()
 
+                        // Các API auth, public khác của bạn...
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/public/**").permitAll()
+
+                        .requestMatchers("/api/v1/chat/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/payment/vnpay/ipn").permitAll()
+                        .requestMatchers("/api/v1/notifications/**").authenticated() // Yêu cầu đăng nhập mới được xem thông báo
                         // Tất cả các API xem dữ liệu (GET) đều được phép truy cập tự do
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/books", "/api/v1/books/**",
@@ -63,7 +69,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/admin/dashboard/**", // Đã bao gồm API /export
                                 "/api/v1/admin/receipts/**",
-                                "/api/v1/admin/suppliers/**"
+                                "/api/v1/admin/suppliers/**",
+                                "/api/v1/admin/chatbot/**"
                         ).hasRole("ADMIN")
 
                         // 2B. Metadata & Khuyến mãi (Staff KHÔNG được đụng)

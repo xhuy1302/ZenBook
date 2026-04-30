@@ -8,6 +8,7 @@ import com.haui.ZenBook.dto.order.OrderUpdateRequest;
 import com.haui.ZenBook.entity.*;
 import com.haui.ZenBook.enums.ActionRole;
 import com.haui.ZenBook.enums.BookStatus;
+import com.haui.ZenBook.enums.MemberTier;
 import com.haui.ZenBook.enums.OrderStatus;
 import com.haui.ZenBook.enums.PaymentStatus;
 import com.haui.ZenBook.exception.AppException;
@@ -50,10 +51,9 @@ public class OrderServiceImpl implements OrderService {
     private final CouponService couponService;
     private final PromotionService promotionService;
     private final ReviewRepository reviewRepository;
-
-
-    // 👉 INJECT EmailService
     private final EmailService emailService;
+    private final MembershipService membershipService;
+    private final NotificationService notificationService;
 
     private static final String PAYMENT_METHOD_COD = "COD";
     private static final String PAYMENT_METHOD_VNPAY = "VNPAY";
@@ -85,6 +85,7 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
+        // TÍNH MÃ GIẢM GIÁ ĐƠN HÀNG
         if (request.getOrderCouponCode() != null && !request.getOrderCouponCode().isBlank()) {
             CouponResponse orderCoupon = couponService.validateCoupon(
                     request.getOrderCouponCode(), rawOrderTotal, userId, categoryIdsInCart
@@ -96,7 +97,15 @@ public class OrderServiceImpl implements OrderService {
             appliedCouponCodes.add(request.getOrderCouponCode());
         }
 
-        if (request.getShippingCouponCode() != null && !request.getShippingCouponCode().isBlank()) {
+        // TÍNH PHÍ VẬN CHUYỂN VÀ KIỂM TRA ĐẶC QUYỀN VIP
+        MembershipEntity membership = membershipService.getOrCreateMembership(userId);
+
+        if (membership.getTier() == MemberTier.PLATINUM || membership.getTier() == MemberTier.DIAMOND) {
+            // 👉 ĐẶC QUYỀN: Freeship 100% cho Platinum và Diamond, không cần dùng mã
+            shippingDiscount = shippingFee;
+        }
+        else if (request.getShippingCouponCode() != null && !request.getShippingCouponCode().isBlank()) {
+            // Các hạng khác thì phải áp mã
             CouponResponse shippingCoupon = couponService.validateCoupon(
                     request.getShippingCouponCode(), rawOrderTotal, userId, categoryIdsInCart
             );
@@ -115,10 +124,6 @@ public class OrderServiceImpl implements OrderService {
             appliedCouponCodes.add(request.getShippingCouponCode());
         }
 
-        // Tách đôi totalDiscount (Phụ thuộc vào DB Order Entity hiện tại của bạn)
-        // Lưu ý: Nếu DB của bạn đã tách orderDiscount và shippingDiscount ra làm 2 trường riêng thì lưu riêng
-        // Nếu DB chỉ có discountAmount thì dùng tổng.
-        // Tôi giả định bạn đã sửa OrderEntity thành orderDiscount và shippingDiscount theo tin nhắn trước.
         double totalDiscountAmount = orderDiscount + shippingDiscount;
         double finalTotal = Math.max(rawOrderTotal - orderDiscount + shippingFee - shippingDiscount, 0);
         String combinedCoupons = String.join(", ", appliedCouponCodes);
@@ -152,20 +157,33 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
         cartService.removeItemsByBookIds(actionBy, purchasedBookIds);
 
+        // Tăng lượt dùng coupon
         if (request.getOrderCouponCode() != null && !request.getOrderCouponCode().isBlank()) {
             couponService.incrementUsedCount(request.getOrderCouponCode());
         }
-        if (request.getShippingCouponCode() != null && !request.getShippingCouponCode().isBlank()) {
+        if (request.getShippingCouponCode() != null && !request.getShippingCouponCode().isBlank()
+                && (membership.getTier() != MemberTier.PLATINUM && membership.getTier() != MemberTier.DIAMOND)) {
+            // Không tăng lượt nếu VIP đang xài đặc quyền Freeship tự động
             couponService.incrementUsedCount(request.getShippingCouponCode());
         }
 
         OrderResponse response = orderMapper.toOrderResponse(savedOrder);
 
-        // 👉 GỌI EMAIL SERVICE GỬI MAIL "ĐẶT HÀNG THÀNH CÔNG"
         if (PAYMENT_METHOD_COD.equalsIgnoreCase(method)) {
             emailService.sendOrderConfirmationEmail(response);
         }
-        // NẾU LÀ VNPAY: Không gửi mail ở đây. Sẽ gửi mail ở bên API Xử lý Callback từ VNPAY về.
+
+        // 👉 GỬI THÔNG BÁO TẠO ĐƠN (Đã fix truyền đúng ID và OrderCode)
+        try {
+            notificationService.notifyOrder(
+                    savedOrder.getUserId(),
+                    savedOrder.getOrderCode(), // ID thật để frontend chuyển hướng đúng link
+                    "Đơn hàng đã xác nhận",
+                    "Đơn hàng #" + savedOrder.getOrderCode() + " đã được tạo thành công với phương thức " + method.toUpperCase() + ". Chúng tôi đang chuẩn bị đóng gói."
+            );
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi thông báo tạo đơn hàng cho user {}", userId, e);
+        }
 
         return response;
     }
@@ -173,54 +191,40 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse updateOrder(String orderId, OrderUpdateRequest request, String actionBy, ActionRole role) {
-        // 1. Tìm đơn hàng
         OrderEntity order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+                .orElseGet(() -> orderRepository.findByOrderCode(orderId)
+                        .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND)));
 
-        // 2. KIỂM TRA QUYỀN HẠN (Security Check)
-        // Nếu người thực hiện là USER, họ chỉ được phép sửa đơn hàng CỦA CHÍNH HỌ
         if (role == ActionRole.USER) {
-            // Kiểm tra xem actionBy (thường là email hoặc userId) có khớp với chủ đơn không
             if (!order.getCustomerEmail().equalsIgnoreCase(actionBy) && !order.getUserId().equals(actionBy)) {
                 throw new AppException(ErrorCode.ACCESS_DENIED);
             }
         }
 
-        // Nếu là STAFF/ADMIN nhưng lại đang sửa đơn của CHÍNH MÌNH thông qua giao diện quản trị
-        // (Tùy vào chính sách bảo mật, thường là để tránh gian lận thông tin giao hàng)
-        if ((role == ActionRole.STAFF || role == ActionRole.ADMIN) &&
-                (order.getCustomerEmail().equalsIgnoreCase(actionBy))) {
-            // Có thể log cảnh báo hoặc cho phép nhưng ghi chú kỹ trong lịch sử
-            log.warn("Staff/Admin {} đang chỉnh sửa thông tin đơn hàng của chính họ", actionBy);
-        }
-
-        // 3. KIỂM TRA TRẠNG THÁI
-        // Chỉ được sửa thông tin giao hàng khi đơn vẫn đang PENDING
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new AppException(ErrorCode.ORDER_CANNOT_UPDATE, "Không thể chỉnh sửa đơn hàng đã được xử lý hoặc đã hủy");
         }
 
-        // 4. CẬP NHẬT THÔNG TIN
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setShippingAddress(request.getShippingAddress());
         order.setNote(request.getNote());
 
-        // 5. GHI LẠI LỊCH SỬ (History)
         String historyNote = (role == ActionRole.USER) ? "Khách hàng tự cập nhật thông tin" : "Nhân viên cập nhật thông tin theo yêu cầu";
         recordHistory(order, OrderStatus.PENDING, OrderStatus.PENDING, actionBy, role, historyNote);
 
-        // 6. LƯU VÀ TRẢ VỀ
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
     @Override
     @Transactional
     public OrderResponse updateOrderStatus(String orderId, OrderStatus newStatus, String note, String actionBy, ActionRole role) {
-        OrderEntity order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
 
-        // 👉 1. CHẶN STAFF/ADMIN TỰ DUYỆT ĐƠN CỦA MÌNH (Bảo mật nội bộ)
+        // 👇 SỬA Ở ĐÂY: Đã thêm logic tìm kiếm bằng OrderCode (mã ZB-xxx)
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseGet(() -> orderRepository.findByOrderCode(orderId)
+                        .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND)));
+
         boolean isOwner = (actionBy != null) &&
                 (actionBy.equals(order.getUserId()) || actionBy.equalsIgnoreCase(order.getCustomerEmail()));
 
@@ -234,12 +238,19 @@ public class OrderServiceImpl implements OrderService {
             throw new AppException(ErrorCode.ORDER_STATUS_INVALID);
         }
 
+        // KIỂM TRA QUYỀN LỢI ĐỔI TRẢ (+7 NGÀY CHO VIP)
         if (newStatus == OrderStatus.RETURNED) {
             if (oldStatus != OrderStatus.COMPLETED) {
-                throw new AppException(ErrorCode.ORDER_RETURN_NOT_COMPLETED, order.getOrderCode());
+                throw new AppException(ErrorCode.ORDER_RETURN_NOT_COMPLETED, order.getId());
             }
             LocalDateTime completedAt = order.getUpdatedAt();
-            if (completedAt != null && completedAt.plusDays(7).isBefore(LocalDateTime.now())) {
+
+            MembershipEntity membership = membershipService.getOrCreateMembership(order.getUserId());
+            int returnDaysAllowed = (membership.getTier() == MemberTier.GOLD ||
+                    membership.getTier() == MemberTier.PLATINUM ||
+                    membership.getTier() == MemberTier.DIAMOND) ? 14 : 7; // 👉 ĐẶC QUYỀN
+
+            if (completedAt != null && completedAt.plusDays(returnDaysAllowed).isBefore(LocalDateTime.now())) {
                 throw new AppException(ErrorCode.ORDER_RETURN_EXPIRED, order.getOrderCode());
             }
         }
@@ -259,6 +270,7 @@ public class OrderServiceImpl implements OrderService {
             if ("COD".equalsIgnoreCase(order.getPaymentMethod())) {
                 order.setPaymentStatus(PaymentStatus.PAID);
             }
+            membershipService.processOrderCompletion(order); // Tích điểm thăng hạng
         }
 
         if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.RETURNED) {
@@ -273,6 +285,10 @@ public class OrderServiceImpl implements OrderService {
             if (order.getPaymentStatus() == PaymentStatus.PAID) {
                 order.setPaymentStatus(PaymentStatus.REFUNDED);
             }
+
+            if (newStatus == OrderStatus.RETURNED) {
+                membershipService.processOrderRefund(order); // Hoàn điểm
+            }
         }
 
         order.setStatus(newStatus);
@@ -281,9 +297,33 @@ public class OrderServiceImpl implements OrderService {
 
         OrderResponse response = orderMapper.toOrderResponse(savedOrder);
 
-        // 👉 GỌI EMAIL SERVICE NẾU TRẠNG THÁI CÓ SỰ THAY ĐỔI
         if (oldStatus != newStatus) {
             emailService.sendOrderStatusEmail(response);
+        }
+
+        // 👉 GỬI THÔNG BÁO CẬP NHẬT TRẠNG THÁI ĐƠN
+        try {
+            String statusName = "";
+            switch (newStatus) {
+                case CONFIRMED -> statusName = "đã được xác nhận";
+                case PACKING -> statusName = "đang được đóng gói";
+                case SHIPPING -> statusName = "đang được giao tới bạn";
+                case COMPLETED -> statusName = "đã giao thành công";
+                case CANCELLED -> statusName = "đã bị hủy";
+                case RETURNED -> statusName = "đã hoàn trả";
+                default -> statusName = newStatus.name();
+            }
+
+            String title = (newStatus == OrderStatus.COMPLETED) ? "Giao hàng thành công" : "Cập nhật đơn hàng";
+
+            notificationService.notifyOrder(
+                    order.getUserId(),
+                    order.getOrderCode(), // Vẫn giữ ID thật để lưu vào link thông báo
+                    title,
+                    "Đơn hàng #" + order.getOrderCode() + " " + statusName + "."
+            );
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi thông báo cập nhật đơn hàng cho user {}", order.getUserId(), e);
         }
 
         return response;
@@ -340,6 +380,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<OrderResponse> getMyOrders(String userId, OrderStatus status, Pageable p) {
         if (status != null) {
             return orderRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, status, p)
@@ -352,14 +393,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse getOrderById(String id) {
-        OrderResponse response = orderRepository.findById(id)
-                .map(orderMapper::toOrderResponse)
-                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderById(String idOrCode) {
+        // Tìm theo ID (UUID) trước, nếu không thấy thì tìm theo Order Code (ZB-xxx)
+        OrderEntity order = orderRepository.findById(idOrCode)
+                .orElseGet(() -> orderRepository.findByOrderCode(idOrCode)
+                        .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND)));
 
+        OrderResponse response = orderMapper.toOrderResponse(order);
         return enrichOrderResponse(response);
     }
-
     @Override
     public long countPendingOrders() {
         return orderRepository.countByStatus(OrderStatus.PENDING);

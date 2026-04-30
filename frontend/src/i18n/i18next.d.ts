@@ -8,6 +8,7 @@ import enCategory from './locales/en/category.json'
 import enAuthor from './locales/en/author.json'
 import enPublisher from './locales/en/publisher.json'
 import enBreadCrummb from './locales/en/breadcrumb.json'
+import enBreadCrummbAdmin from './locales/en/breadcrumbadmin.json'
 import enProduct from './locales/en/product.json'
 import enReceipt from './locales/en/receipt.json'
 import enOrder from './locales/en/order.json'
@@ -21,6 +22,7 @@ import enReview from './locales/en/review.json'
 import enSidebar from './locales/en/sidebar.json'
 import enCheckOut from './locales/en/checkout.json'
 import enDashBoard from './locales/en/dashboard.json'
+import enWishlist from './locales/en/wishlist.json'
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -34,6 +36,7 @@ declare module 'i18next' {
       author: typeof enAuthor
       publisher: typeof enPublisher
       breadcrumb: typeof enBreadCrummb
+      breadcrumbadmin: typeof enBreadCrummbAdmin
       product: typeof enProduct
       receipt: typeof enReceipt
       order: typeof enOrder
@@ -47,6 +50,7 @@ declare module 'i18next' {
       sidebar: typeof enSidebar
       checkout: typeof enCheckOut
       dashboard: typeof enDashBoard
+      wishlist: typeof enWishlist
     }
   }
 }

@@ -48,4 +48,5 @@ export interface CouponValidateRequest {
   orderTotal: number
   couponType: CouponType
   categoryIdsInCart?: string[]
+  currentUserId?: string
 }

@@ -235,7 +235,7 @@ function ChangePasswordModal({
             <PasswordInput id='currentPassword' {...register('currentPassword')} />
             {errors.currentPassword && (
               <p className='text-[12px] font-bold text-rose-500 pl-1 mt-1'>
-                {t(errors.currentPassword.message as string)}
+                label={t('security.pinCode' as never, 'Mã PIN')}
               </p>
             )}
           </div>
@@ -247,7 +247,7 @@ function ChangePasswordModal({
             {newPassword && <PasswordStrengthBar value={newPassword} />}
             {errors.newPassword && (
               <p className='text-[12px] font-bold text-rose-500 pl-1 mt-1'>
-                {t(errors.newPassword.message as string)}
+                placeholder={t('security.notSet' as never, 'Chưa thiết lập')}
               </p>
             )}
           </div>
@@ -258,7 +258,7 @@ function ChangePasswordModal({
             <PasswordInput id='confirmPassword' {...register('confirmPassword')} />
             {errors.confirmPassword && (
               <p className='text-[12px] font-bold text-rose-500 pl-1 mt-1'>
-                {t(errors.confirmPassword.message as string)}
+                label={t('security.twoFactor' as never, 'Xác thực 2 lớp (2FA)')}
               </p>
             )}
           </div>

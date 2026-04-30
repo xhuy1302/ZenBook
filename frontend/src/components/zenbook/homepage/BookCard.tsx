@@ -1,12 +1,17 @@
+'use client'
+
+import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Star, ShoppingCart, Award, Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { toast } from 'sonner' // 👉 Import toast để thông báo
+import { toast } from 'sonner'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { BookResponse } from '@/services/book/book.type'
-import { useCart } from '@/context/CartContext' // 👉 Import useCart
+import { useCart } from '@/context/CartContext'
+import { checkInWishlistApi, toggleWishlistApi } from '@/services/wishlist/wishlist.api'
 
 interface BookCardProps {
   book: BookResponse
@@ -15,7 +20,8 @@ interface BookCardProps {
 
 export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
   const { t } = useTranslation('common')
-  const { addItem } = useCart() // 👉 Lấy hàm addItem từ Context
+  const { addItem } = useCart()
+  const queryClient = useQueryClient()
 
   const salePrice = book.salePrice || 0
   const rating = book.rating || 0
@@ -25,9 +31,50 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
       ? Math.round(((book.originalPrice - salePrice) / book.originalPrice) * 100)
       : null
 
-  // 👉 Hàm xử lý Thêm vào giỏ hàng
+  // ==========================================
+  // LOGIC: WISHLIST (REACT QUERY)
+  // ==========================================
+  const { data: wishlistStatus } = useQuery({
+    queryKey: ['wishlist-check', book.id],
+    queryFn: () => checkInWishlistApi(book.id),
+    staleTime: 5 * 60 * 1000 // Cache 5 phút
+  })
+
+  const isInWishlist = wishlistStatus?.inWishlist || false
+
+  const toggleMutation = useMutation({
+    mutationFn: toggleWishlistApi,
+    onSuccess: (data) => {
+      // Cập nhật lại cache icon trái tim ngay lập tức
+      queryClient.setQueryData(['wishlist-check', book.id], {
+        inWishlist: data.data.status === 'added'
+      })
+      // Cập nhật lại số lượng và danh sách wishlist tổng
+      queryClient.invalidateQueries({ queryKey: ['my-wishlist'] })
+      queryClient.invalidateQueries({ queryKey: ['wishlist-count'] })
+
+      const alertMsg =
+        data.data.status === 'added'
+          ? 'Đã thêm vào danh sách yêu thích!'
+          : 'Đã xóa khỏi danh sách yêu thích!'
+
+      toast.success(alertMsg)
+    },
+    onError: () => {
+      toast.error('Có lỗi xảy ra, vui lòng thử lại hoặc đăng nhập!')
+    }
+  })
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    toggleMutation.mutate(book.id)
+  }
+
+  // ==========================================
+  // LOGIC: CART
+  // ==========================================
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault() // Ngăn chặn sự kiện click lan ra ngoài (nếu có thẻ Link bọc ngoài)
+    e.preventDefault()
     e.stopPropagation()
 
     addItem({
@@ -42,7 +89,7 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
   }
 
   // ==========================================
-  // GIAO DIỆN DẠNG LIST (Dành cho trang Product List)
+  // GIAO DIỆN DẠNG LIST
   // ==========================================
   if (viewMode === 'list') {
     return (
@@ -117,10 +164,16 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
             </div>
 
             <div className='flex items-center gap-2'>
-              <button className='w-9 h-9 border border-gray-200 rounded-lg flex items-center justify-center hover:border-brand-red hover:text-brand-red transition-colors'>
-                <Heart className='w-4 h-4' />
+              <button
+                onClick={handleToggleWishlist}
+                disabled={toggleMutation.isPending}
+                className='w-9 h-9 border border-gray-200 rounded-lg flex items-center justify-center hover:border-brand-red hover:text-brand-red transition-colors disabled:opacity-50'
+              >
+                <Heart
+                  className={`w-4 h-4 transition-colors ${isInWishlist ? 'fill-brand-red text-brand-red' : ''}`}
+                />
               </button>
-              {/* 👉 Nút bấm 1: Thêm sự kiện onClick */}
+
               <Button
                 size='sm'
                 onClick={handleAddToCart}
@@ -138,7 +191,7 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
   }
 
   // ==========================================
-  // GIAO DIỆN DẠNG GRID (Dành cho Home Page & Grid View của Product List)
+  // GIAO DIỆN DẠNG GRID
   // ==========================================
   return (
     <div className='bg-white rounded-xl border border-gray-100 hover:border-brand-green/40 hover:shadow-md transition-all duration-200 group flex flex-col overflow-hidden h-full'>
@@ -177,14 +230,19 @@ export default function BookCard({ book, viewMode = 'grid' }: BookCardProps) {
 
         {/* Actions on hover */}
         <div className='absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 duration-200'>
-          <button className='w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-brand-red hover:text-white transition-colors'>
-            <Heart className='w-3.5 h-3.5' />
+          <button
+            onClick={handleToggleWishlist}
+            disabled={toggleMutation.isPending}
+            className='w-8 h-8 bg-white rounded-full shadow flex items-center justify-center hover:bg-brand-red hover:text-white transition-colors group/btn disabled:opacity-50'
+          >
+            <Heart
+              className={`w-3.5 h-3.5 transition-colors ${isInWishlist ? 'fill-brand-red text-brand-red group-hover/btn:fill-white' : ''}`}
+            />
           </button>
         </div>
 
         {/* Add to cart on hover */}
         <div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-200'>
-          {/* 👉 Nút bấm 2: Thêm sự kiện onClick */}
           <Button
             size='sm'
             onClick={handleAddToCart}

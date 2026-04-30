@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="20260430-create-wishlists-table" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="wishlists"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="wishlists" remarks="Bảng lưu danh sách sản phẩm yêu thích của người dùng">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="book_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Đảm bảo một user không lưu trùng một cuốn sách nhiều lần -->
+        <addUniqueConstraint
+                columnNames="user_id, book_id"
+                constraintName="uk_wishlist_user_book"
+                tableName="wishlists"/>
+
+        <!-- Khóa ngoại liên kết tới bảng users -->
+        <addForeignKeyConstraint
+                baseColumnNames="user_id"
+                baseTableName="wishlists"
+                constraintName="fk_wishlist_user"
+                referencedColumnNames="id"
+                referencedTableName="users"
+                onDelete="CASCADE"/>
+
+        <!-- Khóa ngoại liên kết tới bảng books -->
+        <addForeignKeyConstraint
+                baseColumnNames="book_id"
+                baseTableName="wishlists"
+                constraintName="fk_wishlist_book"
+                referencedColumnNames="id"
+                referencedTableName="books"
+                onDelete="CASCADE"/>
+
+        <!-- Index để tăng tốc độ truy vấn danh sách yêu thích theo User -->
+        <createIndex tableName="wishlists" indexName="idx_wishlist_user">
+            <column name="user_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="wishlists" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="20260430-add-updated-at-to-wishlists" author="xuanhuy">
+        <addColumn tableName="wishlists">
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

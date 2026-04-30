@@ -281,5 +281,25 @@
     "beFirstReview": "Be the first to buy and review!",
     "star": "star",
     "relatedBooks": "Related books"
+  },
+  "membership": {
+    "title": "Membership Center",
+    "subtitle": "Accumulate spending, unlock exclusive tiers",
+    "checkInNow": "CHECK IN NOW",
+    "checkInSuccess": "Check-in successful!",
+    "checkInAlready": "You have already checked in today!",
+    "cardHolder": "Card Holder",
+    "accumulatedPoints": "Accumulated Points",
+    "progress": "Tier Progress",
+    "maxTier": "Highest Tier",
+    "needMore": "Only",
+    "toReach": "more to reach",
+    "unlockNow": "Unlock Now",
+    "rulesTitle": "ZPoints Accumulation Rules",
+    "shopping": "Shopping",
+    "shoppingRule": "Default rate: 1,000 VND = 1 ZP. Points are multiplied based on your Membership Tier.",
+    "review": "Product Review",
+    "reviewRule": "Earn +100 ZP for each review with images/videos included.",
+    "perksTitle": "Membership Tier Benefits"
   }
 }

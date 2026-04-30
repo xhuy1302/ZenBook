@@ -1,0 +1,31 @@
+{
+  "title": "Danh sách yêu thích",
+  "description": "Lưu những cuốn sách yêu thích và quay lại bất cứ lúc nào.",
+  "totalItems": "Tổng số",
+  "empty": {
+    "title": "Danh sách yêu thích trống",
+    "description": "Có vẻ bạn chưa thêm cuốn sách nào vào danh sách yêu thích. Khám phá các đề xuất hàng đầu và lưu lại những cuốn sách yêu thích!",
+    "cta": "Tiếp tục mua sắm"
+  },
+  "toolbar": {
+    "searchPlaceholder": "Tìm kiếm trong danh sách...",
+    "sortBy": {
+      "newest": "Mới thêm",
+      "priceAsc": "Giá: Thấp đến Cao",
+      "priceDesc": "Giá: Cao đến Thấp"
+    }
+  },
+  "newsletter": {
+    "title": "Cập nhật cùng ZenBook",
+    "description": "Nhận thông báo về sách mới, ưu đãi độc quyền và gợi ý sách cá nhân hóa.",
+    "placeholder": "Nhập email của bạn",
+    "subscribe": "Đăng ký"
+  },
+  "error": {
+    "loginRequired": "Vui lòng đăng nhập để xem danh sách yêu thích!"
+  },
+  "breadcrumb": {
+    "home": "Trang chủ",
+    "wishlist": "Danh sách yêu thích"
+  }
+}

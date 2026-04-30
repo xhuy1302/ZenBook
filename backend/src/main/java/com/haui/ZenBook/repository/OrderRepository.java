@@ -23,6 +23,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, String> {
 
     long countByUserIdAndCouponId(String userId, String couponId);
 
+    long countByUserIdAndStatus(String userId, OrderStatus status);
+
     Page<OrderEntity> findByUserIdAndStatusOrderByCreatedAtDesc(String userId, OrderStatus status, Pageable pageable);
 
     Page<OrderEntity> findByStatus(OrderStatus status, Pageable pageable);

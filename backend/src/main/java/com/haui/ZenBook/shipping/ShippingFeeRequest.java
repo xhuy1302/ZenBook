@@ -10,5 +10,6 @@ public class ShippingFeeRequest {
     private String addressId; // ID địa chỉ khách đã lưu trong DB
     private List<OrderItemRequest> items; // Danh sách sách khách mua
     private String orderVoucherCode;
-    private String shippingVoucherCode;   // Mã giảm giá shop (nếu có)
+    private String shippingVoucherCode;
+    private String userId;// Mã giảm giá shop (nếu có)
 }

@@ -35,7 +35,7 @@ export default function BreadcrumbHeader() {
                   to='/'
                   className='text-sm text-gray-500 hover:text-brand-green transition-colors'
                 >
-                  Zenbook
+                  {t('home')}
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>

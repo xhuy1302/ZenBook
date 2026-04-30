@@ -48,23 +48,27 @@ public class OrderController {
     /**
      * ADMIN/USER: Chỉnh sửa thông tin đơn hàng (Khi còn PENDING)
      */
-    @PutMapping("/{id}")
-    public ResponseEntity<OrderResponse> updateOrder(@PathVariable String id, @Valid @RequestBody OrderUpdateRequest request) {
-        return ResponseEntity.ok(orderService.updateOrder(id, request, getUsername(), getRole()));
+    // 👇 SỬA Ở ĐÂY: Đổi {id} thành {idOrCode}
+    @PutMapping("/{idOrCode}")
+    public ResponseEntity<OrderResponse> updateOrder(
+            @PathVariable String idOrCode,
+            @Valid @RequestBody OrderUpdateRequest request) {
+        return ResponseEntity.ok(orderService.updateOrder(idOrCode, request, getUsername(), getRole()));
     }
 
     /**
      * ADMIN: Cập nhật trạng thái đơn hàng (Xác nhận, Giao hàng, v.v.)
      * (Tự động gửi mail Thông báo trạng thái mới bên trong Service)
      */
-    @PatchMapping("/{id}/status")
+    // 👇 SỬA Ở ĐÂY: Đổi {id} thành {idOrCode}
+    @PatchMapping("/{idOrCode}/status")
     public ResponseEntity<OrderResponse> updateStatus(
-            @PathVariable String id,
+            @PathVariable String idOrCode,
             @Valid @RequestBody OrderStatusUpdateRequest request) {
 
         // request.getNote() sẽ được truyền vào mail nếu bạn muốn hiển thị lý do/ghi chú
         OrderResponse response = orderService.updateOrderStatus(
-                id,
+                idOrCode,
                 request.getNewStatus(),
                 request.getNote(),
                 getUsername(),
@@ -111,9 +115,10 @@ public class OrderController {
     /**
      * CHUNG: Lấy chi tiết 1 đơn hàng
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<OrderResponse> getOne(@PathVariable String id) {
-        return ResponseEntity.ok(orderService.getOrderById(id));
+    // 👇 SỬA Ở ĐÂY: Đổi {id} thành {idOrCode}
+    @GetMapping("/{idOrCode}")
+    public ResponseEntity<OrderResponse> getOne(@PathVariable String idOrCode) {
+        return ResponseEntity.ok(orderService.getOrderById(idOrCode));
     }
 
     /**
