@@ -55,4 +55,7 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
 
     @Query("SELECT COUNT(u) FROM UserEntity u WHERE u.createdAt BETWEEN :start AND :end")
     Long countNewUsersBetween(LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT u FROM UserEntity u WHERE MONTH(u.dateOfBirth) = :month AND DAY(u.dateOfBirth) = :day")
+    List<UserEntity> findAllByBirthdayMonthAndDay(@Param("month") int month, @Param("day") int day);
 }

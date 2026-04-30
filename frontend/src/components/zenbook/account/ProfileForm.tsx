@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -18,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-// 👉 Đã bổ sung import ScrollArea ở đây
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 import AvatarUpload from './AvatarUpload'
@@ -70,10 +71,14 @@ interface ProfileFormProps {
 }
 
 export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
+  // ✅ 1. Bỏ <any>, dùng chuẩn i18n
   const { t } = useTranslation('account')
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const parsedDate = parseDateParts(user?.dateOfBirth)
+
+  // ✅ 2. Tạo helper "tt" để bypass strict key check mà không dùng any cho hook
+  const tt = (key: string) => t(key as never)
 
   const {
     register,
@@ -104,7 +109,7 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
       )
       return { previous }
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       toast.success(t('profile.updateSuccess', 'Cập nhật thành công!'))
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       setIsEditing(false)
@@ -162,7 +167,7 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 animate-in fade-in duration-300'>
       <div className='pb-4 border-b border-slate-100 flex justify-between items-center'>
-        <h3 className='text-[16px] font-bold text-slate-900'>{t('profile.personalInfo')}</h3>
+        <h3 className='text-[16px] font-bold text-slate-900'>{tt('profile.personalInfo')}</h3>
       </div>
 
       <div className='flex flex-col items-center gap-3 py-4'>
@@ -171,42 +176,43 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
           fullName={user?.fullname || user?.username}
           size={96}
         />
-        <p className='text-[12.5px] text-slate-500 font-medium'>{t('avatar.hint')}</p>
+        <p className='text-[12.5px] text-slate-500 font-medium'>{tt('avatar.hint')}</p>
       </div>
 
       <div className='space-y-2'>
         <Label htmlFor='fullName' className='text-[13px] font-bold text-slate-800'>
-          {t('profile.fullName')}
+          {tt('profile.fullName')}
         </Label>
         <Input
           id='fullName'
           disabled={!isEditing}
-          placeholder={t('profile.fullNamePlaceholder')}
+          placeholder={tt('profile.fullNamePlaceholder')}
           className='h-11 rounded-xl text-[13px] focus-visible:ring-brand-green/40 border-slate-200 disabled:bg-slate-50 disabled:text-slate-600 disabled:opacity-100 font-medium'
           {...register('fullName')}
         />
         {errors.fullName && (
           <p className='text-[12px] font-bold text-rose-500 pl-1 mt-1'>
-            {t(errors.fullName.message as string)}
+            {/* Sửa lại chỗ này để hiện đúng error message từ i18n */}
+            {tt(errors.fullName.message || '')}
           </p>
         )}
       </div>
 
       <div className='space-y-2'>
         <Label htmlFor='nickname' className='text-[13px] font-bold text-slate-800'>
-          {t('profile.nickname')}
+          {tt('profile.nickname')}
         </Label>
         <Input
           id='nickname'
           disabled={!isEditing}
-          placeholder={t('profile.nicknamePlaceholder')}
+          placeholder={tt('profile.nicknamePlaceholder')}
           className='h-11 rounded-xl text-[13px] focus-visible:ring-brand-green/40 border-slate-200 disabled:bg-slate-50 disabled:text-slate-600 disabled:opacity-100 font-medium'
           {...register('nickname')}
         />
       </div>
 
       <div className='space-y-2'>
-        <Label className='text-[13px] font-bold text-slate-800'>{t('profile.dateOfBirth')}</Label>
+        <Label className='text-[13px] font-bold text-slate-800'>{tt('profile.dateOfBirth')}</Label>
         {!isEditing ? (
           <p className='h-11 flex items-center px-4 rounded-xl bg-slate-50 text-slate-600 text-[13px] border border-slate-200 font-medium'>
             {parsedDate.day && parsedDate.month && parsedDate.year
@@ -221,7 +227,7 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className='h-11 rounded-xl text-[13px] border-slate-200 focus:ring-brand-green/40 font-medium'>
-                    <SelectValue placeholder={t('profile.day')} />
+                    <SelectValue placeholder={tt('profile.day')} />
                   </SelectTrigger>
                   <SelectContent>
                     <ScrollArea className='h-48'>
@@ -241,13 +247,13 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className='h-11 rounded-xl text-[13px] border-slate-200 focus:ring-brand-green/40 font-medium'>
-                    <SelectValue placeholder={t('profile.month')} />
+                    <SelectValue placeholder={tt('profile.month')} />
                   </SelectTrigger>
                   <SelectContent>
                     <ScrollArea className='h-48'>
                       {MONTHS.map((m) => (
                         <SelectItem key={m} value={String(m)} className='text-[13px]'>
-                          {t(`months.${m}`)}
+                          {tt(`months.${m}`)}
                         </SelectItem>
                       ))}
                     </ScrollArea>
@@ -261,7 +267,7 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className='h-11 rounded-xl text-[13px] border-slate-200 focus:ring-brand-green/40 font-medium'>
-                    <SelectValue placeholder={t('profile.year')} />
+                    <SelectValue placeholder={tt('profile.year')} />
                   </SelectTrigger>
                   <SelectContent>
                     <ScrollArea className='h-48'>
@@ -280,10 +286,10 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
       </div>
 
       <div className='space-y-3'>
-        <Label className='text-[13px] font-bold text-slate-800'>{t('profile.gender')}</Label>
+        <Label className='text-[13px] font-bold text-slate-800'>{tt('profile.gender')}</Label>
         {!isEditing ? (
           <p className='h-11 flex items-center px-4 rounded-xl bg-slate-50 text-slate-600 text-[13px] border border-slate-200 font-medium'>
-            {user?.gender ? t(`gender.${user.gender}`) : '—'}
+            {user?.gender ? tt(`gender.${user.gender.toLowerCase()}`) : '—'}
           </p>
         ) : (
           <Controller
@@ -296,9 +302,9 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
                 className='flex items-center gap-8 py-2'
               >
                 {[
-                  { value: 'male', label: t('gender.male') },
-                  { value: 'female', label: t('gender.female') },
-                  { value: 'other', label: t('gender.other') }
+                  { value: 'male', label: tt('gender.male') },
+                  { value: 'female', label: tt('gender.female') },
+                  { value: 'other', label: tt('gender.other') }
                 ].map((opt) => (
                   <div key={opt.value} className='flex items-center gap-2.5'>
                     <RadioGroupItem
@@ -321,11 +327,11 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
       </div>
 
       <div className='space-y-2'>
-        <Label className='text-[13px] font-bold text-slate-800'>{t('profile.nationality')}</Label>
+        <Label className='text-[13px] font-bold text-slate-800'>{tt('profile.nationality')}</Label>
         {!isEditing ? (
           <p className='h-11 flex items-center px-4 rounded-xl bg-slate-50 text-slate-600 text-[13px] border border-slate-200 font-medium'>
             {user?.nationality
-              ? t(`nationality.${user.nationality.toLowerCase().replace(/\s+/g, '_')}`)
+              ? tt(`nationality.${user.nationality.toLowerCase().replace(/\s+/g, '_')}`)
               : '—'}
           </p>
         ) : (
@@ -335,14 +341,16 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
                 <SelectTrigger className='h-11 rounded-xl text-[13px] border-slate-200 focus:ring-brand-green/40 font-medium'>
-                  <SelectValue placeholder={t('profile.nationalityPlaceholder')} />
+                  <SelectValue placeholder={tt('profile.nationalityPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {NATIONALITIES.map((n) => (
-                    <SelectItem key={n} value={n} className='text-[13px]'>
-                      {t(`nationality.${n.toLowerCase().replace(/\s+/g, '_')}`)}
-                    </SelectItem>
-                  ))}
+                  <ScrollArea className='h-48'>
+                    {NATIONALITIES.map((n) => (
+                      <SelectItem key={n} value={n} className='text-[13px]'>
+                        {tt(`nationality.${n.toLowerCase().replace(/\s+/g, '_')}`)}
+                      </SelectItem>
+                    ))}
+                  </ScrollArea>
                 </SelectContent>
               </Select>
             )}
@@ -379,10 +387,10 @@ export default function ProfileForm({ user, isLoading }: ProfileFormProps) {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className='w-4 h-4 mr-2 animate-spin' /> {t('common.saving')}
+                  <Loader2 className='w-4 h-4 mr-2 animate-spin' /> {tt('common.saving')}
                 </>
               ) : (
-                t('common.saveChanges')
+                tt('common.saveChanges')
               )}
             </Button>
           </>

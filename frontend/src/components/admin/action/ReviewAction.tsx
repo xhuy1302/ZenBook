@@ -34,9 +34,10 @@ type ActiveDialog = 'detail' | 'status' | 'reply' | null
 
 interface ReviewActionsCellProps {
   review: ReviewSummaryResponse
+  onViewDetail?: (id: string) => void
 }
 
-export const ReviewActionsCell = ({ review }: ReviewActionsCellProps) => {
+export const ReviewActionsCell = ({ review, onViewDetail }: ReviewActionsCellProps) => {
   const { t } = useTranslation('review')
   const queryClient = useQueryClient()
   const [activeDialog, setActiveDialog] = useState<ActiveDialog>(null)
@@ -44,12 +45,11 @@ export const ReviewActionsCell = ({ review }: ReviewActionsCellProps) => {
   const close = () => setActiveDialog(null)
 
   const handleSuccess = () => {
-    // Invalidate danh sách để data-table tự cập nhật — không cần reload trang
+    // Key 'admin-reviews' khớp với key sử dụng trong page
     queryClient.invalidateQueries({ queryKey: ['admin-reviews'] })
     close()
   }
 
-  // Logic kiểm tra để ẩn/hiện nút tác vụ
   const canApprove = review.status !== ReviewStatus.APPROVED
   const canHide = review.status !== ReviewStatus.PENDING
   const canReject = review.status !== ReviewStatus.REJECTED
@@ -70,15 +70,18 @@ export const ReviewActionsCell = ({ review }: ReviewActionsCellProps) => {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          {/* ── Xem chi tiết ── */}
-          <DropdownMenuItem onClick={() => setActiveDialog('detail')}>
+          <DropdownMenuItem
+            onClick={() => {
+              onViewDetail?.(review.id) // Đánh dấu đã xem
+              setActiveDialog('detail')
+            }}
+          >
             <Eye className='mr-2 h-4 w-4 text-blue-500' />
             {t('actions.view', 'Xem chi tiết')}
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          {/* ── Kiểm duyệt: chỉ hiện trạng thái chưa áp dụng ── */}
           {canApprove && (
             <DropdownMenuItem onClick={() => setActiveDialog('status')}>
               <CheckCircle className='mr-2 h-4 w-4 text-emerald-500' />
@@ -102,7 +105,6 @@ export const ReviewActionsCell = ({ review }: ReviewActionsCellProps) => {
 
           <DropdownMenuSeparator />
 
-          {/* ── Phản hồi ── */}
           <DropdownMenuItem
             onClick={() => setActiveDialog('reply')}
             disabled={review.isReplied}
@@ -123,7 +125,6 @@ export const ReviewActionsCell = ({ review }: ReviewActionsCellProps) => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* ── Dialogs — mount có điều kiện để tối ưu DOM ── */}
       {activeDialog === 'detail' && (
         <ReviewDetailDialog
           reviewId={review.id}
@@ -154,7 +155,7 @@ export const ReviewActionsCell = ({ review }: ReviewActionsCellProps) => {
           open={activeDialog === 'reply'}
           onOpenChange={(open) => !open && close()}
           reviewId={review.id}
-          existingReply={null} // Pass null vì đây là tạo mới phản hồi
+          existingReply={null}
           onSuccess={handleSuccess}
         />
       )}

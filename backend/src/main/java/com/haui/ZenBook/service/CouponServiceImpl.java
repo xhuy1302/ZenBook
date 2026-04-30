@@ -29,53 +29,49 @@ public class CouponServiceImpl implements CouponService {
     private final OrderRepository orderRepository;
     private final CouponMapper couponMapper;
 
+    // 👉 INJECT NOTIFICATION SERVICE VÀO ĐÂY
+    private final NotificationService notificationService;
 
-    // ========================================================
-    // 1. CLIENT LOGIC: VALIDATE MÃ KHI ĐẶT HÀNG
-    // ========================================================
     @Override
     @Transactional
     public CouponResponse validateCoupon(String code, Double orderTotal, String currentUserId, List<String> categoryIdsInCart) {
         CouponEntity coupon = couponRepository.findByCodeForUpdate(code)
                 .orElseThrow(() -> new AppException(ErrorCode.COUPON_NOT_FOUND, code));
 
-        // Kiểm tra trạng thái và thời gian
         LocalDateTime now = LocalDateTime.now();
         if (coupon.getStatus() == CouponStatus.EXPIRED || now.isBefore(coupon.getStartDate()) || now.isAfter(coupon.getEndDate())) {
             throw new AppException(ErrorCode.COUPON_EXPIRED_OR_INACTIVE);
         }
 
-        // Kiểm tra giới hạn lượt dùng toàn hệ thống
         if (coupon.getUsageLimit() != null && coupon.getUsedCount() >= coupon.getUsageLimit()) {
             throw new AppException(ErrorCode.COUPON_OUT_OF_USAGE);
         }
 
-        // Kiểm tra giá trị đơn hàng tối thiểu (Cả mã ship và mã order đều cần cái này)
         if (orderTotal < coupon.getMinOrderValue()) {
             throw new AppException(ErrorCode.COUPON_MIN_ORDER_NOT_MET, String.valueOf(coupon.getMinOrderValue()));
         }
 
-        // Kiểm tra giới hạn theo User (Nếu mã chỉ dành cho 1 người)
-        if (coupon.getUserId() != null && !coupon.getUserId().equals(currentUserId)) {
-            throw new AppException(ErrorCode.COUPON_USER_MISMATCH);
+        if (coupon.getUserId() != null) {
+            if (currentUserId == null) {
+                throw new AppException(ErrorCode.UNAUTHORIZED, "Bạn cần đăng nhập để sử dụng mã này.");
+            }
+            if (!coupon.getUserId().equals(currentUserId)) {
+                throw new AppException(ErrorCode.COUPON_USER_MISMATCH);
+            }
         }
 
-        // Kiểm tra giới hạn theo Danh mục (Chỉ áp dụng cho mã ORDER)
         if (coupon.getCouponType() == CouponType.ORDER && coupon.getCategoryId() != null
                 && (categoryIdsInCart == null || !categoryIdsInCart.contains(coupon.getCategoryId()))) {
             throw new AppException(ErrorCode.COUPON_CATEGORY_MISMATCH);
         }
 
-        // Kiểm tra số lần User này đã dùng mã
         long countUsed = orderRepository.countByUserIdAndCouponId(currentUserId, coupon.getId());
         if (countUsed >= coupon.getMaxUsagePerUser()) {
             throw new AppException(ErrorCode.COUPON_USER_LIMIT_EXCEEDED);
         }
 
-        // Tính toán số tiền giảm dự kiến
         double discount = 0.0;
-        // Nếu là mã SHIPPING, giá trị 'target' để tính % sẽ là phí ship (tạm tính mặc định hoặc logic riêng)
-        // Tuy nhiên ở bước validate này, ta thường tính dựa trên orderTotal hoặc trả về giá trị cố định
+
         if (coupon.getDiscountType() == DiscountType.PERCENTAGE) {
             discount = orderTotal * (coupon.getDiscountValue() / 100);
             if (coupon.getMaxDiscountAmount() != null && discount > coupon.getMaxDiscountAmount()) {
@@ -90,9 +86,6 @@ public class CouponServiceImpl implements CouponService {
         return response;
     }
 
-    // ========================================================
-    // 2. TÍNH TOÁN GIẢM GIÁ THỰC TẾ (Dùng trong Checkout/Order)
-    // ========================================================
     @Override
     @Transactional(readOnly = true)
     public double calculateDiscount(String code, double targetAmount, double orderTotal, CouponType expectedType) {
@@ -100,7 +93,6 @@ public class CouponServiceImpl implements CouponService {
 
         CouponEntity coupon = couponRepository.findByCodeAndStatus(code, CouponStatus.ACTIVE).orElse(null);
 
-        // Kiểm tra loại mã (Phải khớp giữa mã người dùng nhập và ô nhập mã - Freeship vs Voucher)
         if (coupon == null || coupon.getCouponType() != expectedType) return 0;
 
         LocalDateTime now = LocalDateTime.now();
@@ -110,7 +102,6 @@ public class CouponServiceImpl implements CouponService {
 
         double discount = 0.0;
         if (coupon.getDiscountType() == DiscountType.PERCENTAGE) {
-            // Nếu là mã ship, targetAmount sẽ là phí ship. Nếu là mã order, targetAmount là tiền sách.
             discount = targetAmount * (coupon.getDiscountValue() / 100.0);
         } else {
             discount = coupon.getDiscountValue();
@@ -123,9 +114,6 @@ public class CouponServiceImpl implements CouponService {
         return Math.min(discount, targetAmount);
     }
 
-    // ========================================================
-    // 3. ADMIN CRUD LOGIC (Đã tích hợp CouponType)
-    // ========================================================
     @Override
     @Transactional
     public CouponResponse createCoupon(CouponRequest request) {
@@ -138,11 +126,34 @@ public class CouponServiceImpl implements CouponService {
         }
 
         CouponEntity entity = couponMapper.toEntity(request);
-        // Đảm bảo các giá trị mặc định
         if (entity.getStatus() == null) entity.setStatus(CouponStatus.ACTIVE);
         if (entity.getUsedCount() == null) entity.setUsedCount(0);
 
-        return couponMapper.toResponse(couponRepository.save(entity));
+        CouponEntity savedCoupon = couponRepository.save(entity);
+
+        // 👉 CHÈN CODE BẮN THÔNG BÁO Ở ĐÂY:
+        // Nếu Admin tạo mã chỉ định riêng cho 1 User cụ thể (userId != null), thì báo cho nó biết!
+        if (savedCoupon.getUserId() != null && !savedCoupon.getUserId().isBlank()) {
+            try {
+                String discountText = savedCoupon.getDiscountType() == DiscountType.PERCENTAGE
+                        ? String.format("giảm %s%%", savedCoupon.getDiscountValue().intValue())
+                        : String.format("giảm %sđ", String.format("%,.0f", savedCoupon.getDiscountValue()));
+
+                String content = String.format("Bạn vừa nhận được mã %s %s. Áp dụng ngay kẻo lỡ!",
+                        savedCoupon.getCode(), discountText);
+
+                notificationService.notifyVoucher(
+                        savedCoupon.getUserId(),
+                        "Tặng mã giảm giá riêng",
+                        content,
+                        "/customer/vouchers"
+                );
+            } catch (Exception e) {
+                log.error("Lỗi gửi thông báo tặng voucher cho user: {}", savedCoupon.getUserId(), e);
+            }
+        }
+
+        return couponMapper.toResponse(savedCoupon);
     }
 
     @Override
@@ -160,7 +171,6 @@ public class CouponServiceImpl implements CouponService {
             throw new AppException(ErrorCode.COUPON_DATE_INVALID);
         }
 
-        // Cập nhật thông tin từ DTO vào Entity (Bao gồm cả couponType)
         couponMapper.updateEntity(request, entity);
 
         return couponMapper.toResponse(couponRepository.save(entity));
@@ -179,39 +189,37 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
-    @Transactional(readOnly = true) // Validate chỉ đọc dữ liệu, không ghi
+    @Transactional(readOnly = true)
     public CouponResponse validateCoupon(CouponValidateRequest request, String currentUserId) {
         CouponEntity coupon = couponRepository.findByCodeAndDeletedAtIsNull(request.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.COUPON_NOT_FOUND, request.getCode()));
 
-        // 1. Kiểm tra loại mã (Freeship hay Mã giảm giá đơn hàng)
         if (coupon.getCouponType() != request.getCouponType()) {
             throw new AppException(ErrorCode.COUPON_TYPE_MISMATCH);
         }
 
-        // 2. Kiểm tra trạng thái và thời gian
         LocalDateTime now = LocalDateTime.now();
         if (coupon.getStatus() == CouponStatus.EXPIRED || now.isBefore(coupon.getStartDate()) || now.isAfter(coupon.getEndDate())) {
             throw new AppException(ErrorCode.COUPON_EXPIRED_OR_INACTIVE);
         }
 
-        // 3. Kiểm tra giới hạn lượt dùng toàn hệ thống
         if (coupon.getUsageLimit() != null && coupon.getUsedCount() >= coupon.getUsageLimit()) {
             throw new AppException(ErrorCode.COUPON_OUT_OF_USAGE);
         }
 
-        // 4. Kiểm tra giá trị đơn hàng tối thiểu
         if (request.getOrderTotal() < coupon.getMinOrderValue()) {
-            // Có thể format số tiền trả về trong message
             throw new AppException(ErrorCode.COUPON_MIN_ORDER_NOT_MET, String.valueOf(coupon.getMinOrderValue()));
         }
 
-        // 5. Kiểm tra giới hạn theo User
-        if (coupon.getUserId() != null && !coupon.getUserId().equals(currentUserId)) {
-            throw new AppException(ErrorCode.COUPON_USER_MISMATCH);
+        if (coupon.getUserId() != null) {
+            if (currentUserId == null) {
+                throw new AppException(ErrorCode.UNAUTHORIZED, "Bạn cần đăng nhập để sử dụng mã này.");
+            }
+            if (!coupon.getUserId().equals(currentUserId)) {
+                throw new AppException(ErrorCode.INVALID_ACTION, "Mã giảm giá này không dành cho tài khoản của bạn.");
+            }
         }
 
-        // 6. Kiểm tra giới hạn theo Danh mục (Chỉ áp dụng cho mã ORDER)
         if (coupon.getCouponType() == CouponType.ORDER && coupon.getCategoryId() != null) {
             boolean hasValidCategory = request.getCategoryIdsInCart() != null &&
                     request.getCategoryIdsInCart().contains(coupon.getCategoryId());
@@ -220,13 +228,11 @@ public class CouponServiceImpl implements CouponService {
             }
         }
 
-        // 7. Kiểm tra số lần User này đã dùng mã
         long countUsed = orderRepository.countByUserIdAndCouponId(currentUserId, coupon.getId());
         if (countUsed >= coupon.getMaxUsagePerUser()) {
             throw new AppException(ErrorCode.COUPON_USER_LIMIT_EXCEEDED);
         }
 
-        // 8. Tính toán số tiền giảm dự kiến
         double discount = 0.0;
         if (coupon.getDiscountType() == DiscountType.PERCENTAGE) {
             discount = request.getOrderTotal() * (coupon.getDiscountValue() / 100);
@@ -242,9 +248,6 @@ public class CouponServiceImpl implements CouponService {
         return response;
     }
 
-    // ========================================================
-    // 4. CÁC HÀM HỖ TRỢ KHÁC
-    // ========================================================
     @Override
     @Transactional(readOnly = true)
     public CouponResponse getCouponById(String id) {
@@ -255,11 +258,18 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CouponResponse> getAllActiveCoupons() {
-        return couponRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc()
-                .stream()
-                .map(couponMapper::toResponse)
-                .toList();
+    public List<CouponResponse> getAllActiveCoupons(String currentUserId) {
+        if (currentUserId == null) {
+            return couponRepository.findAllByStatusAndUserIdIsNullAndDeletedAtIsNullOrderByCreatedAtDesc(CouponStatus.ACTIVE)
+                    .stream()
+                    .map(couponMapper::toResponse)
+                    .toList();
+        } else {
+            return couponRepository.findAllActiveForUser(currentUserId)
+                    .stream()
+                    .map(couponMapper::toResponse)
+                    .toList();
+        }
     }
 
     @Override

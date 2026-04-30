@@ -11,11 +11,18 @@ import {
 import { Button } from '@/components/ui/button'
 import { ImagePlus, X, AlertCircle } from 'lucide-react'
 
+// 👉 1. Định nghĩa Data rõ ràng, không dùng any nữa
+export interface ReturnOrderData {
+  reason: string
+  description: string
+  images: string[]
+}
+
 interface ReturnOrderModalProps {
   open: boolean
   onClose: () => void
-  orderId: string
-  onSubmit: (data: any) => void
+  orderCode: string // 👉 2. Đổi từ orderId sang orderCode cho chuẩn xác
+  onSubmit: (data: ReturnOrderData) => void // 👉 Đã diệt 'any'
 }
 
 const RETURN_REASONS = [
@@ -27,17 +34,16 @@ const RETURN_REASONS = [
   'Khác'
 ]
 
-export function ReturnOrderModal({ open, onClose, orderId, onSubmit }: ReturnOrderModalProps) {
+export function ReturnOrderModal({ open, onClose, orderCode, onSubmit }: ReturnOrderModalProps) {
   const [reason, setReason] = useState('')
   const [description, setDescription] = useState('')
-  const [images, setImages] = useState<string[]>([]) // Lưu URL object ảo để preview
+  const [images, setImages] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Xử lý preview ảnh (Giả lập)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newImages = Array.from(e.target.files).map((file) => URL.createObjectURL(file))
-      setImages((prev) => [...prev, ...newImages].slice(0, 3)) // Giới hạn 3 ảnh
+      setImages((prev) => [...prev, ...newImages].slice(0, 3))
     }
   }
 
@@ -61,6 +67,10 @@ export function ReturnOrderModal({ open, onClose, orderId, onSubmit }: ReturnOrd
           <DialogTitle className='text-xl font-bold text-slate-800'>
             Yêu cầu Trả hàng / Hoàn tiền
           </DialogTitle>
+          {/* Hiện mã đơn hàng lên cho khách yên tâm */}
+          <p className='text-sm text-slate-500 mt-1'>
+            Đơn hàng: <span className='font-mono font-bold'>{orderCode}</span>
+          </p>
         </DialogHeader>
 
         <div className='p-6 flex flex-col gap-6 max-h-[70vh] overflow-y-auto bg-slate-50/30'>

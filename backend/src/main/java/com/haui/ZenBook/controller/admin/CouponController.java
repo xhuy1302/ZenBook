@@ -3,10 +3,12 @@ package com.haui.ZenBook.controller.admin;
 import com.haui.ZenBook.dto.ApiResponse;
 import com.haui.ZenBook.dto.coupon.CouponRequest;
 import com.haui.ZenBook.dto.coupon.CouponResponse;
+import com.haui.ZenBook.entity.UserEntity; // Nhập UserEntity để lấy ID
 import com.haui.ZenBook.service.CouponService;
 import com.haui.ZenBook.util.MessageUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication; // Nhập Authentication
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +21,18 @@ public class CouponController {
     private final MessageUtil messageUtil;
     private final CouponService couponService;
 
+    // ========================================================
+    // HÀM BỔ SUNG: LẤY UUID CHUẨN TỪ TOKEN
+    // ========================================================
+    private String getUserIdFromToken(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            return null; // Khách vãng lai
+        }
+        // Ép kiểu Principal về UserEntity (hoặc CustomUserDetails tùy hệ thống của bạn)
+        UserEntity user = (UserEntity) authentication.getPrincipal();
+        return user.getId();
+    }
+
     // 1. Tạo mới mã giảm giá
     @PostMapping
     public ApiResponse<CouponResponse> createCoupon(@Valid @RequestBody CouponRequest request) {
@@ -28,11 +42,12 @@ public class CouponController {
                 .build();
     }
 
-    // 2. Lấy danh sách toàn bộ mã giảm giá (Active)
+    // 2. Lấy danh sách toàn bộ mã giảm giá (Active) - Đã sửa để nhận diện User
+    // 2. Lấy danh sách toàn bộ mã giảm giá (Active) - Đón thẳng userId từ Frontend
     @GetMapping
-    public ApiResponse<List<CouponResponse>> getAllActiveCoupons() {
+    public ApiResponse<List<CouponResponse>> getAllActiveCoupons(@RequestParam(required = false) String userId) {
         return ApiResponse.<List<CouponResponse>>builder()
-                .data(couponService.getAllActiveCoupons())
+                .data(couponService.getAllActiveCoupons(userId))
                 .build();
     }
 
@@ -85,21 +100,18 @@ public class CouponController {
     @PatchMapping("/restore/{id}")
     public ApiResponse<Void> restoreCoupon(@PathVariable String id) {
         couponService.restoreCoupon(id);
-        // Lưu ý nhỏ: Ở file UserController nãy bạn quên bọc messageUtil.getMessage() ở hàm restore.
-        // Mình bọc chuẩn lại ở đây luôn để nó tự dịch ra Tiếng Việt/Anh nhé!
         return ApiResponse.<Void>builder()
                 .message(messageUtil.getMessage("restored.success"))
                 .build();
     }
 
-    // ========================================================
-    // 9. Dành cho Client: Validate mã giảm giá khi thanh toán
-    // ========================================================
+
+    // 9. Validate mã giảm giá khi thanh toán
     @GetMapping("/validate")
     public ApiResponse<CouponResponse> validateCoupon(
             @RequestParam String code,
             @RequestParam Double orderTotal,
-            @RequestParam(required = false) String currentUserId,
+            @RequestParam(required = false) String currentUserId, // 👉 Đón thẳng ID từ Frontend gửi xuống
             @RequestParam(required = false) List<String> categoryIdsInCart) {
 
         return ApiResponse.<CouponResponse>builder()

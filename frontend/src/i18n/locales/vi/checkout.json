@@ -16,8 +16,8 @@
   "defaultBadge": "Mặc định",
   "note": "Ghi chú thêm (tuỳ chọn)",
   "paymentMethod": "Phương thức thanh toán",
-  "cod": "Thanh toán khi nhận hàng (COD)",
-  "vnpay": "Thanh toán qua VNPAY",
+  "cod": "Thanh toán khi nhận hàng",
+  "vnpay": "Thanh toán VNPAY",
   "orderSummary": "Đơn hàng",
   "products": "sản phẩm",
   "voucherSection": "Mã giảm giá / Freeship",
@@ -47,5 +47,62 @@
     "couponApplied": "Đã áp dụng mã giảm giá!",
     "couponRemoved": "Đã gỡ mã giảm giá",
     "couponInvalid": "Mã giảm giá không hợp lệ hoặc đã hết hạn"
+  },
+  "address": {
+    "label": "Địa chỉ nhận hàng",
+    "noAddressDesc": "Bạn chưa thiết lập địa chỉ giao hàng nào.\nVui lòng thêm địa chỉ để tiếp tục đặt hàng.",
+    "addNew": "Thêm địa chỉ mới",
+    "default": "Mặc định",
+    "change": "THAY ĐỔI",
+    "emailNotice": "Email nhận thông báo đơn hàng:"
+  },
+  "cart": {
+    "product": "Sản phẩm",
+    "unitPrice": "Đơn giá",
+    "quantity": "Số lượng",
+    "total": "Thành tiền",
+    "message": "Lời nhắn:",
+    "messagePlaceholder": "Lưu ý cho người bán...",
+    "shippingUnit": "Đơn vị vận chuyển (GHN):",
+    "estimatedDelivery": "Nhận hàng dự kiến sau 2-3 ngày",
+    "canCheck": "Được đồng kiểm",
+    "totalItems": "Tổng số tiền ({count} sản phẩm):"
+  },
+  "voucher": {
+    "title": "ZenBook Voucher",
+    "applyHint": "Có thể áp dụng",
+    "select": "Chọn Voucher",
+    "change": "Đổi mã",
+    "noVoucher": "Bạn chưa có mã giảm giá nào.",
+    "sheetTitle": "Kho Voucher của bạn",
+    "inputPlaceholder": "Nhập mã voucher...",
+    "apply": "Áp dụng",
+    "loading": "Đang tìm voucher...",
+    "freeShipping": "Miễn Phí Vận Chuyển",
+    "orderDiscount": "Mã Giảm Giá Đơn Hàng",
+    "maxSelection": "Bạn có thể chọn tối đa 1 mã vận chuyển & 1 mã giảm giá",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "birthday": "Sinh Nhật 🎂",
+    "redeemed": "Đã đổi 🪙",
+    "discount": "Giảm",
+    "minOrder": "Đơn tối thiểu",
+    "expiry": "HSD: {date}",
+    "missing": "Thiếu {amount}"
+  },
+  "payment": {
+    "title": "Phương thức thanh toán",
+    "codLabel": "Thanh toán khi nhận hàng",
+    "vnpayLabel": "Thanh toán VNPAY"
+  },
+  "summary": {
+    "totalGoods": "Tổng tiền hàng",
+    "shippingFee": "Phí vận chuyển",
+    "voucherDiscount": "Voucher giảm giá",
+    "voucherFreeship": "Voucher Freeship",
+    "totalPayment": "Tổng thanh toán",
+    "stickyTotalPayment": "Tổng thanh toán",
+    "checkout": "Đặt hàng",
+    "processing": "Xử lý..."
   }
 }

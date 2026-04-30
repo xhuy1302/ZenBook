@@ -1,4 +1,5 @@
 'use client'
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,7 +19,7 @@ import {
   XCircle,
   RotateCcw,
   Package,
-  FileDown, // 👉 Import thêm icon tải file
+  FileDown,
   Loader2
 } from 'lucide-react'
 import { OrderStatus } from '@/defines/order.enum'
@@ -27,8 +28,8 @@ import { OrderFormDialog } from '@/components/admin/data/manage-order/form/Order
 import { OrderStatusDialog } from '@/components/admin/data/manage-order/status/OrderStatusDialog'
 import { useTranslation } from 'react-i18next'
 import type { Order } from '@/services/order/order.type'
-import { api } from '@/utils/axiosCustomize' // 👉 Import api để gọi axios
-import { toast } from 'sonner' // 👉 Import toast để thông báo
+import { api } from '@/utils/axiosCustomize'
+import { toast } from 'sonner'
 
 interface OrderActionsCellProps {
   order: Order
@@ -38,35 +39,33 @@ export function OrderActionsCell({ order }: OrderActionsCellProps) {
   const { t } = useTranslation('order')
   const [detailOpen, setDetailOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
-  const [isExporting, setIsExporting] = useState(false) // 👉 State loading cho nút Export PDF
+  const [isExporting, setIsExporting] = useState(false)
   const [statusDialog, setStatusDialog] = useState<{ open: boolean; newStatus?: OrderStatus }>({
     open: false
   })
 
+  // 👉 NGHIỆP VỤ 1: Chỉ cho phép SỬA THÔNG TIN khi đơn còn PENDING
   const canEdit = order.status === OrderStatus.PENDING
+
+  // 👉 NGHIỆP VỤ 2: Các trạng thái cuối cùng thì KHÔNG CÒN menu Update Status
   const canUpdate =
     order.status !== OrderStatus.COMPLETED &&
     order.status !== OrderStatus.CANCELLED &&
     order.status !== OrderStatus.RETURNED
 
-  const canExportInvoice = order.status === OrderStatus.CONFIRMED
+  // 👉 NGHIỆP VỤ 3: Xuất hóa đơn cho phép khi đã Xác nhận trở lên (Trừ Hủy)
+  const canExportInvoice =
+    order.status !== OrderStatus.PENDING && order.status !== OrderStatus.CANCELLED
 
-  // 👉 HÀM XỬ LÝ XUẤT PDF
-  // 👉 HÀM XỬ LÝ XUẤT PDF ĐÃ ĐƯỢC BẢO VỆ
   const handleExportPdf = async () => {
     try {
       setIsExporting(true)
-
-      // BẮT BUỘC có responseType: 'blob' để Axios không cố gắng parse JSON
-      const response = await api.get(`/invoices/${order.id}/export-pdf`, {
+      const response = await api.get(`/admin/invoices/${order.id}/export-pdf`, {
         responseType: 'blob'
       })
 
-      // Lấy dữ liệu Blob (Tùy thuộc vào cấu hình interceptor của bạn)
-      // Thường interceptor trả về response.data, nên ta ưu tiên lấy response.data
       const blobData = response.data || response
 
-      // Nếu server lỡ trả về JSON báo lỗi (VD: không có quyền, lỗi 500) nhưng bị ép thành Blob
       if (blobData instanceof Blob && blobData.type === 'application/json') {
         const text = await blobData.text()
         const errorJson = JSON.parse(text)
@@ -74,7 +73,6 @@ export function OrderActionsCell({ order }: OrderActionsCellProps) {
         return
       }
 
-      // TẠO FILE VÀ TẢI XUỐNG
       const blob = new Blob([blobData], { type: 'application/pdf' })
       const url = window.URL.createObjectURL(blob)
 
@@ -84,7 +82,6 @@ export function OrderActionsCell({ order }: OrderActionsCellProps) {
       document.body.appendChild(link)
       link.click()
 
-      // Dọn dẹp
       link.parentNode?.removeChild(link)
       window.URL.revokeObjectURL(url)
 
@@ -96,6 +93,7 @@ export function OrderActionsCell({ order }: OrderActionsCellProps) {
     }
   }
 
+  // 👉 NGHIỆP VỤ 4: ĐIỀU KHIỂN LUỒNG HIỂN THỊ NÚT (MATCH 100% VỚI SWITCH CASE BACKEND)
   const getStatusActions = () => {
     switch (order.status) {
       case OrderStatus.PENDING:
@@ -104,57 +102,56 @@ export function OrderActionsCell({ order }: OrderActionsCellProps) {
             <DropdownMenuItem
               onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.CONFIRMED })}
             >
-              <CheckCircle className='mr-2 h-4 w-4' /> {t('actions.confirm')}
+              <CheckCircle className='mr-2 h-4 w-4 text-brand-green' /> Xác nhận đơn
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.CANCELLED })}
             >
-              <XCircle className='mr-2 h-4 w-4' /> {t('actions.cancel')}
+              <XCircle className='mr-2 h-4 w-4 text-rose-500' />{' '}
+              <span className='text-rose-500'>Hủy đơn</span>
             </DropdownMenuItem>
           </>
         )
       case OrderStatus.CONFIRMED:
         return (
-          <>
-            <DropdownMenuItem
-              onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.PACKING })}
-            >
-              <Package className='mr-2 h-4 w-4' /> {t('actions.packing')}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.CANCELLED })}
-            >
-              <XCircle className='mr-2 h-4 w-4' /> {t('actions.cancel')}
-            </DropdownMenuItem>
-          </>
+          <DropdownMenuItem
+            onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.PACKING })}
+          >
+            <Package className='mr-2 h-4 w-4' /> Đóng gói
+          </DropdownMenuItem>
         )
       case OrderStatus.PACKING:
         return (
-          <>
-            <DropdownMenuItem
-              onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.SHIPPING })}
-            >
-              <Truck className='mr-2 h-4 w-4' /> {t('actions.shipping')}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.CANCELLED })}
-            >
-              <XCircle className='mr-2 h-4 w-4' /> {t('actions.cancel')}
-            </DropdownMenuItem>
-          </>
+          <DropdownMenuItem
+            onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.SHIPPING })}
+          >
+            <Truck className='mr-2 h-4 w-4' /> Giao hàng
+          </DropdownMenuItem>
         )
       case OrderStatus.SHIPPING:
         return (
+          <DropdownMenuItem
+            onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.COMPLETED })}
+          >
+            <CheckCircle className='mr-2 h-4 w-4 text-brand-green' />{' '}
+            <span className='text-brand-green'>Đã giao (Hoàn thành)</span>
+          </DropdownMenuItem>
+        )
+      // 👇 TRẠNG THÁI MỚI THÊM: Xử lý khi khách yêu cầu hoàn trả
+      case 'RETURN_REQUESTED' as OrderStatus:
+        return (
           <>
-            <DropdownMenuItem
-              onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.COMPLETED })}
-            >
-              <CheckCircle className='mr-2 h-4 w-4' /> {t('actions.complete')}
-            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.RETURNED })}
             >
-              <RotateCcw className='mr-2 h-4 w-4' /> {t('actions.return')}
+              <RotateCcw className='mr-2 h-4 w-4 text-amber-500' />{' '}
+              <span className='text-amber-500'>Duyệt Trả hàng</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setStatusDialog({ open: true, newStatus: OrderStatus.COMPLETED })}
+            >
+              <XCircle className='mr-2 h-4 w-4 text-slate-500' />{' '}
+              <span className='text-slate-500'>Từ chối Trả hàng</span>
             </DropdownMenuItem>
           </>
         )
@@ -208,12 +205,14 @@ export function OrderActionsCell({ order }: OrderActionsCellProps) {
 
       <OrderDetailDialog open={detailOpen} onOpenChange={setDetailOpen} orderId={order.id} />
       <OrderFormDialog open={editOpen} onOpenChange={setEditOpen} order={order} mode='edit' />
-      <OrderStatusDialog
-        open={statusDialog.open}
-        onOpenChange={(open) => setStatusDialog({ ...statusDialog, open })}
-        order={order}
-        newStatus={statusDialog.newStatus!}
-      />
+      {statusDialog.newStatus && (
+        <OrderStatusDialog
+          open={statusDialog.open}
+          onOpenChange={(open) => setStatusDialog({ ...statusDialog, open })}
+          order={order}
+          newStatus={statusDialog.newStatus}
+        />
+      )}
     </>
   )
 }

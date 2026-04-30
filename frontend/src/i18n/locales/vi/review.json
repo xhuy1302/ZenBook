@@ -1,24 +1,24 @@
 {
-  "title": "Quản lý Đánh giá",
+  "title": "Quản lý đánh giá",
   "filters": {
     "search": "Tìm kiếm nội dung đánh giá...",
     "status": {
       "label": "Trạng thái",
       "all": "Tất cả trạng thái",
-      "PENDING": "Chờ duyệt",
+      "PENDING": "Đang chờ",
       "APPROVED": "Đã duyệt",
-      "REJECTED": "Bị từ chối"
+      "REJECTED": "Từ chối"
     },
     "rating": {
-      "label": "Số sao",
-      "all": "Tất cả số sao",
+      "label": "Điểm đánh giá",
+      "all": "Tất cả điểm",
       "1": "1 Sao",
       "2": "2 Sao",
       "3": "3 Sao",
       "4": "4 Sao",
       "5": "5 Sao"
     },
-    "reset": "Đặt lại"
+    "reset": "Xoá bộ lọc"
   },
   "table": {
     "columns": {
@@ -33,15 +33,18 @@
   },
   "actions": {
     "view": "Xem chi tiết",
-    "approve": "Duyệt hiển thị",
+    "approve": "Phê duyệt",
     "reject": "Từ chối / Ẩn",
     "reply": "Phản hồi khách hàng",
     "delete": "Xóa đánh giá"
   },
   "status": {
-    "PENDING": "Chờ duyệt",
+    "PENDING": "Đang chờ",
     "APPROVED": "Đã duyệt",
-    "REJECTED": "Từ chối"
+    "REJECTED": "Từ chối",
+    "APPROVEDDescription": "Hiển thị đánh giá công khai trên trang sản phẩm",
+    "PENDINGDescription": "Ẩn khỏi trang sản phẩm nhưng vẫn lưu trong hệ thống",
+    "REJECTEDDescription": "Vi phạm chính sách — spam, ngôn từ không phù hợp"
   },
   "dialog": {
     "view": {
@@ -50,25 +53,34 @@
       "userInfo": "Khách hàng",
       "content": "Nội dung",
       "images": "Ảnh đính kèm",
-      "reply": "Phản hồi của cửa hàng",
+      "reply": "Phản hồi từ shop",
       "close": "Đóng"
     },
     "status": {
-      "approveTitle": "Duyệt hiển thị đánh giá",
-      "approveDesc": "Bạn có chắc chắn muốn duyệt đánh giá này? Sau khi duyệt, điểm trung bình của sách sẽ được tính toán lại.",
+      "approveTitle": "Phê duyệt đánh giá",
+      "approveDesc": "Xác nhận duyệt đánh giá này? Điểm trung bình sản phẩm sẽ được tính lại.",
       "rejectTitle": "Từ chối / Ẩn đánh giá",
-      "rejectDesc": "Đánh giá này sẽ bị ẩn khỏi trang chi tiết sản phẩm. Bạn có chắc chắn muốn thực hiện?",
+      "rejectDesc": "Đánh giá sẽ bị ẩn khỏi trang sản phẩm. Bạn chắc chứ?",
       "confirm": "Xác nhận",
-      "cancel": "Hủy"
+      "cancel": "Huỷ"
     },
     "reply": {
       "title": "Phản hồi khách hàng",
-      "desc": "Câu trả lời của bạn sẽ hiển thị công khai ngay dưới bài đánh giá này.",
-      "placeholder": "Nhập nội dung cảm ơn hoặc giải đáp thắc mắc...",
+      "desc": "Phản hồi của bạn sẽ hiển thị công khai bên dưới đánh giá.",
+      "placeholder": "Nhập lời cảm ơn hoặc câu trả lời hỗ trợ...",
       "send": "Gửi phản hồi",
-      "update": "Cập nhật",
-      "cancel": "Hủy",
+      "update": "Cập nhật phản hồi",
+      "cancel": "Huỷ",
       "require": "Vui lòng nhập nội dung phản hồi!"
     }
+  },
+  "form": {
+    "status": {
+      "label": "Chọn trạng thái",
+      "current": "Hiện tại"
+    },
+    "cancel": "Huỷ",
+    "confirmChange": "Xác nhận thay đổi",
+    "saving": "Đang lưu..."
   }
 }

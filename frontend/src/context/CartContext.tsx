@@ -11,6 +11,7 @@ import {
   updateQuantityApi
 } from '@/services/cart/cart.api'
 
+// 1. Cập nhật Interface để TypeScript không báo lỗi đỏ
 interface CartContextValue {
   items: CartItemType[]
   totalItems: number
@@ -23,6 +24,8 @@ interface CartContextValue {
   isInCart: (id: string) => boolean
   toggleSelect: (id: string) => void
   toggleSelectAll: (selected: boolean) => void
+  // Thêm dòng này để bên ngoài gọi được hàm làm mới
+  refreshCartFromServer: () => Promise<void>
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
@@ -33,16 +36,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItemType[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  // Hàm này sẽ fetch lại data từ DB và update state 'items'
   const refreshCartFromServer = useCallback(async () => {
     try {
       const serverCart = await getMyCartApi()
 
-      // SỬA Ở ĐÂY: Dùng functional update của state để so sánh với danh sách cũ
       setItems((prevItems) => {
         return serverCart.details.map((d) => {
-          // Tìm xem sản phẩm này đã có trong giỏ hàng hiện tại chưa
           const existingItem = prevItems.find((i) => i.id === d.bookId)
-
           return {
             id: d.bookId,
             slug: d.bookSlug,
@@ -53,7 +54,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
             author: d.author,
             quantity: d.quantity,
             stock: d.stock,
-            // Nếu đã tồn tại, giữ nguyên trạng thái chọn cũ. Nếu là mới thêm vào, mặc định chọn (true)
             selected: existingItem ? existingItem.selected : true
           }
         })
@@ -68,21 +68,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const initCart = async () => {
       setIsLoading(true)
       if (isAuthenticated) {
-        // 1. Kiểm tra xem có hàng ở LocalStorage để sync không
         const localData = localStorage.getItem(CART_KEY)
         const localItems: CartItemType[] = localData ? JSON.parse(localData) : []
 
         if (localItems.length > 0) {
           try {
             await syncCartApi(localItems.map((i) => ({ bookId: i.id, quantity: i.quantity })))
-            localStorage.removeItem(CART_KEY) // Sync xong thì xóa local
+            localStorage.removeItem(CART_KEY)
           } catch {
-            // Error handled by interceptor or silent fail
+            /* Error handled by interceptor */
           }
         }
         await refreshCartFromServer()
       } else {
-        // 2. Khách vãng lai: Đọc từ localStorage
         const stored = localStorage.getItem(CART_KEY)
         setItems(stored ? JSON.parse(stored) : [])
       }
@@ -105,7 +103,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         await addToCartApi({ bookId: newItem.id, quantity })
         await refreshCartFromServer()
       } catch {
-        // Error toast handled inside service/interceptor
+        /* error handled by service */
       }
     } else {
       setItems((prev) => {
@@ -138,7 +136,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateQuantity = async (id: string, quantity: number) => {
     if (quantity < 1) return
-
     if (isAuthenticated) {
       try {
         await updateQuantityApi(id, quantity)
@@ -203,7 +200,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         isInCart,
         toggleSelect,
-        toggleSelectAll
+        toggleSelectAll,
+        refreshCartFromServer // 2. Đưa hàm này vào Provider để bên ngoài có thể dùng
       }}
     >
       {children}

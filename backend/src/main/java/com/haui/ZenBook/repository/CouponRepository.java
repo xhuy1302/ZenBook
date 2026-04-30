@@ -30,4 +30,12 @@ public interface CouponRepository extends JpaRepository<CouponEntity, String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM CouponEntity c WHERE c.code = :code AND c.deletedAt IS NULL")
     Optional<CouponEntity> findByCodeForUpdate(@Param("code") String code);
+
+    // Lấy mã Public (dùng cho khách vãng lai)
+    List<CouponEntity> findAllByStatusAndUserIdIsNullAndDeletedAtIsNullOrderByCreatedAtDesc(CouponStatus status);
+
+    // Lấy mã Public + Mã riêng của user đang đăng nhập
+    @Query("SELECT c FROM CouponEntity c WHERE c.status = 'ACTIVE' AND c.deletedAt IS NULL AND (c.userId IS NULL OR c.userId = :userId) ORDER BY c.createdAt DESC")
+    List<CouponEntity> findAllActiveForUser(@Param("userId") String userId);
+    boolean existsByUserIdAndCodeLike(String userId, String pattern);
 }

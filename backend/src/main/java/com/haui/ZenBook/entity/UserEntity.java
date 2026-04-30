@@ -139,4 +139,17 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @Builder.Default
     private List<ReviewHelpfulVoteEntity> helpfulVotes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private List<WishlistEntity> wishlists = new ArrayList<>();
+
+    // Helper method để quản lý wishlist thuận tiện hơn
+    public void addToWishlist(BookEntity book) {
+        WishlistEntity wishlist = WishlistEntity.builder()
+                .user(this)
+                .book(book)
+                .build();
+        wishlists.add(wishlist);
+    }
 }

@@ -34,4 +34,10 @@
     <include file="classpath:db/changelog/changes/28-add-order_detail_id-reviews.xml"/>
     <include file="classpath:db/changelog/changes/29-add-news.xml"/>
     <include file="classpath:db/changelog/changes/30-add-discount-to-orders.xml"/>
+    <include file="classpath:db/changelog/changes/chatbot.xml"/>
+    <include file="classpath:db/changelog/changes/change-userID-chat.xml"/>
+    <include file="classpath:db/changelog/changes/31-crate-table-user-memberships-point-histories.xml"/>
+    <include file="classpath:db/changelog/changes/32-add-streak.xml"/>
+    <include file="classpath:db/changelog/changes/33-create-notifications.xml"/>
+    <include file="classpath:db/changelog/changes/34-create-table-wishlist.xml"/>
 </databaseChangeLog>

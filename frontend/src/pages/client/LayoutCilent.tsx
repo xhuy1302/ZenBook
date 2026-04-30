@@ -1,3 +1,4 @@
+import ChatWidget from '@/components/chat/ChatWidget'
 import Footer from '@/components/zenbook/homepage/Footer'
 import Header from '@/components/zenbook/homepage/Header'
 
@@ -11,6 +12,7 @@ export default function ClientLayout() {
 
       {/* Phần main chứa nội dung các trang con (Trang chủ, Chi tiết SP...) */}
       <main className='flex-1 pb-8 pt-4'>
+        <ChatWidget />
         <Outlet />
       </main>
 

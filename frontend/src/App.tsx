@@ -26,7 +26,9 @@ import SuplierPage from './pages/admin/manage-supplier/page'
 import ReviewPage from './pages/admin/manage-review/page'
 import ContactPage from './pages/client/contact/Contact'
 import FlashSalePage from './pages/client/flashsale/FlashSalePage'
-import WishListPage from './pages/client/wishlist'
+import WishListPage from './pages/client/wishlist/WishListPage'
+import ZenBookVipPage from './pages/client/ZPoint/Zenbookmembership'
+import WishlistPage from './pages/client/wishlist/WishListPage'
 
 // 👉 IMPORT THÊM CÁC TAB CỦA ACCOUNT PAGE
 import ProfileTab from '@/components/zenbook/account/Profiletab'
@@ -72,11 +74,14 @@ function App() {
             <Route path='/blog/:slug' element={<BlogDetailPage />} />
             <Route path='/flash-sale' element={<FlashSalePage />} />
             <Route path='/guide' element={<GuidePage />} />
+
             <Route path='/contact' element={<ContactPage />} />
             <Route path='/wish-list' element={<WishListPage />} />
             <Route path='/products' element={<ProductListPage />} />
             <Route path='/search' element={<ProductListPage />} />
             <Route path='/products/:slug' element={<ProductDetailPage />} />
+            <Route path='/zenbokvip' element={<ZenBookVipPage />} />
+            <Route path='/wishlist' element={<WishlistPage />} />
 
             {/* =========================================
                 PROTECTED ROUTES CLIENT (Phải đăng nhập)
@@ -85,7 +90,7 @@ function App() {
               <Route path='/cart' element={<CartPage />} />
               <Route path='/checkout' element={<CheckoutPage />} />
               <Route path='/payment/vnpay-return' element={<VNPayReturn />} />
-              <Route path='/orders/success/:id' element={<OrderSuccessPage />} />
+              <Route path='/orders/success/:orderCode' element={<OrderSuccessPage />} />
 
               {/* 👉 KHAI BÁO ROUTE CON CHO ACCOUNT PAGE */}
               <Route path='/customer' element={<AccountPage />}>
@@ -94,7 +99,7 @@ function App() {
 
                 {/* Các URL con: /customer/profile/orders, v.v... */}
                 <Route path='orders' element={<OrdersTab />} />
-                <Route path='orders/:id' element={<OrderDetail />} />
+                <Route path='orders/:orderCode' element={<OrderDetail />} />
                 <Route path='address' element={<AddressTab />} />
                 <Route path='myreviews' element={<MyReview />} />
               </Route>

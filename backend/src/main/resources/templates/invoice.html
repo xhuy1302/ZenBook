@@ -1,63 +1,163 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8"/>
     <title>Hóa Đơn</title>
+
     <style>
         @font-face {
-            font-family: 'Arial';
-            src: url('fonts/arial.ttf');
+            font-family: Arial;
+            src: url("fonts/arial.ttf");
             -fs-pdf-font-embed: embed;
             -fs-pdf-font-encoding: Identity-H;
         }
-        body { font-family: 'Arial', sans-serif; font-size: 13px; color: #333; line-height: 1.5; }
-        .header-table { width: 100%; border-bottom: 2px dashed #10b981; padding-bottom: 10px; margin-bottom: 20px; }
-        .title { color: #10b981; font-size: 24px; font-weight: bold; text-transform: uppercase; text-align: right; }
-        .info-table { width: 100%; margin-bottom: 20px; }
-        .info-table td { vertical-align: top; width: 50%; }
-        .box { padding: 10px; border: 1px solid #eee; background-color: #f9f9f9; border-radius: 5px; }
-        .item-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .item-table th { background-color: #10b981; color: #fff; padding: 8px; text-align: center; border: 1px solid #10b981; }
-        .item-table td { padding: 8px; border: 1px solid #ddd; text-align: center; }
-        .item-table td.left { text-align: left; }
-        .item-table td.right { text-align: right; }
-        .summary-table { width: 100%; border-collapse: collapse; }
-        .summary-table td { padding: 5px 8px; text-align: right; }
-        .total-row { font-size: 16px; font-weight: bold; color: #ef4444; }
-        .discount-row { color: #10b981; }
-        .footer { text-align: center; margin-top: 30px; font-style: italic; color: #666; }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .header-table,
+        .info-table,
+        .item-table,
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-table {
+            border-bottom: 2px dashed #10b981;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            color: #10b981;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: right;
+        }
+
+        .info-table {
+            margin-bottom: 20px;
+        }
+
+        .info-table td {
+            vertical-align: top;
+            width: 50%;
+        }
+
+        .box {
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+        }
+
+        .item-table {
+            margin-bottom: 20px;
+        }
+
+        .item-table th {
+            background: #10b981;
+            color: #fff;
+            padding: 8px;
+            border: 1px solid #10b981;
+            text-align: center;
+        }
+
+        .item-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .left {
+            text-align: left !important;
+        }
+
+        .right {
+            text-align: right !important;
+        }
+
+        .summary-table td {
+            padding: 6px 8px;
+            text-align: right;
+        }
+
+        .discount-row {
+            color: #10b981;
+        }
+
+        .total-row {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ef4444;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-style: italic;
+            color: #666;
+        }
     </style>
 </head>
+
 <body>
+
 <table class="header-table">
     <tr>
-        <td style="width: 50%;">
-            <h2 style="margin: 0; color: #333;">ZENBOOK MALL</h2>
-            <p style="margin: 0; font-size: 11px;">Hệ thống bán sách trực tuyến</p>
-            <p style="margin: 0; font-size: 11px;">Website: zenbook.vn | Hotline: 1900 1000</p>
+        <td style="width:50%;">
+            <h2 style="margin:0;">ZENBOOK MALL</h2>
+            <div>Hệ thống bán sách trực tuyến</div>
+            <div>Website: zenbook.vn | Hotline: 1900 1000</div>
         </td>
-        <td style="width: 50%; text-align: right;">
+
+        <td style="width:50%; text-align:right;">
             <div class="title">PHIẾU GIAO HÀNG</div>
-            <p style="margin: 0;">Mã ĐH: <strong th:text="${order.orderCode != null ? order.orderCode : '#N/A'}">#DH-123</strong></p>
-            <p style="margin: 0;">Ngày đặt: <span th:text="${orderDate}">01/01/2026</span></p>
+            <div>
+                Mã ĐH:
+                <strong th:text="${order.orderCode ?: '#N/A'}">#DH-001</strong>
+            </div>
+            <div>
+                Ngày đặt:
+                <span th:text="${orderDate}">01/01/2026</span>
+            </div>
         </td>
     </tr>
 </table>
 
 <table class="info-table">
     <tr>
-        <td style="padding-right: 10px;">
+        <td style="padding-right:10px;">
             <div class="box">
-                <div style="color: #10b981; font-weight: bold;">TỪ: ZENBOOK WAREHOUSE</div>
-                <div>123 Đường Sách, Phường Đọc, TP. Hà Nội</div>
+                <div style="font-weight:bold; color:#10b981;">
+                    TỪ: ZENBOOK WAREHOUSE
+                </div>
+                <div>123 Đường Sách, Hà Nội</div>
                 <div>SĐT: 0987654321</div>
             </div>
         </td>
-        <td style="padding-left: 10px;">
+
+        <td style="padding-left:10px;">
             <div class="box">
-                <div style="color: #10b981; font-weight: bold;">ĐẾN (NGƯỜI NHẬN):</div>
-                <div th:text="${order.customerName != null ? order.customerName : ''}">Nguyễn Văn A</div>
-                <div>SĐT: <span th:text="${order.customerPhone != null ? order.customerPhone : ''}">0123456789</span></div>
-                <div>Địa chỉ: <span th:text="${order.shippingAddress != null ? order.shippingAddress : ''}">456 Đường Làng</span></div>
+                <div style="font-weight:bold; color:#10b981;">
+                    ĐẾN (NGƯỜI NHẬN)
+                </div>
+                <div th:text="${order.customerName ?: ''}">Nguyễn Văn A</div>
+                <div>
+                    SĐT:
+                    <span th:text="${order.customerPhone ?: ''}">0123456789</span>
+                </div>
+                <div>
+                    Địa chỉ:
+                    <span th:text="${order.shippingAddress ?: ''}">
+                        Hà Nội
+                    </span>
+                </div>
             </div>
         </td>
     </tr>
@@ -66,53 +166,83 @@
 <table class="item-table">
     <thead>
     <tr>
-        <th style="width: 5%;">STT</th>
-        <th style="width: 45%; text-align: left;">Sản phẩm</th>
-        <th style="width: 15%;">Đơn giá</th>
-        <th style="width: 10%;">SL</th>
-        <th style="width: 25%; text-align: right;">Thành tiền</th>
+        <th style="width:5%">STT</th>
+        <th style="width:45%" class="left">Sản phẩm</th>
+        <th style="width:15%">Đơn giá</th>
+        <th style="width:10%">SL</th>
+        <th style="width:25%" class="right">Thành tiền</th>
     </tr>
     </thead>
+
     <tbody>
-    <tr th:each="item, iterStat : ${order.details}">
-        <td th:text="${iterStat.count}">1</td>
-        <td class="left" th:text="${item.bookTitle}">Đắc Nhân Tâm</td>
-        <td th:text="${item.priceAtPurchase != null ? #numbers.formatDecimal(item.priceAtPurchase, 0, 'COMMA', 0, 'POINT') : '0'} + ' đ'">100,000 đ</td>
-        <td th:text="${item.quantity}">2</td>
-        <td class="right" th:text="${item.subTotal != null ? #numbers.formatDecimal(item.subTotal, 0, 'COMMA', 0, 'POINT') : '0'} + ' đ'">200,000 đ</td>
+    <tr th:each="item, stat : ${order.details}">
+        <td th:text="${stat.count}">1</td>
+
+        <td class="left"
+            th:text="${item.bookTitle}">
+            Đắc Nhân Tâm
+        </td>
+
+        <td th:text="${#numbers.formatDecimal(item.priceAtPurchase ?: 0,0,'COMMA',0,'POINT')} + ' đ'">
+            100.000 đ
+        </td>
+
+        <td th:text="${item.quantity}">1</td>
+
+        <td class="right"
+            th:text="${#numbers.formatDecimal(item.subTotal ?: 0,0,'COMMA',0,'POINT')} + ' đ'">
+            100.000 đ
+        </td>
     </tr>
     </tbody>
 </table>
 
 <table class="summary-table">
     <tr>
-        <td style="width: 75%;">Tổng tiền hàng:</td>
-        <td style="width: 25%;" th:text="${order.totalItemsPrice != null ? #numbers.formatDecimal(order.totalItemsPrice, 0, 'COMMA', 0, 'POINT') : '0'} + ' đ'">200,000 đ</td>
+        <td style="width:75%">Tổng tiền hàng:</td>
+        <td style="width:25%"
+            th:text="${#numbers.formatDecimal(order.totalItemsPrice ?: 0,0,'COMMA',0,'POINT')} + ' đ'">
+            0 đ
+        </td>
     </tr>
+
     <tr>
         <td>Phí vận chuyển:</td>
-        <td th:text="${order.shippingFee != null ? #numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT') : '0'} + ' đ'">30,000 đ</td>
+        <td th:text="${#numbers.formatDecimal(order.shippingFee ?: 0,0,'COMMA',0,'POINT')} + ' đ'">
+            0 đ
+        </td>
     </tr>
 
-    <tr class="discount-row" th:if="${order.orderDiscount != null ? order.orderDiscount > 0 : false}">
+    <tr th:if="${order.orderDiscount != null and order.orderDiscount > 0}"
+        class="discount-row">
         <td>Voucher giảm giá đơn hàng:</td>
-        <td th:text="'- ' + ${#numbers.formatDecimal(order.orderDiscount, 0, 'COMMA', 0, 'POINT')} + ' đ'">- 0 đ</td>
+        <td th:text="'- ' + ${#numbers.formatDecimal(order.orderDiscount,0,'COMMA',0,'POINT')} + ' đ'">
+            - 0 đ
+        </td>
     </tr>
 
-    <tr class="discount-row" th:if="${order.shippingDiscount != null ? order.shippingDiscount > 0 : false}">
+    <tr th:if="${order.shippingDiscount != null and order.shippingDiscount > 0}"
+        class="discount-row">
         <td>Voucher miễn phí vận chuyển:</td>
-        <td th:text="'- ' + ${#numbers.formatDecimal(order.shippingDiscount, 0, 'COMMA', 0, 'POINT')} + ' đ'">- 0 đ</td>
+        <td th:text="'- ' + ${#numbers.formatDecimal(order.shippingDiscount,0,'COMMA',0,'POINT')} + ' đ'">
+            - 0 đ
+        </td>
     </tr>
 
     <tr class="total-row">
         <td>TỔNG THANH TOÁN:</td>
-        <td th:text="${order.finalTotal != null ? #numbers.formatDecimal(order.finalTotal, 0, 'COMMA', 0, 'POINT') : '0'} + ' đ'">230,000 đ</td>
+        <td th:text="${#numbers.formatDecimal(order.finalTotal ?: 0,0,'COMMA',0,'POINT')} + ' đ'">
+            0 đ
+        </td>
     </tr>
 </table>
 
 <div class="footer">
     <div>Cảm ơn bạn đã mua sắm tại ZenBook!</div>
-    <div style="font-size: 10px;">(Hóa đơn này được tạo tự động bởi hệ thống và không cần chữ ký)</div>
+    <div style="font-size:10px;">
+        (Hóa đơn được tạo tự động bởi hệ thống)
+    </div>
 </div>
+
 </body>
 </html>

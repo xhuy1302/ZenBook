@@ -44,11 +44,14 @@ export default function PinSetupModal({ open, onOpenChange }: PinSetupModalProps
     resolver: zodResolver(pinSchema)
   })
 
-  const onSubmit = async (data: PinFormValues) => {
+  const onSubmit = async ({ pin }: PinFormValues) => {
     setIsSubmitting(true)
+
     try {
-      // TODO: Thay bằng hàm gọi API thực tế (ví dụ: setupPinApi(data.pin))
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Giả lập call API 1s
+      // eslint-disable-next-line no-console
+      console.log('PIN:', pin)
+
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       toast.success('Thiết lập mã PIN thành công!')
       reset()

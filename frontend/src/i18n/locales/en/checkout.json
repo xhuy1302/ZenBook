@@ -12,11 +12,11 @@
   "changeAddress": "Change address",
   "addAddress": "Add new address",
   "noAddress": "You haven't set up any shipping address.",
-  "noAddressDesc": "Please add an address to continue ordering.",
+  "noAddressDesc": "Please add an address to continue your order.",
   "defaultBadge": "Default",
   "note": "Additional note (optional)",
   "paymentMethod": "Payment Method",
-  "cod": "Cash on Delivery (COD)",
+  "cod": "Cash on Delivery",
   "vnpay": "Pay via VNPAY",
   "orderSummary": "Order",
   "products": "products",
@@ -47,5 +47,62 @@
     "couponApplied": "Voucher applied!",
     "couponRemoved": "Voucher removed",
     "couponInvalid": "Invalid or expired voucher"
+  },
+  "address": {
+    "label": "Shipping Address",
+    "noAddressDesc": "You haven't set up any shipping address.\nPlease add one to continue.",
+    "addNew": "Add new address",
+    "default": "Default",
+    "change": "CHANGE",
+    "emailNotice": "Email for order notifications:"
+  },
+  "cart": {
+    "product": "Product",
+    "unitPrice": "Unit Price",
+    "quantity": "Quantity",
+    "total": "Total",
+    "message": "Message:",
+    "messagePlaceholder": "Note for seller...",
+    "shippingUnit": "Shipping Unit (GHN):",
+    "estimatedDelivery": "Estimated delivery 2-3 days",
+    "canCheck": "Inspection allowed",
+    "totalItems": "Total ({count} products):"
+  },
+  "voucher": {
+    "title": "ZenBook Voucher",
+    "applyHint": "Applicable",
+    "select": "Select Voucher",
+    "change": "Change",
+    "noVoucher": "You don't have any vouchers yet.",
+    "sheetTitle": "Your Voucher Wallet",
+    "inputPlaceholder": "Enter voucher code...",
+    "apply": "Apply",
+    "loading": "Searching vouchers...",
+    "freeShipping": "Free Shipping",
+    "orderDiscount": "Order Discount",
+    "maxSelection": "You can select up to 1 shipping voucher & 1 discount voucher",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "birthday": "Birthday 🎂",
+    "redeemed": "Redeemed 🪙",
+    "discount": "Save",
+    "minOrder": "Min. order",
+    "expiry": "Exp: {date}",
+    "missing": "Missing {amount}"
+  },
+  "payment": {
+    "title": "Payment Method",
+    "codLabel": "Cash on Delivery",
+    "vnpayLabel": "VNPAY"
+  },
+  "summary": {
+    "totalGoods": "Total Goods",
+    "shippingFee": "Shipping Fee",
+    "voucherDiscount": "Voucher Discount",
+    "voucherFreeship": "Free Shipping Voucher",
+    "totalPayment": "Total Payment",
+    "stickyTotalPayment": "Total Payment",
+    "checkout": "Place Order",
+    "processing": "Processing..."
   }
 }

@@ -1,12 +1,30 @@
 spring:
   application:
     name: ZenBook
-
+  ai:
+    openai:
+      base-url: http://127.0.0.1:20128
+      api-key: sk-94fdd5f593f1755d-1qubii-79470535
+      client-type: rest_client # Dùng RestClient cho ổn định
+      chat:
+        options:
+          model: zenbook-chat
+    retry:
+      max-attempts: 3
+      backoff:
+        initial-interval: 1s
   datasource:
     url: jdbc:mysql://localhost:3306/zenbook_store_db
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+    cache:
+      type: redis
 
   servlet:
     multipart:
