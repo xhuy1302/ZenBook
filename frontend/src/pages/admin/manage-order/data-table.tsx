@@ -109,7 +109,7 @@ export function DataTable<TValue>({
   return (
     <>
       {/* HEADER */}
-      <div className='mb-4 rounded-2xl border bg-white p-4 shadow-sm'>
+      <div className='mb-4 rounded-2xl border p-4 shadow-sm'>
         <div className='flex flex-wrap gap-3'>
           {/* search */}
           <div className='relative'>
@@ -214,14 +214,14 @@ export function DataTable<TValue>({
       </div>
 
       {/* TABLE */}
-      <div className='rounded-2xl border bg-white shadow-sm overflow-hidden'>
+      <div className='rounded-2xl bordershadow-sm overflow-hidden'>
         <div className='max-h-[70vh] overflow-auto'>
           <Table>
-            <TableHeader className='sticky top-0 z-20 bg-slate-50 border-b'>
+            <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id} className='font-bold h-12 whitespace-nowrap'>
+                    <TableHead key={header.id} className='font-bold'>
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
@@ -237,10 +237,14 @@ export function DataTable<TValue>({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
-                    className={cn('transition-all hover:bg-slate-50', 'border-b')}
+                    className={cn('transition-all', 'border-b')}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className='py-4'>
+                      /* ĐÃ SỬA: Thêm class max-w-[200px] whitespace-normal break-words để ép xuống dòng */
+                      <TableCell
+                        key={cell.id}
+                        className='py-4 max-w-[200px] whitespace-normal break-words'
+                      >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}

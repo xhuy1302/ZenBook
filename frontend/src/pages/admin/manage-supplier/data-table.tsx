@@ -119,9 +119,9 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
         </div>
       </div>
 
-      <div className='rounded-md border bg-white shadow-sm overflow-hidden'>
+      <div className='rounded-md border shadow-sm overflow-hidden'>
         <Table>
-          <TableHeader className='bg-slate-50/50'>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (

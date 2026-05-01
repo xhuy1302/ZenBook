@@ -40,4 +40,5 @@
     <include file="classpath:db/changelog/changes/32-add-streak.xml"/>
     <include file="classpath:db/changelog/changes/33-create-notifications.xml"/>
     <include file="classpath:db/changelog/changes/34-create-table-wishlist.xml"/>
+    <include file="classpath:db/changelog/changes/35-chat-module.xml"/>
 </databaseChangeLog>

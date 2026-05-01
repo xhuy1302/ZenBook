@@ -146,19 +146,16 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
   })
 
   return (
-    <form
-      onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
-      className='flex flex-col h-full bg-white'
-    >
+    <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className='flex flex-col h-full'>
       {/* VÙNG CUỘN NỘI DUNG - Solid bg-slate-50 để che khuất phía dưới */}
-      <div className='flex-1 overflow-y-auto p-5 sm:p-6 custom-scrollbar bg-slate-50'>
+      <div className='flex-1 overflow-y-auto p-5 sm:p-6 custom-scrollbar'>
         <div className='grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6'>
           {/* ========================================== */}
           {/* CỘT TRÁI: THÔNG TIN CƠ BẢN, ẢNH & THÔNG SỐ (7 Cột) */}
           {/* ========================================== */}
           <div className='lg:col-span-7 space-y-5'>
             {/* 1. THÔNG TIN CHUNG */}
-            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+            <div className='    border border-slate-200 rounded-xl p-5 shadow-sm'>
               <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
                 <Info className='w-5 h-5 text-brand-green' />
                 <h3 className='font-bold text-slate-800'>
@@ -186,7 +183,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                   <Label className='text-sm text-slate-700'>{t('book.form.isbn', 'Mã ISBN')}</Label>
                   <Input
                     {...form.register('isbn')}
-                    className='font-mono bg-white'
+                    className='font-mono  '
                     placeholder='VD: 9786041130000'
                   />
                 </div>
@@ -199,14 +196,14 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                     {...form.register('description')}
                     rows={6}
                     placeholder='Viết nội dung giới thiệu về cuốn sách...'
-                    className='resize-none bg-white'
+                    className='resize-none  '
                   />
                 </div>
               </div>
             </div>
 
             {/* 2. HÌNH ẢNH */}
-            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+            <div className='    border border-slate-200 rounded-xl p-5 shadow-sm'>
               <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
                 <ImageIcon className='w-5 h-5 text-brand-green' />
                 <h3 className='font-bold text-slate-800'>
@@ -219,7 +216,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                     Ảnh bìa chính <span className='text-destructive'>*</span>
                   </Label>
                   <div
-                    className='h-[200px] w-full border-2 border-dashed border-slate-300 bg-slate-50 rounded-lg flex flex-col items-center justify-center cursor-pointer overflow-hidden group hover:bg-slate-100 transition-colors'
+                    className='h-[200px] w-full border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center cursor-pointer overflow-hidden group hover:bg-slate-100 transition-colors'
                     onClick={() => document.getElementById('thumb-create')?.click()}
                   >
                     {previewThumb ? (
@@ -250,7 +247,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                   </Label>
                   <div className='grid grid-cols-3 gap-2'>
                     <div
-                      className='aspect-square border-2 border-dashed border-slate-300 bg-slate-50 rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors'
+                      className='aspect-square border-2 border-dashed border-slate-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 transition-colors'
                       onClick={() => document.getElementById('gallery-create')?.click()}
                     >
                       <Plus className='h-5 w-5 text-slate-400' />
@@ -267,7 +264,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                     {previewGallery.map((src, idx) => (
                       <div
                         key={idx}
-                        className='relative aspect-square border border-slate-200 rounded-md overflow-hidden group bg-white'
+                        className='relative aspect-square border border-slate-200 rounded-md overflow-hidden group  '
                       >
                         <img
                           src={src}
@@ -289,7 +286,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
             </div>
 
             {/* 3. THÔNG SỐ KỸ THUẬT */}
-            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+            <div className='    border border-slate-200 rounded-xl p-5 shadow-sm'>
               <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
                 <LayoutList className='w-5 h-5 text-brand-green' />
                 <h3 className='font-bold text-slate-800'>
@@ -306,7 +303,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                     name='format'
                     render={({ field }) => (
                       <Select value={field.value || ''} onValueChange={field.onChange}>
-                        <SelectTrigger className='h-9 text-sm bg-white'>
+                        <SelectTrigger className='h-9 text-sm  '>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -324,7 +321,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                   <Label className='text-xs text-slate-600'>
                     {t('book.form.language', 'Ngôn ngữ')}
                   </Label>
-                  <Input {...form.register('language')} className='h-9 text-sm bg-white' />
+                  <Input {...form.register('language')} className='h-9 text-sm  ' />
                 </div>
                 <div className='space-y-1.5'>
                   <Label className='text-xs text-slate-600'>
@@ -333,7 +330,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                   <Input
                     type='number'
                     {...form.register('pageCount', { valueAsNumber: true })}
-                    className='h-9 text-sm bg-white'
+                    className='h-9 text-sm  '
                   />
                 </div>
                 <div className='space-y-1.5'>
@@ -343,7 +340,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                   <Input
                     type='number'
                     {...form.register('publicationYear', { valueAsNumber: true })}
-                    className='h-9 text-sm bg-white'
+                    className='h-9 text-sm  '
                   />
                 </div>
                 <div className='space-y-1.5'>
@@ -353,7 +350,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                   <Input
                     {...form.register('dimensions')}
                     placeholder='14x20 cm'
-                    className='h-9 text-sm bg-white'
+                    className='h-9 text-sm  '
                   />
                 </div>
                 <div className='space-y-1.5'>
@@ -363,7 +360,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                   <Input
                     type='number'
                     {...form.register('weight', { valueAsNumber: true })}
-                    className='h-9 text-sm bg-white'
+                    className='h-9 text-sm  '
                     placeholder='300'
                   />
                 </div>
@@ -376,7 +373,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
           {/* ========================================== */}
           <div className='lg:col-span-5 space-y-5'>
             {/* 4. KINH DOANH & TỒN KHO */}
-            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+            <div className='    border border-slate-200 rounded-xl p-5 shadow-sm'>
               <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
                 <DollarSign className='w-5 h-5 text-brand-green' />
                 <h3 className='font-bold text-slate-800'>
@@ -394,7 +391,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                     <Input
                       type='number'
                       {...form.register('salePrice', { valueAsNumber: true })}
-                      className={`font-bold text-emerald-600 bg-white ${errors.salePrice ? 'border-destructive' : ''}`}
+                      className={`font-bold text-emerald-600   ${errors.salePrice ? 'border-destructive' : ''}`}
                     />
                   </div>
                   <div className='space-y-1.5'>
@@ -402,7 +399,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                     <Input
                       type='number'
                       {...form.register('originalPrice', { valueAsNumber: true })}
-                      className='text-slate-500 line-through decoration-slate-300 bg-white'
+                      className='text-slate-500 line-through decoration-slate-300  '
                     />
                   </div>
                 </div>
@@ -415,7 +412,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                       name='status'
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className='bg-white'>
+                          <SelectTrigger className='   '>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -431,7 +428,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                     <Input
                       disabled
                       value={0}
-                      className='bg-slate-100 font-semibold text-center text-slate-500'
+                      className=' font-semibold text-center text-slate-500'
                     />
                     <p className='text-[10px] text-slate-400 mt-1 text-center'>
                       Tự động qua phiếu nhập
@@ -442,7 +439,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
             </div>
 
             {/* 5. PHÂN LOẠI & GẮN NHÃN (Select Dạng Mới) */}
-            <div className='bg-white border border-slate-200 rounded-xl p-5 shadow-sm'>
+            <div className='    border border-slate-200 rounded-xl p-5 shadow-sm'>
               <div className='flex items-center gap-2 border-b border-slate-100 pb-3 mb-4'>
                 <TagIcon className='w-5 h-5 text-brand-green' />
                 <h3 className='font-bold text-slate-800'>
@@ -463,7 +460,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                         onValueChange={field.onChange}
                         disabled={isPublishersLoading}
                       >
-                        <SelectTrigger className='bg-white'>
+                        <SelectTrigger className='   '>
                           <SelectValue placeholder='Chọn nhà xuất bản...' />
                         </SelectTrigger>
                         <SelectContent>
@@ -498,7 +495,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                             value='' // Always empty to act as a dropdown trigger
                             onValueChange={(val) => field.onChange([...currentValues, val])}
                           >
-                            <SelectTrigger className='bg-white text-slate-500'>
+                            <SelectTrigger className='    text-slate-500'>
                               <SelectValue
                                 placeholder={
                                   unselectedOptions.length === 0
@@ -518,12 +515,12 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
 
                           {/* Badges hiển thị */}
                           {selectedOptions.length > 0 && (
-                            <div className='flex flex-wrap gap-1.5 p-2 bg-slate-50 border rounded-md min-h-[40px]'>
+                            <div className='flex flex-wrap gap-1.5 p-2 border rounded-md min-h-[40px]'>
                               {selectedOptions.map((c) => (
                                 <Badge
                                   key={c.id}
                                   variant='secondary'
-                                  className='flex items-center gap-1 pr-1.5 bg-white border-slate-200 text-slate-700'
+                                  className='flex items-center gap-1 pr-1.5   border-slate-200 text-slate-700'
                                 >
                                   {c.categoryName}
                                   <button
@@ -563,7 +560,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                             value=''
                             onValueChange={(val) => field.onChange([...currentValues, val])}
                           >
-                            <SelectTrigger className='bg-white text-slate-500'>
+                            <SelectTrigger className='    text-slate-500'>
                               <SelectValue
                                 placeholder={
                                   unselectedOptions.length === 0 ? 'Đã chọn hết' : 'Thêm tác giả...'
@@ -580,12 +577,12 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                           </Select>
 
                           {selectedOptions.length > 0 && (
-                            <div className='flex flex-wrap gap-1.5 p-2 bg-slate-50 border rounded-md min-h-[40px]'>
+                            <div className='flex flex-wrap gap-1.5 p-2  border rounded-md min-h-[40px]'>
                               {selectedOptions.map((a) => (
                                 <Badge
                                   key={a.id}
                                   variant='secondary'
-                                  className='flex items-center gap-1 pr-1.5 bg-white border-slate-200 text-slate-700'
+                                  className='flex items-center gap-1 pr-1.5   border-slate-200 text-slate-700'
                                 >
                                   {a.name}
                                   <button
@@ -629,7 +626,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                             value=''
                             onValueChange={(val) => field.onChange([...currentValues, val])}
                           >
-                            <SelectTrigger className='bg-white text-slate-500'>
+                            <SelectTrigger className='    text-slate-500'>
                               <SelectValue placeholder='Chọn nhãn đính kèm...' />
                             </SelectTrigger>
                             <SelectContent>
@@ -648,7 +645,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                           </Select>
 
                           {selectedOptions.length > 0 && (
-                            <div className='flex flex-wrap gap-1.5 p-2 bg-slate-50 border rounded-md min-h-[40px]'>
+                            <div className='flex flex-wrap gap-1.5 p-2  border rounded-md min-h-[40px]'>
                               {selectedOptions.map((tItem) => (
                                 <Badge
                                   key={tItem.id}
@@ -683,7 +680,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
             </div>
 
             {/* 6. THÔNG KÊ (LÀM NHẠT MÀU) */}
-            <div className='bg-slate-50 border border-slate-200 text-slate-600 rounded-xl p-5 shadow-sm opacity-90'>
+            <div className=' border border-slate-200 text-slate-600 rounded-xl p-5 shadow-sm opacity-90'>
               <div className='flex items-center gap-2 border-b border-slate-200 pb-3 mb-4'>
                 <BarChart3 className='w-4 h-4 text-slate-400' />
                 <h3 className='font-bold text-sm text-slate-500 uppercase tracking-wider'>
@@ -698,19 +695,19 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
                   <Input
                     {...form.register('award')}
                     placeholder='VD: Bestseller 2025'
-                    className='h-9 bg-white border-slate-200 placeholder:text-slate-300'
+                    className='h-9   border-slate-200 placeholder:text-slate-300'
                   />
                 </div>
                 <div className='grid grid-cols-3 gap-2 pt-2'>
-                  <div className='text-center bg-white border border-slate-100 rounded-lg p-2'>
+                  <div className='text-center   border border-slate-100 rounded-lg p-2'>
                     <p className='text-[10px] text-slate-400 mb-1'>Đánh giá</p>
                     <div className='text-sm font-semibold text-slate-400'>0.0</div>
                   </div>
-                  <div className='text-center bg-white border border-slate-100 rounded-lg p-2'>
+                  <div className='text-center   border border-slate-100 rounded-lg p-2'>
                     <p className='text-[10px] text-slate-400 mb-1'>Lượt mua</p>
                     <div className='text-sm font-semibold text-slate-400'>0</div>
                   </div>
-                  <div className='text-center bg-white border border-slate-100 rounded-lg p-2'>
+                  <div className='text-center   border border-slate-100 rounded-lg p-2'>
                     <p className='text-[10px] text-slate-400 mb-1'>Lượt xem</p>
                     <div className='text-sm font-semibold text-slate-400'>0</div>
                   </div>
@@ -722,7 +719,7 @@ export function CreateBookForm({ onSuccess, onCancel }: CreateBookFormProps) {
       </div>
 
       {/* FOOTER CỐ ĐỊNH */}
-      <div className='px-6 py-4 border-t border-slate-200 bg-white flex justify-end gap-3 shrink-0 z-10 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]'>
+      <div className='px-6 py-4 border-t border-slate-200   flex justify-end gap-3 shrink-0 z-10 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]'>
         <Button type='button' variant='outline' onClick={onCancel} className='px-6 text-slate-600'>
           {t('common.cancel', 'Hủy')}
         </Button>

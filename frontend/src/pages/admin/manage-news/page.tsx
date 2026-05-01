@@ -40,18 +40,18 @@ export default function NewsPage() {
   if (isAdding) {
     return (
       <div className='p-4 space-y-4 h-full flex flex-col animate-in fade-in duration-300'>
-        <div className='flex items-center gap-4 px-4 py-3 bg-white border rounded-xl shadow-sm shrink-0'>
+        <div className='flex items-center gap-4 px-4 py-3 border rounded-xl shadow-sm shrink-0'>
           <Button
             variant='ghost'
             size='sm'
             onClick={() => setIsAdding(false)}
-            className='hover:bg-slate-100 text-slate-600'
+            className='hover:bg-slate-100'
           >
             <ChevronLeft className='w-4 h-4 mr-1.5' /> Quay lại
           </Button>
-          <h1 className='text-xl font-bold tracking-tight text-slate-800'>Thêm bài viết mới</h1>
+          <h1 className='text-xl font-bold tracking-tight'>Thêm bài viết mới</h1>
         </div>
-        <div className='bg-white rounded-xl shadow-sm border overflow-hidden flex-1'>
+        <div className=' rounded-xl shadow-sm border overflow-hidden flex-1'>
           <CreateNewsForm
             onSuccess={() => {
               setIsAdding(false)
@@ -70,7 +70,7 @@ export default function NewsPage() {
   if (editingNews) {
     return (
       <div className='p-4 space-y-4 h-full flex flex-col animate-in fade-in duration-300'>
-        <div className='bg-white rounded-xl shadow-sm border overflow-hidden flex-1'>
+        <div className=' rounded-xl shadow-sm border overflow-hidden flex-1'>
           <EditNewsForm
             news={editingNews}
             onSuccess={() => {
@@ -89,16 +89,14 @@ export default function NewsPage() {
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className='p-4 space-y-4 h-full flex flex-col animate-in fade-in duration-300'>
-      <div className='flex items-center justify-between gap-4 p-4 border rounded-xl bg-white shadow-sm shrink-0'>
-        <h1 className='text-xl font-bold tracking-tight text-slate-800'>
-          Quản lý Bài viết / Tin tức
-        </h1>
+      <div className='flex items-center justify-between gap-4 p-4 border rounded-xl shadow-sm shrink-0'>
+        <h1 className='text-xl font-bold tracking-tight'>Quản lý Bài viết / Tin tức</h1>
         <div className='flex items-center gap-3'>
           <CreateNewsButton onClick={() => setIsAdding(true)} />
         </div>
       </div>
 
-      <div className='flex-1 rounded-xl border bg-white shadow-sm overflow-hidden p-4'>
+      <div className='flex-1 rounded-xl border shadow-sm overflow-hidden p-4'>
         {/* 👉 Gọi getColumns và truyền hàm setEditingNews vào */}
         {isLoading ? (
           <UserTableSkeleton />

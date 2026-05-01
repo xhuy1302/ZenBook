@@ -15,9 +15,9 @@ export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[1000px] p-0 overflow-hidden flex flex-col h-[90vh] bg-slate-50'>
+      <DialogContent className='sm:max-w-[1000px] p-0 overflow-hidden flex flex-col h-[90vh] '>
         {/* 👉 ĐÃ THÊM: flex-row, justify-between, items-center và custom X button */}
-        <DialogHeader className='px-6 py-4 shrink-0 bg-white border-b z-10 flex flex-row items-center justify-between'>
+        <DialogHeader className='px-6 py-4 shrink-0         border-b z-10 flex flex-row items-center justify-between'>
           <DialogTitle className='text-xl font-bold tracking-tight text-slate-800 m-0'>
             {t('dialog.createTitle', 'Thêm mới Mã giảm giá')}
           </DialogTitle>

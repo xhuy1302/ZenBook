@@ -12,9 +12,9 @@ interface CreateSupplierDialogProps {
 export function CreateSupplierDialog({ open, onOpenChange }: CreateSupplierDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[750px] p-0 flex flex-col h-[90vh] max-h-[850px] overflow-hidden bg-white border-none shadow-2xl [&>button.absolute]:hidden'>
+      <DialogContent className='sm:max-w-[750px] p-0 flex flex-col h-[90vh] max-h-[850px] overflow-hidden       border-none shadow-2xl [&>button.absolute]:hidden'>
         {/* HEADER ĐẸP HƠN */}
-        <DialogHeader className='px-6 py-4 border-b bg-white shrink-0 flex flex-row items-center justify-between space-y-0'>
+        <DialogHeader className='px-6 py-4 border-b       shrink-0 flex flex-row items-center justify-between space-y-0'>
           <div className='flex items-center gap-2'>
             <div className='p-2 bg-primary/10 rounded-lg text-primary'>
               <Truck className='w-5 h-5' />

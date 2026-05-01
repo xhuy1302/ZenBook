@@ -74,7 +74,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='!w-[95vw] lg:!w-[800px] !max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-[#f5f5f5] border-0 shadow-2xl'>
         {/* HEADER */}
-        <DialogHeader className='px-6 py-4 bg-white border-b shadow-sm z-10 shrink-0 flex flex-row items-center justify-between space-y-0'>
+        <DialogHeader className='px-6 py-4   border-b shadow-sm z-10 shrink-0 flex flex-row items-center justify-between space-y-0'>
           <DialogTitle className='text-lg font-bold tracking-tight text-slate-800 flex items-center gap-2'>
             Chi tiết đơn hàng
           </DialogTitle>
@@ -98,7 +98,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
           <div className='flex-1 overflow-y-auto pb-8'>
             <div className='flex flex-col'>
               {/* 1. KHỐI BANNER TRẠNG THÁI (Shopee Style) */}
-              <div className='bg-white shadow-sm'>
+              <div className='  shadow-sm'>
                 <div className='flex items-center justify-between p-4 border-b border-slate-100 text-[13px]'>
                   <span className='text-slate-500 font-medium'>
                     Mã đơn hàng: <span className='text-slate-800 font-mono'>{order.orderCode}</span>
@@ -123,7 +123,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
               </div>
 
               {/* 2. ĐỊA CHỈ NHẬN HÀNG */}
-              <div className='bg-white mt-3 p-5 shadow-sm'>
+              <div className='  mt-3 p-5 shadow-sm'>
                 <div className='flex items-center gap-2 mb-3'>
                   <MapPin className='w-5 h-5 text-rose-500' />
                   <h3 className='text-[14px] font-bold text-slate-800 uppercase tracking-wide'>
@@ -138,7 +138,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
               </div>
 
               {/* 3. LỊCH SỬ GIAO HÀNG (TIMELINE DỌC) */}
-              <div className='bg-white mt-3 p-5 shadow-sm'>
+              <div className='  mt-3 p-5 shadow-sm'>
                 <div className='flex items-center gap-2 mb-4'>
                   <Truck className='w-5 h-5 text-sky-500' />
                   <h3 className='text-[14px] font-bold text-slate-800 uppercase tracking-wide'>
@@ -179,7 +179,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
               </div>
 
               {/* 4. DANH SÁCH SẢN PHẨM */}
-              <div className='bg-white mt-3 shadow-sm'>
+              <div className='  mt-3 shadow-sm'>
                 <div className='px-5 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2'>
                   <Store className='w-4 h-4 text-brand-green' />
                   <span className='font-bold text-[13px] text-slate-800 uppercase tracking-wide'>
@@ -241,7 +241,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId }: OrderDetailDi
               )}
 
               {/* 6. CHI TIẾT THANH TOÁN */}
-              <div className='bg-white mt-3 p-5 shadow-sm'>
+              <div className='  mt-3 p-5 shadow-sm'>
                 <div className='flex flex-col gap-3 text-[13px]'>
                   <div className='flex justify-between items-center text-slate-500 font-medium'>
                     <span>Tổng tiền hàng</span>

@@ -57,18 +57,18 @@ export function ViewBookDialog({ open, onOpenChange, book }: ViewBookDialogProps
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-[1000px] p-0 overflow-hidden flex flex-col h-[90vh]'>
-        <DialogHeader className='px-6 pt-6 pb-4 bg-slate-50 border-b shrink-0'>
+        <DialogHeader className='px-6 pt-6 pb-4      border-b shrink-0'>
           <DialogTitle className='text-xl font-bold flex items-center gap-2 text-slate-800'>
             <BookOpen className='w-5 h-5 text-brand-green' />
             {t('book.dialog.viewTitle', 'Chi tiết Thông tin Sách')}
           </DialogTitle>
         </DialogHeader>
 
-        <div className='flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50/50'>
+        <div className='flex-1 overflow-y-auto p-6 custom-scrollbar     /50'>
           <div className='flex flex-col md:flex-row gap-8 items-start'>
             <div className='w-full md:w-[320px] shrink-0 space-y-6'>
-              <div className='bg-white rounded-xl border p-4 flex flex-col items-center gap-4 shadow-sm'>
-                <div className='w-[200px] h-[280px] rounded-md overflow-hidden border shadow-inner bg-slate-50 flex items-center justify-center'>
+              <div className='      rounded-xl border p-4 flex flex-col items-center gap-4 shadow-sm'>
+                <div className='w-[200px] h-[280px] rounded-md overflow-hidden border shadow-inner      flex items-center justify-center'>
                   <img
                     src={
                       book.thumbnail ||
@@ -82,7 +82,7 @@ export function ViewBookDialog({ open, onOpenChange, book }: ViewBookDialogProps
               </div>
 
               {/* GOM GIÁ BÁN & TỒN KHO VÀO CHUNG MỘT KHỐI */}
-              <div className='bg-white rounded-xl border p-5 shadow-sm space-y-4'>
+              <div className='      rounded-xl border p-5 shadow-sm space-y-4'>
                 <div>
                   <p className='text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2'>
                     Giá bán
@@ -118,7 +118,7 @@ export function ViewBookDialog({ open, onOpenChange, book }: ViewBookDialogProps
                 </div>
               </div>
 
-              <div className='bg-white rounded-xl border p-5 shadow-sm space-y-4'>
+              <div className='      rounded-xl border p-5 shadow-sm space-y-4'>
                 <p className='text-sm font-semibold text-slate-500 uppercase tracking-wider'>
                   Chỉ số hiển thị
                 </p>
@@ -155,7 +155,7 @@ export function ViewBookDialog({ open, onOpenChange, book }: ViewBookDialogProps
             </div>
 
             <div className='flex-1 space-y-6 w-full'>
-              <div className='bg-white rounded-xl border p-6 shadow-sm'>
+              <div className='      rounded-xl border p-6 shadow-sm'>
                 <h1 className='text-2xl font-bold text-slate-900 leading-snug mb-2'>
                   {book.title}
                 </h1>
@@ -181,7 +181,7 @@ export function ViewBookDialog({ open, onOpenChange, book }: ViewBookDialogProps
                 </div>
               </div>
 
-              <div className='bg-white rounded-xl border p-6 shadow-sm space-y-5'>
+              <div className='      rounded-xl border p-6 shadow-sm space-y-5'>
                 <div className='flex items-center gap-2 text-primary font-semibold border-b pb-3'>
                   <Layers className='w-5 h-5 text-brand-green' />
                   {/* Bỏ chữ "3. " */}
@@ -246,14 +246,14 @@ export function ViewBookDialog({ open, onOpenChange, book }: ViewBookDialogProps
                 </div>
               </div>
 
-              <div className='bg-white rounded-xl border p-6 shadow-sm space-y-4'>
+              <div className='      rounded-xl border p-6 shadow-sm space-y-4'>
                 <div className='flex items-center gap-2 text-primary font-semibold border-b pb-3'>
                   <Info className='w-5 h-5 text-brand-green' />
                   {/* Bỏ chữ "4. " */}
                   <span>Thông số kỹ thuật</span>
                 </div>
                 <div className='grid grid-cols-2 sm:grid-cols-3 gap-4'>
-                  <div className='bg-slate-50 p-3 rounded-lg border border-slate-100'>
+                  <div className='     p-3 rounded-lg border border-slate-100'>
                     <p className='text-xs text-slate-500 mb-1'>Định dạng</p>
                     <p className='text-sm font-semibold text-slate-800'>
                       {book.format
@@ -261,31 +261,31 @@ export function ViewBookDialog({ open, onOpenChange, book }: ViewBookDialogProps
                         : t('common.na')}
                     </p>
                   </div>
-                  <div className='bg-slate-50 p-3 rounded-lg border border-slate-100'>
+                  <div className='     p-3 rounded-lg border border-slate-100'>
                     <p className='text-xs text-slate-500 mb-1'>Ngôn ngữ</p>
                     <p className='text-sm font-semibold text-slate-800'>
                       {book.language || t('common.na')}
                     </p>
                   </div>
-                  <div className='bg-slate-50 p-3 rounded-lg border border-slate-100'>
+                  <div className='     p-3 rounded-lg border border-slate-100'>
                     <p className='text-xs text-slate-500 mb-1'>Số trang</p>
                     <p className='text-sm font-semibold text-slate-800'>
                       {book.pageCount || t('common.na')}
                     </p>
                   </div>
-                  <div className='bg-slate-50 p-3 rounded-lg border border-slate-100'>
+                  <div className='     p-3 rounded-lg border border-slate-100'>
                     <p className='text-xs text-slate-500 mb-1'>Năm xuất bản</p>
                     <p className='text-sm font-semibold text-slate-800'>
                       {book.publicationYear || t('common.na')}
                     </p>
                   </div>
-                  <div className='bg-slate-50 p-3 rounded-lg border border-slate-100'>
+                  <div className='     p-3 rounded-lg border border-slate-100'>
                     <p className='text-xs text-slate-500 mb-1'>Kích thước</p>
                     <p className='text-sm font-semibold text-slate-800'>
                       {book.dimensions || t('common.na')}
                     </p>
                   </div>
-                  <div className='bg-slate-50 p-3 rounded-lg border border-slate-100'>
+                  <div className='     p-3 rounded-lg border border-slate-100'>
                     <p className='text-xs text-slate-500 mb-1'>Trọng lượng</p>
                     <p className='text-sm font-semibold text-slate-800'>
                       {book.weight ? `${book.weight} gram` : t('common.na')}
@@ -297,14 +297,14 @@ export function ViewBookDialog({ open, onOpenChange, book }: ViewBookDialogProps
                   <p className='text-xs font-semibold text-slate-400 mb-2 uppercase'>
                     Mô tả sản phẩm
                   </p>
-                  <div className='text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-lg border border-slate-100 whitespace-pre-wrap'>
+                  <div className='text-sm text-slate-600 leading-relaxed      p-4 rounded-lg border border-slate-100 whitespace-pre-wrap'>
                     {book.description || <span className='italic'>Không có mô tả.</span>}
                   </div>
                 </div>
               </div>
 
               {book.images && book.images.length > 0 && (
-                <div className='bg-white rounded-xl border p-6 shadow-sm space-y-4'>
+                <div className='      rounded-xl border p-6 shadow-sm space-y-4'>
                   <div className='flex items-center gap-2 text-primary font-semibold border-b pb-3'>
                     <ImageIcon className='w-5 h-5 text-brand-green' />
                     <span>Thư viện ảnh</span>
@@ -316,7 +316,7 @@ export function ViewBookDialog({ open, onOpenChange, book }: ViewBookDialogProps
                       return (
                         <div
                           key={index}
-                          className='aspect-square rounded-lg border overflow-hidden bg-slate-50'
+                          className='aspect-square rounded-lg border overflow-hidden     '
                         >
                           <img
                             src={imgUrl}

@@ -152,4 +152,7 @@ public class UserEntity extends BaseEntity implements UserDetails {
                 .build();
         wishlists.add(wishlist);
     }
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private MembershipEntity membership;
 }

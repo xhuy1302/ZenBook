@@ -165,6 +165,7 @@ public enum ErrorCode {
     PROMOTION_STATUS_INVALID(400, "promotion.status_invalid", HttpStatus.BAD_REQUEST),
 
     ALREADY_CHECKED_IN(16010, "already.checked.in", HttpStatus.BAD_REQUEST),
+    ROOM_NOT_FOUND(16100, "room.not.found", HttpStatus.NOT_FOUND),
     ;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

@@ -333,10 +333,17 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     try {
       const res = await authContext.login(data.email, data.password)
       toast.success(t('login.messages.success'))
+
       const roles = res.user.roles || []
+
+      // Kiểm tra quyền và chuyển hướng tương ứng
       if (roles.includes('ADMIN') || roles.includes('ROLE_ADMIN')) {
         navigate('/dashboard')
+      } else if (roles.includes('STAFF') || roles.includes('ROLE_STAFF')) {
+        // 👉 Nếu là STAFF thì bay thẳng vào trang Chat hỗ trợ
+        navigate('/dashboard/support-chat')
       } else {
+        // User bình thường thì về trang chủ
         navigate('/')
       }
     } catch (error: unknown) {

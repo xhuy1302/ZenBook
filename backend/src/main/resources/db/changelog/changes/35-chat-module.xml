@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- 1. TẠO BẢNG CHAT_ROOM -->
+    <changeSet id="004-create-chat-room-table" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="chat_room"/></not>
+        </preConditions>
+
+        <createTable tableName="chat_room">
+            <!-- ID phải là VARCHAR(36) để khớp với BaseEntity UUID -->
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="admin_id" type="VARCHAR(36)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="chat_room" baseColumnNames="user_id"
+                                 constraintName="fk_chat_room_user"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- 2. TẠO BẢNG MESSAGES -->
+    <changeSet id="005-create-messages-table" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="messages"/></not>
+        </preConditions>
+
+        <createTable tableName="messages">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <!-- room_id PHẢI LÀ VARCHAR(36) để khớp với id của chat_room -->
+            <column name="room_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sender_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="receiver_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message_type" type="VARCHAR(20)" defaultValue="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="SENT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- THÊM KHÓA NGOẠI (Đây là chỗ vừa nãy bị lỗi) -->
+        <addForeignKeyConstraint baseTableName="messages" baseColumnNames="room_id"
+                                 constraintName="fk_message_room"
+                                 referencedTableName="chat_room" referencedColumnNames="id"
+                                 onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="messages" baseColumnNames="sender_id"
+                                 constraintName="fk_message_sender"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="messages" baseColumnNames="receiver_id"
+                                 constraintName="fk_message_receiver"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Sửa lại ChangeSet thêm cột updated_at -->
+    <changeSet id="20260501-add-updated-at-to-messages" author="vuxuanhuy">
+        <!-- 👉 THÊM PRECONDITIONS ĐỂ KIỂM TRA TRƯỚC -->
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="chat_room" columnName="updated_at"/>
+            </not>
+            <not>
+                <columnExists tableName="messages" columnName="updated_at"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="chat_room">
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="messages">
+            <column name="updated_at" type="DATETIME" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </addColumn>
+    </changeSet>
+
+    <!-- 3. THÊM TRẠNG THÁI CHO TICKET (PHỤC VỤ PHASE 2: OPEN/CLOSED) -->
+    <changeSet id="20260501-add-status-to-chat-room" author="xuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="chat_room" columnName="status"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="chat_room">
+            <!-- Mặc định khi khách nhắn tin là phòng chat tự động MỞ -->
+            <column name="status" type="VARCHAR(20)" defaultValue="OPEN">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

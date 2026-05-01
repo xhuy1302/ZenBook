@@ -86,10 +86,10 @@ export function CreateCouponForm({ onSuccess, onCancel }: CreateCouponFormProps)
       onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
       className='flex flex-col h-full overflow-hidden'
     >
-      <div className='flex-1 overflow-y-auto px-6 py-6 custom-scrollbar bg-slate-50/50'>
+      <div className='flex-1 overflow-y-auto px-6 py-6 custom-scrollbar         /50'>
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8'>
           <div className='space-y-6'>
-            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4'>
+            <section className='  p-5 rounded-xl border border-slate-200 shadow-sm space-y-4'>
               <Label className='text-base font-bold text-slate-800'>
                 Bạn muốn tạo loại mã nào?
               </Label>
@@ -110,7 +110,7 @@ export function CreateCouponForm({ onSuccess, onCancel }: CreateCouponFormProps)
                       />
                       <Label
                         htmlFor='type-order'
-                        className='flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-slate-50 peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-brand-green/5 cursor-pointer transition-all'
+                        className='flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:         peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-brand-green/5 cursor-pointer transition-all'
                       >
                         <Percent className='mb-2 h-7 w-7 text-orange-500' />
                         <span className='font-semibold text-sm'>Giảm Sách</span>
@@ -124,7 +124,7 @@ export function CreateCouponForm({ onSuccess, onCancel }: CreateCouponFormProps)
                       />
                       <Label
                         htmlFor='type-shipping'
-                        className='flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-slate-50 peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-brand-green/5 cursor-pointer transition-all'
+                        className='flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:         peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-brand-green/5 cursor-pointer transition-all'
                       >
                         <Truck className='mb-2 h-7 w-7 text-blue-500' />
                         <span className='font-semibold text-sm'>Freeship</span>
@@ -135,7 +135,7 @@ export function CreateCouponForm({ onSuccess, onCancel }: CreateCouponFormProps)
               />
             </section>
 
-            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5'>
+            <section className='  p-5 rounded-xl border border-slate-200 shadow-sm space-y-5'>
               <div className='flex items-center gap-2 text-brand-green font-bold text-base border-b pb-3'>
                 <Ticket className='w-5 h-5' />
                 <span>Cấu hình giá trị mã</span>
@@ -215,7 +215,7 @@ export function CreateCouponForm({ onSuccess, onCancel }: CreateCouponFormProps)
           </div>
 
           <div className='space-y-6'>
-            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5'>
+            <section className='  p-5 rounded-xl border border-slate-200 shadow-sm space-y-5'>
               <div className='flex items-center gap-2 text-brand-green font-bold text-base border-b pb-3'>
                 <Settings2 className='w-5 h-5' />
                 <span>Điều kiện áp dụng</span>
@@ -281,7 +281,7 @@ export function CreateCouponForm({ onSuccess, onCancel }: CreateCouponFormProps)
               </div>
             </section>
 
-            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5'>
+            <section className='  p-5 rounded-xl border border-slate-200 shadow-sm space-y-5'>
               <div className='flex items-center gap-2 text-brand-green font-bold text-base border-b pb-3'>
                 <CalendarDays className='w-5 h-5' />
                 <span>Hiệu lực thời gian</span>
@@ -310,7 +310,7 @@ export function CreateCouponForm({ onSuccess, onCancel }: CreateCouponFormProps)
         </div>
       </div>
 
-      <div className='p-5 border-t bg-white flex justify-end gap-3 shrink-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.02)] z-10'>
+      <div className='p-5 border-t   flex justify-end gap-3 shrink-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.02)] z-10'>
         <Button type='button' variant='outline' onClick={onCancel} className='px-6 h-10'>
           {t('common.cancel', 'Hủy')}
         </Button>

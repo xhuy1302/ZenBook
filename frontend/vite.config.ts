@@ -12,6 +12,11 @@ export default defineConfig({
       namespaceResolution: 'basename'
     })
   ],
+  // 👉 THÊM VÀO ĐÂY: Sửa lỗi "global is not defined" và "process is not defined"
+  define: {
+    global: 'window',
+    'process.env': {}
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

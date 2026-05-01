@@ -170,10 +170,10 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
 
       <form
         onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
-        className='flex flex-col w-full bg-white relative'
+        className='flex flex-col w-full relative'
       >
         {/* ── TOP BAR (Chỉ giữ lại Trạng thái & Các nút chức năng) ──────────────── */}
-        <div className='sticky top-0 z-[50] flex items-center justify-between px-5 py-3 border-b border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm'>
+        <div className='sticky top-0 z-[50] flex items-center justify-between px-5 py-3 border-b border-slate-200  /95 backdrop-blur-sm shadow-sm'>
           <div className='flex items-center'>
             {/* Giữ lại Nhãn trạng thái để Admin biết đang ở chế độ tạo nháp */}
             <div className='flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1'>
@@ -233,7 +233,7 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
         {/* ── BODY ────────────────────────────────────────── */}
         <div className='flex flex-col md:flex-row items-stretch'>
           {/* LEFT: Main editor area */}
-          <div className='flex flex-1 flex-col bg-slate-50/40 px-8 py-6 min-h-[800px]'>
+          <div className='flex flex-1 flex-col px-8 py-6 min-h-[800px]'>
             <div className='mb-1'>
               <FieldLabel required>Tiêu đề bài viết</FieldLabel>
               <input
@@ -263,7 +263,7 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
                   'fields.summary.placeholder',
                   'Mô tả ngắn gọn nội dung bài viết, hiển thị ở trang danh sách...'
                 )}
-                className='resize-none rounded-xl border-slate-200 bg-white text-sm placeholder:text-slate-400 focus-visible:ring-indigo-500/25 focus-visible:border-indigo-400 transition-all'
+                className='resize-none rounded-xl border-slate-200 text-sm placeholder:text-slate-400 focus-visible:ring-indigo-500/25 focus-visible:border-indigo-400 transition-all'
               />
             </div>
 
@@ -374,7 +374,7 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
           </div>
 
           {/* RIGHT: Metadata sidebar */}
-          <aside className='w-72 shrink-0 border-l border-slate-200 bg-white/50 pb-10'>
+          <aside className='w-72 shrink-0 border-l border-slate-200  /50 pb-10'>
             <SideSection
               icon={UploadCloud}
               title='Ảnh bìa'
@@ -442,7 +442,7 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
                     name='categoryId'
                     render={({ field }) => (
                       <Select value={field.value || ''} onValueChange={field.onChange}>
-                        <SelectTrigger className='h-9 rounded-lg border-slate-200 text-xs focus:ring-indigo-500/25 bg-white'>
+                        <SelectTrigger className='h-9 rounded-lg border-slate-200 text-xs focus:ring-indigo-500/25  '>
                           <SelectValue placeholder={t('fields.category.placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
@@ -463,7 +463,7 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
                     name='status'
                     render={({ field }) => (
                       <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className='h-9 rounded-lg border-slate-200 text-xs focus:ring-indigo-500/25 bg-white'>
+                        <SelectTrigger className='h-9 rounded-lg border-slate-200 text-xs focus:ring-indigo-500/25'>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -499,7 +499,7 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
                                 'cursor-pointer text-[11px] transition-all duration-150',
                                 active
                                   ? 'bg-indigo-600 hover:bg-indigo-700 border-indigo-600'
-                                  : 'hover:border-indigo-400 hover:text-indigo-600 bg-white'
+                                  : 'hover:border-indigo-400 hover:text-indigo-600'
                               )}
                               onClick={() =>
                                 field.onChange(
@@ -544,7 +544,7 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
                                 'cursor-pointer text-[11px] transition-all duration-150',
                                 active
                                   ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
-                                  : 'hover:border-emerald-400 hover:text-emerald-600 bg-white'
+                                  : 'hover:border-emerald-400 hover:text-emerald-600'
                               )}
                               onClick={() =>
                                 field.onChange(
@@ -573,7 +573,7 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
                   <Input
                     {...form.register('metaTitle')}
                     placeholder={t('fields.metaTitle.placeholder', 'SEO title...')}
-                    className='h-8 rounded-lg border-slate-200 text-xs placeholder:text-slate-400 focus-visible:ring-amber-500/25 focus-visible:border-amber-400 bg-white'
+                    className='h-8 rounded-lg border-slate-200 text-xs placeholder:text-slate-400 focus-visible:ring-amber-500/25 focus-visible:border-amber-400  '
                   />
                 </div>
                 <div>
@@ -582,7 +582,7 @@ export function CreateNewsForm({ onSuccess }: CreateNewsFormProps) {
                     rows={2}
                     {...form.register('metaDescription')}
                     placeholder={t('fields.metaDescription.placeholder', 'SEO description...')}
-                    className='resize-none rounded-lg border-slate-200 text-xs placeholder:text-slate-400 focus-visible:ring-amber-500/25 focus-visible:border-amber-400 bg-white'
+                    className='resize-none rounded-lg border-slate-200 text-xs placeholder:text-slate-400 focus-visible:ring-amber-500/25 focus-visible:border-amber-400  '
                   />
                 </div>
               </div>

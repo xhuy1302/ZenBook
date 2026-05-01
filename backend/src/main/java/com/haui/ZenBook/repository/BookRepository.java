@@ -66,17 +66,19 @@ public interface BookRepository extends JpaRepository<BookEntity, String>, JpaSp
     List<BookEntity> findTop10ByStockQuantityLessThanEqualOrderByStockQuantityAsc(int threshold);
 
     @Query("""
-        SELECT DISTINCT new com.haui.ZenBook.chatbot.tool.dto.AiBookDto$SearchResponse(
-            b.id, 
-            b.title, 
-            b.salePrice, 
-            b.stockQuantity
-        )
-        FROM BookEntity b 
-        LEFT JOIN b.authors a
-        WHERE (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
-           OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
-          AND b.status = 'ACTIVE'
-    """)
+    SELECT DISTINCT new com.haui.ZenBook.chatbot.tool.dto.AiBookDto$SearchResponse(
+        b.id, 
+        b.title, 
+        b.salePrice, 
+        b.stockQuantity
+    )
+    FROM BookEntity b 
+    LEFT JOIN b.authors a
+    LEFT JOIN b.categories c
+    WHERE (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+       OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+       OR LOWER(c.categoryName) LIKE LOWER(CONCAT('%', :keyword, '%')))
+      AND b.status = 'ACTIVE'
+""")
     List<AiBookDto.SearchResponse> searchBooksForAi(@Param("keyword") String keyword, Pageable pageable);
 }

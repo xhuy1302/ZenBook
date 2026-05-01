@@ -1,12 +1,13 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { useContext } from 'react'
+import { useContext, type ReactNode } from 'react'
 import { AuthContext } from '@/context/AuthContext'
 
 interface ProtectedRouteProps {
   allowedRoles?: string[]
+  children?: ReactNode // 👉 Khai báo thêm children để hết lỗi TypeScript
 }
 
-const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const authContext = useContext(AuthContext)
   const location = useLocation()
 
@@ -25,12 +26,13 @@ const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
 
     if (!hasRequiredRole) {
       // Có đăng nhập nhưng KHÔNG ĐỦ QUYỀN -> Đá về trang báo lỗi 403
-      return <Navigate to='/unauthorized' replace />
+      return <Navigate to='/unauthorized' replace /> // Đảm bảo bạn có route /unauthorized nhé
     }
   }
 
-  // 3. HỢP LỆ -> Cho phép render nội dung trang con (Outlet)
-  return <Outlet />
+  // 3. HỢP LỆ -> Cho phép render nội dung trang con
+  // 👉 Nếu có truyền children thì render children, nếu không thì render Outlet
+  return children ? <>{children}</> : <Outlet />
 }
 
 export default ProtectedRoute

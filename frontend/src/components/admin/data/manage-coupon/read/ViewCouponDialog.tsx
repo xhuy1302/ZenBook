@@ -33,7 +33,7 @@ export function ViewCouponDialog({ open, onOpenChange, coupon }: ViewCouponDialo
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-[850px] p-0 overflow-hidden flex flex-col max-h-[90vh]'>
-        <DialogHeader className='px-6 pt-6 pb-4 border-b bg-slate-50/50 shrink-0'>
+        <DialogHeader className='px-6 pt-6 pb-4 border-b   shrink-0'>
           <div className='flex items-center justify-between'>
             <DialogTitle className='text-xl font-bold tracking-tight text-slate-800'>
               {t('dialog.viewTitle', 'Chi tiết Mã giảm giá')}
@@ -56,7 +56,7 @@ export function ViewCouponDialog({ open, onOpenChange, coupon }: ViewCouponDialo
                   <span>{t('form.section1', '1. Thông tin cấu hình')}</span>
                 </div>
 
-                <div className='p-5 border rounded-lg bg-white space-y-5 shadow-sm'>
+                <div className='p-5 border rounded-lg   space-y-5 shadow-sm'>
                   {/* Mã Code nổi bật */}
                   <div className='space-y-2'>
                     <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>
@@ -131,7 +131,7 @@ export function ViewCouponDialog({ open, onOpenChange, coupon }: ViewCouponDialo
                   <span>{t('form.section2', '2. Điều kiện & Hạn mức')}</span>
                 </div>
 
-                <div className='p-5 border rounded-lg bg-white space-y-4 shadow-sm'>
+                <div className='p-5 border rounded-lg   space-y-4 shadow-sm'>
                   <div className='space-y-2'>
                     <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>
                       {t('form.minOrder', 'Đơn tối thiểu')}
@@ -179,7 +179,7 @@ export function ViewCouponDialog({ open, onOpenChange, coupon }: ViewCouponDialo
                   <span>{t('form.section3', '3. Thời gian hiệu lực')}</span>
                 </div>
 
-                <div className='p-5 border rounded-lg bg-white grid grid-cols-2 gap-4 shadow-sm'>
+                <div className='p-5 border rounded-lg   grid grid-cols-2 gap-4 shadow-sm'>
                   <div className='space-y-2'>
                     <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>
                       {t('form.startDate', 'Bắt đầu')}

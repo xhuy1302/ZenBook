@@ -12,7 +12,8 @@ import {
   AudioWaveform,
   GalleryVerticalEnd,
   Package,
-  Gift
+  Gift,
+  Headphones // 👉 Thêm icon này
 } from 'lucide-react'
 import * as React from 'react'
 import { useMemo, useContext } from 'react'
@@ -32,20 +33,31 @@ import {
 } from '@/components/ui/sidebar'
 import { AuthContext } from '@/context/AuthContext'
 import { orderService } from '@/services/order/order.api'
+import { getAdminRoomsApi } from '@/services/chat/chat.api' // 👉 Import API Chat
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  // 👉 SỬA Ở ĐÂY: Lấy thêm i18n để bắt được sự kiện thay đổi ngôn ngữ
   const { t, i18n } = useTranslation('sidebar')
-
   const authContext = useContext(AuthContext)
   const user = authContext?.user
 
+  // Lấy số đơn hàng Pending
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ['orders', 'sidebar-count'],
     queryFn: () => orderService.getCountPending(),
     refetchInterval: 30000,
     enabled: !!user
   })
+
+  // 👉 Tự động lấy danh sách phòng chat mỗi 15s để đếm tin nhắn chưa đọc
+  const { data: chatRooms = [] } = useQuery({
+    queryKey: ['admin-chat-rooms', 'sidebar-badge'],
+    queryFn: getAdminRoomsApi,
+    refetchInterval: 15000, // Cập nhật nhanh hơn đơn hàng một chút
+    enabled: !!user
+  })
+
+  // Tính tổng số lượng tin chưa đọc
+  const totalUnreadChat = chatRooms.reduce((sum, room) => sum + (room.unreadCount || 0), 0)
 
   // Dữ liệu cho TeamSwitcher
   const teams = useMemo(
@@ -61,11 +73,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         plan: t('teams.logistics.plan')
       }
     ],
-    // 👉 SỬA Ở ĐÂY: Thêm i18n.language vào dependency
     [t, i18n.language]
   )
 
-  // Danh sách menu hệ thống (bên dưới NavMain)
+  // Danh sách menu hệ thống
   const systemMenus = useMemo(
     () => [
       { name: t('systemMenus.accounts'), url: '/dashboard/users', icon: Users },
@@ -76,11 +87,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { name: t('systemMenus.tags'), url: '/dashboard/tags', icon: Tags },
       { name: t('systemMenus.settings'), url: '/dashboard/settings', icon: Settings2 }
     ],
-    // 👉 SỬA Ở ĐÂY: Thêm i18n.language
     [t, i18n.language]
   )
 
-  // Nav chính (Quản lý Sách, Kho, Đơn hàng)
+  // Nav chính
   const navMainWithBadge = useMemo(
     () => [
       {
@@ -110,10 +120,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: '/dashboard/orders',
         icon: ShoppingCart,
         badge: pendingCount > 0 ? String(pendingCount) : undefined
+      },
+      // 👉 MỤC HỖ TRỢ KHÁCH HÀNG KÈM BADGE
+      {
+        title: t('navMain.support', { defaultValue: 'Hỗ trợ khách hàng' }),
+        url: '/dashboard/support-chat',
+        icon: Headphones,
+        badge: totalUnreadChat > 0 ? String(totalUnreadChat) : undefined
       }
     ],
-    // 👉 SỬA Ở ĐÂY: Thêm i18n.language
-    [t, i18n.language, pendingCount]
+    [t, i18n.language, pendingCount, totalUnreadChat] // Nhớ thêm totalUnreadChat vào dependencies
   )
 
   const currentUser = {

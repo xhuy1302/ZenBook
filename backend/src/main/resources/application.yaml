@@ -5,14 +5,28 @@ spring:
     openai:
       base-url: http://127.0.0.1:20128
       api-key: sk-94fdd5f593f1755d-1qubii-79470535
-      client-type: rest_client # Dùng RestClient cho ổn định
+      client-type: rest_client
       chat:
         options:
           model: zenbook-chat
+
+      # 👉 1. TẮT HOÀN TOÀN TÍNH NĂNG EMBEDDING CỦA OPENAI / 9ROUTER
+      embedding:
+        enabled: false
+
     retry:
       max-attempts: 3
       backoff:
         initial-interval: 1s
+
+    vectorstore:
+      redis:
+        # 👉 2. BẮT BUỘC ĐỔI TÊN INDEX ĐỂ REDIS TẠO BẢNG MỚI
+        index: zenbook-rag-local
+        uri: "redis://localhost:6379"
+        prefix: "zenbook-doc-local:"
+        initialize-schema: true
+
   datasource:
     url: jdbc:mysql://localhost:3306/zenbook_store_db
     username: root
