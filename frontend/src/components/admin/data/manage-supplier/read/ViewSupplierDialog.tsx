@@ -26,7 +26,7 @@ function InfoCard({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-xl border border-slate-200/80 bg-slate-50/60 p-3.5 transition-colors hover:bg-slate-50',
+        'flex items-start gap-3 rounded-xl border border-slate-200/80 p-3.5 transition-colors hover:bg-slate-50',
         className
       )}
     >
@@ -86,13 +86,13 @@ export function ViewSupplierDialog({
             style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 60%, #a855f7 100%)' }}
           >
             {/* Decorative orbs */}
-            <div className='pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10' />
-            <div className='pointer-events-none absolute  right-12 top-8  h-12 w-12 rounded-full bg-white/06' />
-            <div className='pointer-events-none absolute -left-4  bottom-0  h-20 w-20 rounded-full bg-white/06' />
+            <div className='pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full ' />
+            <div className='pointer-events-none absolute  right-12 top-8  h-12 w-12 rounded-full ' />
+            <div className='pointer-events-none absolute -left-4  bottom-0  h-20 w-20 rounded-full' />
 
             <div className='relative flex items-center gap-4'>
               {/* Avatar với chữ viết tắt */}
-              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-white/30 bg-white/20 text-lg font-bold text-white backdrop-blur-sm'>
+              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-white/30 text-lg font-bold text-white backdrop-blur-sm'>
                 {getInitials(supplier.name)}
               </div>
 
@@ -165,7 +165,7 @@ export function ViewSupplierDialog({
         </div>
 
         {/* ── FOOTER ───────────────────────────────────────────────────────── */}
-        <div className='flex items-center justify-end gap-2.5 border-t border-slate-100 bg-white px-5 py-4'>
+        <div className='flex items-center justify-end gap-2.5 border-t border-slate-100 px-5 py-4'>
           <Button
             variant='outline'
             onClick={() => onOpenChange(false)}

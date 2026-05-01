@@ -187,4 +187,57 @@ public class ChatbotToolConfig {
                 o.getOrderCode(), o.getCreatedAt(), o.getStatus(), o.getFinalTotal());
     }
 
+    public record UpdateCartRequest(String userId, String bookId, Integer quantity) {}
+
+    @Bean("updateCartTool")
+    @Description("Cập nhật lại số lượng sách trong giỏ hàng. Cần userId, bookId và số lượng mới.")
+    public Function<UpdateCartRequest, String> updateCartTool(CartService cartService, com.haui.ZenBook.repository.UserRepository userRepository) {
+        return request -> {
+            try {
+                if (request.userId() == null || request.userId().equals("GUEST")) return "Vui lòng đăng nhập.";
+                var user = userRepository.findById(request.userId()).orElseThrow();
+                var cart = cartService.updateCartItem(user.getEmail(), request.bookId(), request.quantity());
+                return "Cập nhật thành công. Số lượng mới: " + request.quantity() + ". Tổng giỏ: " + cart.getTotalPrice() + "đ";
+            } catch (Exception e) { return "Lỗi: " + e.getMessage(); }
+        };
+    }
+
+    // 👉 2. Tool Xóa sách khỏi giỏ
+    public record RemoveCartRequest(String userId, String bookId) {}
+
+    @Bean("removeCartTool")
+    @Description("Xóa hoàn toàn một cuốn sách khỏi giỏ hàng. Cần userId và bookId.")
+    public Function<RemoveCartRequest, String> removeCartTool(CartService cartService, com.haui.ZenBook.repository.UserRepository userRepository) {
+        return request -> {
+            try {
+                if (request.userId() == null || request.userId().equals("GUEST")) return "Vui lòng đăng nhập.";
+                var user = userRepository.findById(request.userId()).orElseThrow();
+                var cart = cartService.removeCartItem(user.getEmail(), request.bookId());
+                return "Đã xóa sách khỏi giỏ. Tổng giỏ hiện tại: " + cart.getTotalPrice() + "đ";
+            } catch (Exception e) { return "Lỗi: " + e.getMessage(); }
+        };
+    }
+
+    public record SuggestBookRequest(String bookId) {}
+
+    @Bean("suggestRelatedBooksTool")
+    @Description("Tìm các cuốn sách liên quan (cùng thể loại) để gợi ý bán chéo (Upsell) cho khách hàng.")
+    public Function<SuggestBookRequest, String> suggestRelatedBooksTool(com.haui.ZenBook.repository.BookRepository bookRepository) {
+        return request -> {
+            try {
+                var bookOpt = bookRepository.findById(request.bookId());
+                if (bookOpt.isEmpty()) return "Không tìm thấy sách gốc.";
+
+                // Lấy thể loại của sách đang xem
+                var categories = bookOpt.get().getCategories();
+                if (categories.isEmpty()) return "Sách chưa có phân loại.";
+
+                String categoryName = categories.iterator().next().getCategoryName();
+
+                // Giả lập Query (Bạn có thể viết hàm trong repo: findTop3ByCategoryNameAndIdNot)
+                return "Gợi ý cho sách " + bookOpt.get().getTitle() + " (Thể loại: " + categoryName + "): Hãy bảo khách thử xem thêm các sách nổi bật cùng thể loại này. (Tự tìm bằng searchBookTool theo thể loại).";
+            } catch (Exception e) { return "Lỗi hệ thống: " + e.getMessage(); }
+        };
+    }
+
 }

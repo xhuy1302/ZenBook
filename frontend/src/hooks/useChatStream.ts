@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { useCart } from '@/context/CartContext' // 👈 Import thêm cái này
+import { useCart } from '@/context/CartContext'
 
 export type MessageRole = 'user' | 'bot'
 
@@ -12,7 +12,7 @@ export interface ChatMessage {
 
 export const useChatStream = () => {
   const { user } = useAuth()
-  const { refreshCartFromServer } = useCart() // 👈 Lấy hàm refresh từ context ra
+  const { refreshCartFromServer } = useCart()
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -22,7 +22,18 @@ export const useChatStream = () => {
     }
   ])
   const [isTyping, setIsTyping] = useState<boolean>(false)
-  const [sessionId] = useState<number | null>(null)
+
+  // 👉 SỬA LỖI MẤT TRÍ NHỚ: Khởi tạo/Lấy SessionId từ sessionStorage
+  const [sessionId] = useState<string>(() => {
+    let savedId = sessionStorage.getItem('chat_session_id')
+    if (!savedId) {
+      // Vì backend của bạn dùng Long cho sessionId, ở đây ta dùng 1 số ngẫu nhiên lớn
+      savedId = Math.floor(Math.random() * 1000000000).toString()
+      sessionStorage.setItem('chat_session_id', savedId)
+    }
+    return savedId
+  })
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   const scrollToBottom = () => {
@@ -47,16 +58,13 @@ export const useChatStream = () => {
   const sendMessage = async (text: string) => {
     if (!text.trim()) return
 
-    // 1. Hiển thị tin nhắn User
     const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: text }
     setMessages((prev) => [...prev, userMsg])
     setIsTyping(true)
 
-    // 2. Chuẩn bị tin nhắn Bot trống
     const botMsgId = (Date.now() + 1).toString()
     setMessages((prev) => [...prev, { id: botMsgId, role: 'bot', content: '' }])
 
-    // Biến để lưu lại toàn bộ nội dung Bot trả về để kiểm tra từ khóa
     let accumulatedContent = ''
 
     try {
@@ -65,7 +73,7 @@ export const useChatStream = () => {
         headers: getAuthHeaders(),
         body: JSON.stringify({
           message: text,
-          sessionId: sessionId,
+          sessionId: sessionId, // 👉 BÂY GIỜ ĐÃ CÓ ID CHUẨN ĐỂ GỬI LÊN
           userId: user?.id || null
         })
       })
@@ -83,37 +91,30 @@ export const useChatStream = () => {
 
         if (value) {
           const chunk = decoder.decode(value, { stream: true })
-          const lines = chunk.split('\n')
-          let pieceOfText = ''
-
-          lines.forEach((line) => {
-            if (line.startsWith('data:')) {
-              let content = line.substring(5).trim()
-              content = content.replace(/\\n/g, '\n').replace(/\\"/g, '"')
-              pieceOfText += content
-            } else if (line.trim() !== '' && !line.startsWith('data:')) {
-              pieceOfText += line
-            }
-          })
+          // 👉 Tối ưu hóa việc bóc tách chuỗi (Streaming)
+          const pieceOfText = chunk.replace(/^data:/gm, '').trim()
 
           if (pieceOfText) {
-            accumulatedContent += pieceOfText // Cộng dồn nội dung
+            accumulatedContent += pieceOfText
             setMessages((prev) =>
               prev.map((msg) =>
-                msg.id === botMsgId ? { ...msg, content: msg.content + pieceOfText } : msg
+                msg.id === botMsgId ? { ...msg, content: accumulatedContent } : msg
               )
             )
           }
         }
       }
 
-      // ── XỬ LÝ REFRESH GIỎ HÀNG SAU KHI STREAM XONG ──
+      // XỬ LÝ REFRESH GIỎ HÀNG
       const lowerContent = accumulatedContent.toLowerCase()
-
-      // Nếu trong câu trả lời có từ khóa xác nhận đã thêm thành công
-      if (lowerContent.includes('thành công') || lowerContent.includes('đã thêm')) {
-        console.log('AI xác nhận thêm giỏ hàng. Đang làm mới dữ liệu...')
-        await refreshCartFromServer() // 👈 Gọi hàm của CartContext để update UI toàn app
+      // Bắt thêm từ khóa "xóa" hoặc "cập nhật" để refresh UI
+      if (
+        lowerContent.includes('thành công') ||
+        lowerContent.includes('đã thêm') ||
+        lowerContent.includes('đã xóa') ||
+        lowerContent.includes('đã cập nhật')
+      ) {
+        await refreshCartFromServer()
       }
     } catch (error: any) {
       setMessages((prev) =>

@@ -91,14 +91,14 @@ export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormPr
   return (
     <form
       onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
-      className='flex flex-col h-full overflow-hidden bg-slate-50/50'
+      className='flex flex-col h-full overflow-hidden '
     >
       <div className='flex-1 overflow-y-auto p-6 custom-scrollbar'>
         {/* LƯỚI 2 CỘT CÂN XỨNG */}
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8'>
           {/* ================= CỘT TRÁI (LOẠI MÃ & CẤU HÌNH TIỀN) ================= */}
           <div className='flex flex-col gap-6'>
-            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-4'>
+            <section className='  p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-4'>
               <Label className='text-base font-bold text-slate-800'>Loại ưu đãi</Label>
               <Controller
                 control={form.control}
@@ -117,7 +117,7 @@ export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormPr
                       />
                       <Label
                         htmlFor='edit-type-order'
-                        className='flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-slate-100 bg-white p-4 hover:bg-slate-50 peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-green-50/30 cursor-pointer transition-all'
+                        className='flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-slate-100   p-4 hover:bg-slate-50 peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-green-50/30 cursor-pointer transition-all'
                       >
                         <Percent className='h-6 w-6 text-orange-500' />
                         <span className='font-semibold text-sm text-slate-700'>Đơn hàng</span>
@@ -131,7 +131,7 @@ export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormPr
                       />
                       <Label
                         htmlFor='edit-type-shipping'
-                        className='flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-slate-100 bg-white p-4 hover:bg-slate-50 peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-green-50/30 cursor-pointer transition-all'
+                        className='flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-slate-100   p-4 hover:bg-slate-50 peer-data-[state=checked]:border-brand-green peer-data-[state=checked]:bg-green-50/30 cursor-pointer transition-all'
                       >
                         <Truck className='h-6 w-6 text-blue-500' />
                         <span className='font-semibold text-sm text-slate-700'>Vận chuyển</span>
@@ -142,7 +142,7 @@ export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormPr
               />
             </section>
 
-            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col gap-5'>
+            <section className='  p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col gap-5'>
               <div className='flex items-center gap-2 text-brand-green font-semibold border-b pb-3'>
                 <Ticket className='w-5 h-5' />
                 <span>{t('form.section1', '1. Cấu hình mã')}</span>
@@ -217,7 +217,7 @@ export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormPr
 
           {/* ================= CỘT PHẢI (ĐIỀU KIỆN & THỜI GIAN) ================= */}
           <div className='flex flex-col gap-6'>
-            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-5'>
+            <section className='  p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-5'>
               <div className='flex items-center gap-2 text-brand-green font-semibold border-b pb-3'>
                 <Settings2 className='w-5 h-5' />
                 <span>{t('form.section2', '2. Điều kiện áp dụng')}</span>
@@ -283,7 +283,7 @@ export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormPr
               </div>
             </section>
 
-            <section className='bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col gap-5'>
+            <section className='  p-5 rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col gap-5'>
               <div className='flex items-center gap-2 text-brand-green font-semibold border-b pb-3'>
                 <CalendarDays className='w-5 h-5' />
                 <span>{t('form.section3', '3. Hiệu lực & Trạng thái')}</span>
@@ -296,7 +296,7 @@ export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormPr
                   <Input
                     type='datetime-local'
                     {...form.register('startDate')}
-                    className='h-11 w-full bg-white text-slate-800 font-semibold border-slate-200 focus-visible:ring-brand-green/30 focus-visible:border-brand-green'
+                    className='h-11 w-full   text-slate-800 font-semibold border-slate-200 focus-visible:ring-brand-green/30 focus-visible:border-brand-green'
                   />
                 </div>
                 <div className='space-y-2'>
@@ -304,7 +304,7 @@ export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormPr
                   <Input
                     type='datetime-local'
                     {...form.register('endDate')}
-                    className='h-11 w-full bg-white text-slate-800 font-semibold border-slate-200 focus-visible:ring-brand-green/30 focus-visible:border-brand-green'
+                    className='h-11 w-full   text-slate-800 font-semibold border-slate-200 focus-visible:ring-brand-green/30 focus-visible:border-brand-green'
                   />
                 </div>
               </div>
@@ -343,7 +343,7 @@ export function EditCouponForm({ coupon, onSuccess, onCancel }: EditCouponFormPr
       </div>
 
       {/* FOOTER */}
-      <div className='p-5 border-t bg-white flex justify-end gap-3 shrink-0 z-10'>
+      <div className='p-5 border-t   flex justify-end gap-3 shrink-0 z-10'>
         <Button type='button' variant='outline' onClick={onCancel} className='px-6 h-10'>
           {t('common.cancel', 'Hủy')}
         </Button>

@@ -18,7 +18,7 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-[1100px] p-0 overflow-hidden flex flex-col h-[92vh]'>
-        <DialogHeader className='px-6 py-5 border-b bg-white shrink-0'>
+        <DialogHeader className='px-6 py-5 border-b      shrink-0'>
           <DialogTitle className='text-xl font-bold flex items-center gap-2 text-slate-800'>
             <Edit3 className='w-5 h-5 text-brand-green' />
             {t('book.dialog.editTitle')}

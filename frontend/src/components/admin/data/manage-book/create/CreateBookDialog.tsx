@@ -17,9 +17,9 @@ export function CreateBookDialog({ open, onOpenChange }: CreateBookDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* - [&>button.absolute]:hidden -> Ẩn nút X mặc định của Shadcn UI để dùng nút custom bên dưới
        */}
-      <DialogContent className='sm:max-w-[1100px] p-0 flex flex-col h-[90vh] overflow-hidden gap-0 bg-slate-50/50 [&>button.absolute]:hidden'>
+      <DialogContent className='sm:max-w-[1100px] p-0 flex flex-col h-[90vh] overflow-hidden gap-0 [&>button.absolute]:hidden'>
         {/* HEADER: Thêm flex-row, justify-between và space-y-0 để căn ngang Title và nút X */}
-        <DialogHeader className='px-5 py-3.5 border-b border-slate-200 shrink-0 bg-white z-10 flex flex-row items-center justify-between space-y-0'>
+        <DialogHeader className='px-5 py-3.5 border-b border-slate-200 shrink-0 z-10 flex flex-row items-center justify-between space-y-0'>
           <DialogTitle className='text-lg font-bold tracking-tight text-primary'>
             {t('book.dialog.createTitle', 'Thêm Mới Sách')}
           </DialogTitle>

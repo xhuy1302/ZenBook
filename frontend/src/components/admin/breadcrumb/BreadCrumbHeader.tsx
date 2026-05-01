@@ -15,7 +15,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import LanguageSelector from '@/components/common/LanguageSelector'
-import { Search, Bell, RefreshCw } from 'lucide-react'
+import { Search, Bell } from 'lucide-react' // 👉 Đã xóa Headphones
 
 export default function BreadcrumbHeader() {
   const { t } = useTranslation('breadcrumbadmin')
@@ -85,21 +85,15 @@ export default function BreadcrumbHeader() {
 
       {/* ── RIGHT: ACTIONS ── */}
       <div className='flex items-center gap-3'>
-        {/* Nút chuông & Refresh */}
         <div className='flex items-center gap-1'>
           <button className='relative p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-full transition-colors'>
             <Bell className='h-[18px] w-[18px]' />
-            {/* Chấm đỏ thông báo */}
             <span className='absolute top-2 right-2 h-2 w-2 rounded-full bg-rose-500 border-[1.5px] border-background'></span>
-          </button>
-          <button className='p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-full transition-colors hidden sm:block'>
-            <RefreshCw className='h-[18px] w-[18px]' />
           </button>
         </div>
 
         <Separator orientation='vertical' className='h-5 hidden sm:block' />
 
-        {/* Công cụ hiện có */}
         <LanguageSelector />
         <ModeToggle />
       </div>

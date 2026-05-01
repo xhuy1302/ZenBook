@@ -13,7 +13,6 @@ import {
   BookText,
   Info,
   Layers,
-  Tag,
   DollarSign,
   Image as ImageIcon
 } from 'lucide-react'
@@ -24,7 +23,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import {
   Select,
   SelectContent,
@@ -46,7 +44,6 @@ import { getAllTagsApi } from '@/services/tag/tag.api'
 import type { CategoryResponse } from '@/services/category/category.type'
 import type { AuthorResponse } from '@/services/author/author.type'
 import type { PublisherResponse } from '@/services/publisher/publisher.type'
-import type { TagResponse } from '@/services/tag/tag.type'
 
 type BookImageDTO = { id: string; imageUrl?: string } | string
 
@@ -162,18 +159,18 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
       onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
       className='flex flex-col h-full overflow-hidden'
     >
-      <div className='flex-1 overflow-y-auto px-6 py-4 custom-scrollbar bg-slate-50/30'>
+      <div className='flex-1 overflow-y-auto px-6 py-4 custom-scrollbar    /30'>
         <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 items-start'>
           {/* CỘT TRÁI: HÌNH ẢNH & THƯƠNG MẠI */}
           <div className='lg:col-span-4 space-y-6'>
             {/* Thumbnail */}
-            <div className='bg-white p-5 rounded-xl border shadow-sm space-y-4'>
+            <div className='   p-5 rounded-xl border shadow-sm space-y-4'>
               <div className='flex items-center gap-2 font-semibold text-slate-700'>
                 <ImageIcon className='w-4 h-4 text-brand-green' />
                 <span>{t('book.form.mainImage')}</span>
               </div>
               <div
-                className='aspect-[3/4] border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer overflow-hidden relative group hover:bg-slate-50 transition-all'
+                className='aspect-[3/4] border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer overflow-hidden relative group hover:    transition-all'
                 onClick={() => document.getElementById('thumb-edit')?.click()}
               >
                 {previewThumb ? (
@@ -216,7 +213,7 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
             </div>
 
             {/* Giá & Tồn kho */}
-            <div className='bg-white p-5 rounded-xl border shadow-sm space-y-5'>
+            <div className='   p-5 rounded-xl border shadow-sm space-y-5'>
               <div className='flex items-center gap-2 font-semibold text-slate-700 border-b pb-3'>
                 <DollarSign className='w-4 h-4 text-brand-green' />
                 <span>Thông tin bán hàng</span>
@@ -253,7 +250,7 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
                     type='number'
                     disabled
                     {...form.register('stockQuantity')}
-                    className='h-11 bg-slate-50'
+                    className='h-11 '
                   />
                 </div>
               </div>
@@ -263,7 +260,7 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
           {/* CỘT PHẢI: CHI TIẾT SẢN PHẨM */}
           <div className='lg:col-span-8 space-y-6'>
             {/* Thông tin chung */}
-            <div className='bg-white p-6 rounded-xl border shadow-sm space-y-4'>
+            <div className='   p-6 rounded-xl border shadow-sm space-y-4'>
               <div className='flex items-center gap-2 font-semibold text-slate-800 border-b pb-3'>
                 <BookText className='w-5 h-5 text-brand-green' />
                 <span>Nội dung & Nhận dạng</span>
@@ -309,7 +306,7 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
             </div>
 
             {/* Phân loại & Tags */}
-            <div className='bg-white p-6 rounded-xl border shadow-sm space-y-6'>
+            <div className='   p-6 rounded-xl border shadow-sm space-y-6'>
               <div className='flex items-center gap-2 font-semibold text-slate-800 border-b pb-3'>
                 <Layers className='w-5 h-5 text-brand-green' />
                 <span>Phân loại hệ thống</span>
@@ -322,7 +319,7 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
                     control={form.control}
                     name='categoryIds'
                     render={({ field }) => (
-                      <div className='flex flex-wrap gap-2 p-3 bg-slate-50 rounded-lg border min-h-[50px]'>
+                      <div className='flex flex-wrap gap-2 p-3     rounded-lg border min-h-[50px]'>
                         {categories.map((c: CategoryResponse) => {
                           const isSelected = (field.value as string[]).includes(c.id)
                           return (
@@ -352,7 +349,7 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
                     control={form.control}
                     name='authorIds'
                     render={({ field }) => (
-                      <div className='flex flex-wrap gap-2 p-3 bg-slate-50 rounded-lg border min-h-[50px]'>
+                      <div className='flex flex-wrap gap-2 p-3     rounded-lg border min-h-[50px]'>
                         {authors.map((a: AuthorResponse) => {
                           const isSelected = (field.value as string[]).includes(a.id)
                           return (
@@ -379,7 +376,7 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
             </div>
 
             {/* Thông số kỹ thuật */}
-            <div className='bg-white p-6 rounded-xl border shadow-sm space-y-4'>
+            <div className='   p-6 rounded-xl border shadow-sm space-y-4'>
               <div className='flex items-center gap-2 font-semibold text-slate-800 border-b pb-3'>
                 <Info className='w-5 h-5 text-brand-green' />
                 <span>Thông số kỹ thuật</span>
@@ -442,14 +439,14 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
             </div>
 
             {/* Gallery */}
-            <div className='bg-white p-6 rounded-xl border shadow-sm space-y-4'>
+            <div className='   p-6 rounded-xl border shadow-sm space-y-4'>
               <div className='flex items-center gap-2 font-semibold text-slate-800 border-b pb-3'>
                 <ImageIcon className='w-5 h-5 text-brand-green' />
                 <span>Thư viện ảnh ({existingImages.length + newGalleryPreviews.length})</span>
               </div>
               <div className='flex flex-wrap gap-4'>
                 <div
-                  className='w-24 h-24 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors'
+                  className='w-24 h-24 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:    transition-colors'
                   onClick={() => document.getElementById('gallery-edit')?.click()}
                 >
                   <Plus className='h-6 w-6 text-slate-400' />
@@ -501,7 +498,7 @@ export function EditBookForm({ book, onSuccess, onCancel }: EditBookFormProps) {
       </div>
 
       {/* FOOTER CỐ ĐỊNH */}
-      <div className='p-6 border-t bg-white flex justify-end gap-3 shrink-0'>
+      <div className='p-6 border-t    flex justify-end gap-3 shrink-0'>
         <Button type='button' variant='ghost' onClick={onCancel} className='px-8 h-11'>
           {t('common.cancel')}
         </Button>

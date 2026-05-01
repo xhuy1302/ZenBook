@@ -55,12 +55,12 @@ export function CreateSupplierForm({ onSuccess, onCancel }: CreateSupplierFormPr
   return (
     <form
       onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
-      className='flex flex-col h-full bg-white' // 👉 Đổi sang bg-white đặc để không nhìn xuyên thấu
+      className='flex flex-col h-full       ' // 👉 Đổi sang        đặc để không nhìn xuyên thấu
     >
       {/* VÙNG NỘI DUNG CUỘN */}
-      <div className='flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-slate-50/50'>
+      <div className='flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar'>
         {/* NHÓM 1: THÔNG TIN PHÁP LÝ */}
-        <div className='bg-white border rounded-xl p-5 shadow-sm space-y-4'>
+        <div className='       border rounded-xl p-5 shadow-sm space-y-4'>
           <div className='flex items-center gap-2 text-primary font-bold border-b pb-3'>
             <Info className='w-5 h-5' />
             <span>Thông tin định danh</span>
@@ -98,7 +98,7 @@ export function CreateSupplierForm({ onSuccess, onCancel }: CreateSupplierFormPr
         </div>
 
         {/* NHÓM 2: LIÊN HỆ */}
-        <div className='bg-white border rounded-xl p-5 shadow-sm space-y-4'>
+        <div className='       border rounded-xl p-5 shadow-sm space-y-4'>
           <div className='flex items-center gap-2 text-primary font-bold border-b pb-3'>
             <Phone className='w-5 h-5' />
             <span>Thông tin liên lạc</span>
@@ -137,7 +137,7 @@ export function CreateSupplierForm({ onSuccess, onCancel }: CreateSupplierFormPr
         </div>
 
         {/* NHÓM 3: GHI CHÚ */}
-        <div className='bg-white border rounded-xl p-5 shadow-sm space-y-4'>
+        <div className='       border rounded-xl p-5 shadow-sm space-y-4'>
           <div className='flex items-center gap-2 text-primary font-bold border-b pb-3'>
             <NotebookPen className='w-5 h-5' />
             <span>Ghi chú hệ thống</span>
@@ -152,7 +152,7 @@ export function CreateSupplierForm({ onSuccess, onCancel }: CreateSupplierFormPr
       </div>
 
       {/* CHÂN DIALOG CỐ ĐỊNH (FOOTER) */}
-      <div className='px-6 py-4 border-t bg-white flex justify-end items-center gap-3 shrink-0 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]'>
+      <div className='px-6 py-4 border-t        flex justify-end items-center gap-3 shrink-0 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]'>
         <Button type='button' variant='outline' onClick={onCancel} className='px-6'>
           Hủy bỏ
         </Button>
