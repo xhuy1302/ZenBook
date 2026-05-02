@@ -4,6 +4,7 @@ import FlashSale from '@/components/zenbook/homepage/FlashSale'
 import BookGrid from '@/components/zenbook/homepage/BookGrid'
 import Publishers from '@/components/zenbook/homepage/Publishers'
 import Testimonials from '@/components/zenbook/homepage/Testimonials'
+import BookRecommendation from '@/components/zenbook/homepage/BookRecommendation'
 
 export default function HomePage() {
   return (
@@ -12,6 +13,7 @@ export default function HomePage() {
       <TrustBanner />
       <FlashSale />
       <BookGrid />
+      <BookRecommendation />
       <Publishers />
       <Testimonials />
     </main>

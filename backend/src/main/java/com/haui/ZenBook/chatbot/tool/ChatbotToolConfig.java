@@ -2,41 +2,60 @@ package com.haui.ZenBook.chatbot.tool;
 
 import com.haui.ZenBook.chatbot.service.BookSearchAiService;
 import com.haui.ZenBook.chatbot.tool.dto.AiBookDto;
+import com.haui.ZenBook.entity.CouponEntity;
+import com.haui.ZenBook.enums.CouponStatus;
+import com.haui.ZenBook.enums.CouponType;
 import com.haui.ZenBook.repository.BookRepository;
+import com.haui.ZenBook.repository.CouponRepository;
+import com.haui.ZenBook.repository.UserRepository;
 import com.haui.ZenBook.service.CartService;
 import com.haui.ZenBook.service.CouponService;
 import com.haui.ZenBook.service.OrderService;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Description;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Configuration
 public class ChatbotToolConfig {
 
-    public record SearchBookRequest(String keyword) {
+    public record SearchBookRequest(String keyword, Double minPrice, Double maxPrice) {
     }
 
     @Bean("searchBookTool")
-    @Description("Tìm kiếm sách. Đầu vào: từ khóa (keyword). Dùng khi khách hỏi tên sách, tác giả.")
+    @Description("""
+        Tìm kiếm sách trong cửa hàng. 
+        - keyword: từ khóa tên sách, tác giả hoặc thể loại. NẾU KHÁCH KHÔNG NÊU RÕ TÊN SÁCH (Ví dụ chỉ hỏi "Có sách nào trên 30k không"), BẮT BUỘC ĐỂ KEYWORD LÀ CHUỖI RỖNG "". TUYỆT ĐỐI KHÔNG điền các từ chung chung như "sách", "cuốn sách".
+        - minPrice: giá thấp nhất khách yêu cầu (Ví dụ: khách hỏi 'trên 30k' thì điền 30000). 
+        - maxPrice: giá cao nhất khách yêu cầu (Ví dụ: khách hỏi 'dưới 100k' thì điền 100000).
+        
+        ⚠️ QUY TẮC: Nếu khách không nhắc đến giá, để minPrice và maxPrice là null. Không lấy giá từ câu hỏi cũ.
+        """)
     public Function<SearchBookRequest, String> searchBookTool(BookSearchAiService aiSearchService) {
         return request -> {
             try {
-                // Gọi qua Service trung gian để kích hoạt Cache
-                List<AiBookDto.SearchResponse> books = aiSearchService.search(request.keyword());
+                // 👉 IN RA CONSOLE ĐỂ DEBUG XEM AI NÓ ĐIỀN CÁI GÌ
+                System.out.println("🤖 AI GỌI TOOL SEARCH => keyword: '" + request.keyword() + "', minPrice: " + request.minPrice() + ", maxPrice: " + request.maxPrice());
+
+                List<AiBookDto.SearchResponse> books = aiSearchService.search(
+                        request.keyword(),
+                        request.minPrice(),
+                        request.maxPrice()
+                );
 
                 if (books.isEmpty()) {
-                    return "SYSTEM_ALERT: Không có sách nào khớp với '" + request.keyword() + "'. KHÔNG ĐƯỢC TỰ BỊA TÊN SÁCH.";
+                    String msg = "Không có sách nào khớp yêu cầu";
+                    return "SYSTEM_ALERT: " + msg + ". KHÔNG ĐƯỢC TỰ BỊA TÊN SÁCH.";
                 }
 
                 return "Kết quả tìm kiếm:\n" + books.stream()
-                        .map(b -> String.format("- ID: %s | Tên: %s | Giá: %.0fđ | Tồn kho: %d",
-                                b.id(), b.title(), b.price(), b.stock()))
+                        .map(b -> String.format("- [%s](/products/%s) | Giá: %.0fđ | Tồn kho: %d",
+                                b.title(), b.slug(), b.price(), b.stock()))
                         .collect(Collectors.joining("\n"));
             } catch (Exception e) {
                 return "Lỗi tìm kiếm: " + e.getMessage();
@@ -44,11 +63,114 @@ public class ChatbotToolConfig {
         };
     }
 
+    // ==========================================
+    // 2. THÊM VÀO GIỎ HÀNG (KIỂM TRA FREESHIP ĐỘNG)
+    // ==========================================
+    public record AddCartRequest(String userId, String bookId, Integer quantity) {
+    }
+
+    @Bean("addToCartTool")
+    @Description("Dùng để thêm sách vào giỏ hàng. Cần bookId và userId. Trả về tổng giỏ hàng và điều kiện Freeship.")
+    public Function<AddCartRequest, String> addToCartTool(CartService cartService, UserRepository userRepository, CouponRepository couponRepository) {
+        return request -> {
+            if (request.userId() == null || request.userId().equals("GUEST")) {
+                return "Dạ, bạn cần đăng nhập để mua hàng nhé!";
+            }
+            try {
+                var user = userRepository.findById(request.userId())
+                        .orElseThrow(() -> new Exception("Không tìm thấy thông tin user trong DB"));
+                String userEmail = user.getEmail();
+
+                int qty = (request.quantity() != null && request.quantity() > 0) ? request.quantity() : 1;
+
+                com.haui.ZenBook.dto.cart.CartItemRequest itemReq = new com.haui.ZenBook.dto.cart.CartItemRequest();
+                itemReq.setBookId(request.bookId());
+                itemReq.setQuantity(qty);
+
+                var cart = cartService.addToCart(userEmail, itemReq);
+                double total = cart.getTotalPrice();
+
+                // 👉 Cập nhật: Tự động lấy điều kiện Freeship từ Database thay vì gán cứng 250k
+                Optional<CouponEntity> freeshipCoupon = couponRepository
+                        .findAllByStatusAndUserIdIsNullAndDeletedAtIsNullOrderByCreatedAtDesc(CouponStatus.ACTIVE)
+                        .stream().filter(c -> c.getCouponType() == CouponType.SHIPPING).findFirst();
+
+                String freeshipContext = "";
+                if (freeshipCoupon.isPresent()) {
+                    double minOrder = freeshipCoupon.get().getMinOrderValue();
+                    double missingForFreeship = minOrder - total;
+                    if (missingForFreeship > 0) {
+                        freeshipContext = String.format("Khách CÒN THIẾU %.0fđ nữa để được dùng mã Freeship '%s'. Hãy gợi ý họ mua thêm sách cho đủ %.0fđ.",
+                                missingForFreeship, freeshipCoupon.get().getCode(), minOrder);
+                    } else {
+                        freeshipContext = "Khách ĐÃ ĐỦ điều kiện dùng mã Freeship " + freeshipCoupon.get().getCode() + " rồi.";
+                    }
+                }
+
+                return "SUCCESS: Đã thêm vào giỏ. Tổng tiền hiện tại: " + total + "đ. " + freeshipContext;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "ERROR: " + e.getMessage();
+            }
+        };
+    }
+
+    // ==========================================
+    // 3. XEM LỊCH SỬ MUA HÀNG (TRỢ LÝ CÁ NHÂN)
+    // ==========================================
+    public record PurchaseHistoryRequest(String userId) {}
+
+    @Bean("checkPurchaseHistoryTool")
+    @Description("Xem 3 đơn hàng gần nhất của khách hàng để biết họ hay đọc thể loại gì, từ đó gợi ý sách chuẩn hơn.")
+    public Function<PurchaseHistoryRequest, String> checkPurchaseHistoryTool(OrderService orderService) {
+        return request -> {
+            if (request.userId() == null || request.userId().equals("GUEST")) {
+                return "Khách chưa đăng nhập, không có lịch sử mua hàng.";
+            }
+            try {
+                var orders = orderService.getMyOrders(request.userId(), null, PageRequest.of(0, 3));
+                if (orders.isEmpty()) return "Khách hàng mới, chưa mua cuốn sách nào.";
+
+                // Gom tên các cuốn sách khách đã mua
+                String boughtBooks = orders.getContent().stream()
+                        .flatMap(o -> o.getDetails().stream())
+                        .map(d -> d.getBookTitle())
+                        .distinct()
+                        .collect(Collectors.joining(", "));
+
+                return "Lịch sử mua hàng gần đây của khách: " + boughtBooks + ". Hãy dựa vào gu đọc sách này để gợi ý các cuốn tương tự.";
+            } catch (Exception e) {
+                return "Lỗi lấy lịch sử: " + e.getMessage();
+            }
+        };
+    }
+
+    // ==========================================
+    // 4. LINK CHECKOUT & COUPON (CHỐT ĐƠN)
+    // ==========================================
+    public record GetCheckoutLinkRequest(String couponCode) {}
+
+    @Bean("getCheckoutLinkTool")
+    @Description("Tạo đường link dẫn khách hàng thẳng tới trang thanh toán, có thể đính kèm mã giảm giá.")
+    public Function<GetCheckoutLinkRequest, String> getCheckoutLinkTool() {
+        return request -> {
+            String baseUrl = "/checkout";
+            if (request.couponCode() != null && !request.couponCode().isBlank()) {
+                baseUrl += "?coupon=" + request.couponCode();
+            }
+            // Trả về định dạng Markdown Link
+            return "SUCCESS: Hãy gửi cho khách link sau để họ thanh toán: [Bấm vào đây để thanh toán ngay](" + baseUrl + ")";
+        };
+    }
+
+    // ==========================================
+    // 5. CÁC TOOL CƠ BẢN ĐÃ CÓ TỪ TRƯỚC
+    // ==========================================
+
     public record CheckCouponRequest(String userId) {
     }
 
-    // 2. Định nghĩa Bean checkCouponTool
-    @Bean("checkCouponTool") // 👉 Tên Bean phải khớp 100% với ChatService
+    @Bean("checkCouponTool")
     @Description("Liệt kê các mã giảm giá (voucher) đang hoạt động. Trả về mã chung và mã cá nhân.")
     public Function<CheckCouponRequest, String> checkCouponTool(CouponService couponService) {
         return request -> {
@@ -64,70 +186,29 @@ public class ChatbotToolConfig {
                                 c.getCode(), c.getDiscountValue(), c.getMinOrderValue()))
                         .collect(Collectors.joining("\n"));
             } catch (Exception e) {
-                e.printStackTrace(); // 👉 Để hiện lỗi đỏ ở Console IntelliJ
-                return "SYSTEM_ALERT: Lỗi hệ thống khi lấy giỏ hàng: " + e.toString(); // Báo cho AI biết có lỗi
-            }
-        };
-    }
-
-    public record AddCartRequest(String userId, String bookId, Integer quantity) {
-    }
-
-
-    @Bean("addToCartTool")
-    @Description("Dùng để thêm sách vào giỏ hàng. " +
-            "Tham số: bookId (chuỗi mã sách, ví dụ 'bk-012'), " +
-            "quantity (số lượng, mặc định là 1 nếu khách không nói cụ thể), " +
-            "userId (ID của người dùng hiện tại). " +
-            "Hãy gọi tool này ngay khi khách hàng yêu cầu thêm/mua một cuốn sách cụ thể.")
-    public Function<AddCartRequest, String> addToCartTool(CartService cartService, com.haui.ZenBook.repository.UserRepository userRepository) {
-        return request -> {
-            if (request.userId() == null || request.userId().equals("GUEST")) {
-                return "Dạ, bạn cần đăng nhập để mua hàng nhé!";
-            }
-            try {
-                // 👉 Tương tự, dịch ID sang Email
-                var user = userRepository.findById(request.userId())
-                        .orElseThrow(() -> new Exception("Không tìm thấy thông tin user trong DB"));
-                String userEmail = user.getEmail();
-
-                int qty = (request.quantity() != null && request.quantity() > 0) ? request.quantity() : 1;
-
-                com.haui.ZenBook.dto.cart.CartItemRequest itemReq = new com.haui.ZenBook.dto.cart.CartItemRequest();
-                itemReq.setBookId(request.bookId());
-                itemReq.setQuantity(qty);
-
-                var cart = cartService.addToCart(userEmail, itemReq); // Ném email vào
-                return "SUCCESS: Đã thêm vào giỏ. Tổng tiền hiện tại: " + cart.getTotalPrice() + "đ.";
-            } catch (Exception e) {
                 e.printStackTrace();
-                return "ERROR: " + e.getMessage();
+                return "SYSTEM_ALERT: Lỗi hệ thống khi lấy giỏ hàng: " + e.toString();
             }
         };
     }
 
-    // Trong file ChatbotToolConfig.java
-
-    // 1. Đảm bảo có record request này
     public record ViewCartRequest(String userId) {
     }
 
-    // 2. Kiểm tra Bean này
     @Bean("viewCartTool")
     @Description("Xem chi tiết giỏ hàng hiện tại của người dùng, bao gồm danh sách sách và tổng tiền.")
-    public Function<ViewCartRequest, String> viewCartTool(CartService cartService, com.haui.ZenBook.repository.UserRepository userRepository) {
+    public Function<ViewCartRequest, String> viewCartTool(CartService cartService, UserRepository userRepository) {
         return request -> {
             if (request.userId() == null || request.userId().equals("GUEST") || request.userId().isBlank()) {
                 return "Dạ, bạn vui lòng đăng nhập để mình kiểm tra giỏ hàng giúp bạn nhé!";
             }
 
             try {
-                // 👉 BƯỚC QUAN TRỌNG: Lấy email từ userId để hợp rơ với logic của CartService
                 var user = userRepository.findById(request.userId())
                         .orElseThrow(() -> new Exception("Không tìm thấy thông tin user trong DB"));
-                String userEmail = user.getEmail(); // Lấy email ra
+                String userEmail = user.getEmail();
 
-                var cart = cartService.getCart(userEmail); // Ném email vào thay vì ném ID
+                var cart = cartService.getCart(userEmail);
 
                 if (cart.getDetails() == null || cart.getDetails().isEmpty()) {
                     return "Giỏ hàng của bạn hiện đang trống.";
@@ -149,39 +230,33 @@ public class ChatbotToolConfig {
     public record CheckOrderRequest(String orderCode, String userId) {
     }
 
-    // 2. Định nghĩa Bean checkOrderTool
-    @Bean("checkOrderTool") // 👈 Tên này phải khớp 100% với ChatService
+    @Bean("checkOrderTool")
     @Description("Tra cứu thông tin đơn hàng. Cung cấp orderCode (nếu có) và userId để tìm đơn hàng mới nhất.")
     public Function<CheckOrderRequest, String> checkOrderTool(OrderService orderService) {
         return request -> {
-            // Kiểm tra đăng nhập
             if (request.userId() == null || request.userId().equals("GUEST")) {
                 return "Dạ, bạn cần đăng nhập để mình kiểm tra đơn hàng giúp nhé!";
             }
 
             try {
-                // Trường hợp 1: Khách hỏi về một mã đơn cụ thể (VD: "Đơn ZB-123 của tôi đâu?")
                 if (request.orderCode() != null && !request.orderCode().isBlank()) {
-                    // Giả định OrderService của bạn có hàm lấy đơn theo code hoặc quét qua list
                     var order = orderService.getOrderById(request.orderCode());
                     if (order != null) return formatOrderResponse(order);
                     return "Dạ, mình không tìm thấy đơn hàng mã " + request.orderCode() + " của bạn ạ.";
                 }
 
-                // Trường hợp 2: Khách hỏi chung chung "Đơn hàng của tôi đâu?" -> Lấy đơn mới nhất
                 var myOrders = orderService.getMyOrders(request.userId(), null, org.springframework.data.domain.PageRequest.of(0, 1));
                 if (myOrders.isEmpty()) return "Bạn chưa có đơn hàng nào trên hệ thống ZenBook ạ.";
 
                 return "Đây là thông tin đơn hàng gần nhất của bạn:\n" + formatOrderResponse(myOrders.getContent().get(0));
 
             } catch (Exception e) {
-                e.printStackTrace(); // 👉 Để hiện lỗi đỏ ở Console IntelliJ
-                return "SYSTEM_ALERT: Lỗi hệ thống khi lấy giỏ hàng: " + e.toString(); // Báo cho AI biết có lỗi
+                e.printStackTrace();
+                return "SYSTEM_ALERT: Lỗi hệ thống khi lấy đơn hàng: " + e.toString();
             }
         };
     }
 
-    // Hàm phụ để định dạng nội dung trả về cho AI đọc
     private String formatOrderResponse(com.haui.ZenBook.dto.order.OrderResponse o) {
         return String.format("- Mã đơn: %s\n- Ngày đặt: %s\n- Trạng thái: %s\n- Tổng tiền: %.0fđ",
                 o.getOrderCode(), o.getCreatedAt(), o.getStatus(), o.getFinalTotal());
@@ -191,7 +266,7 @@ public class ChatbotToolConfig {
 
     @Bean("updateCartTool")
     @Description("Cập nhật lại số lượng sách trong giỏ hàng. Cần userId, bookId và số lượng mới.")
-    public Function<UpdateCartRequest, String> updateCartTool(CartService cartService, com.haui.ZenBook.repository.UserRepository userRepository) {
+    public Function<UpdateCartRequest, String> updateCartTool(CartService cartService, UserRepository userRepository) {
         return request -> {
             try {
                 if (request.userId() == null || request.userId().equals("GUEST")) return "Vui lòng đăng nhập.";
@@ -202,12 +277,11 @@ public class ChatbotToolConfig {
         };
     }
 
-    // 👉 2. Tool Xóa sách khỏi giỏ
     public record RemoveCartRequest(String userId, String bookId) {}
 
     @Bean("removeCartTool")
     @Description("Xóa hoàn toàn một cuốn sách khỏi giỏ hàng. Cần userId và bookId.")
-    public Function<RemoveCartRequest, String> removeCartTool(CartService cartService, com.haui.ZenBook.repository.UserRepository userRepository) {
+    public Function<RemoveCartRequest, String> removeCartTool(CartService cartService, UserRepository userRepository) {
         return request -> {
             try {
                 if (request.userId() == null || request.userId().equals("GUEST")) return "Vui lòng đăng nhập.";
@@ -222,22 +296,19 @@ public class ChatbotToolConfig {
 
     @Bean("suggestRelatedBooksTool")
     @Description("Tìm các cuốn sách liên quan (cùng thể loại) để gợi ý bán chéo (Upsell) cho khách hàng.")
-    public Function<SuggestBookRequest, String> suggestRelatedBooksTool(com.haui.ZenBook.repository.BookRepository bookRepository) {
+    public Function<SuggestBookRequest, String> suggestRelatedBooksTool(BookRepository bookRepository) {
         return request -> {
             try {
                 var bookOpt = bookRepository.findById(request.bookId());
                 if (bookOpt.isEmpty()) return "Không tìm thấy sách gốc.";
 
-                // Lấy thể loại của sách đang xem
                 var categories = bookOpt.get().getCategories();
                 if (categories.isEmpty()) return "Sách chưa có phân loại.";
 
                 String categoryName = categories.iterator().next().getCategoryName();
 
-                // Giả lập Query (Bạn có thể viết hàm trong repo: findTop3ByCategoryNameAndIdNot)
                 return "Gợi ý cho sách " + bookOpt.get().getTitle() + " (Thể loại: " + categoryName + "): Hãy bảo khách thử xem thêm các sách nổi bật cùng thể loại này. (Tự tìm bằng searchBookTool theo thể loại).";
             } catch (Exception e) { return "Lỗi hệ thống: " + e.getMessage(); }
         };
     }
-
 }

@@ -62,23 +62,75 @@ public interface BookRepository extends JpaRepository<BookEntity, String>, JpaSp
     @EntityGraph(attributePaths = {"authors", "categories", "publisher", "promotions"})
     @Query("SELECT b FROM BookEntity b WHERE b.status = :status AND b.deletedAt IS NULL AND b.award IS NOT NULL AND b.award != '' ORDER BY b.createdAt DESC")
     List<BookEntity> findTopAwardBooks(@Param("status") BookStatus status, Pageable pageable);
+
     // Lấy sách sắp hết hàng (<= 50)
     List<BookEntity> findTop10ByStockQuantityLessThanEqualOrderByStockQuantityAsc(int threshold);
 
+    // ==========================================
+    // AI CHATBOT SEARCH QUERIES
+    // ==========================================
+
+    // 👉 Hàm tìm kiếm cơ bản (giữ lại theo code cũ của bạn)
     @Query("""
-    SELECT DISTINCT new com.haui.ZenBook.chatbot.tool.dto.AiBookDto$SearchResponse(
-        b.id, 
-        b.title, 
-        b.salePrice, 
-        b.stockQuantity
-    )
-    FROM BookEntity b 
-    LEFT JOIN b.authors a
-    LEFT JOIN b.categories c
-    WHERE (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
-       OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
-       OR LOWER(c.categoryName) LIKE LOWER(CONCAT('%', :keyword, '%')))
-      AND b.status = 'ACTIVE'
-""")
+        SELECT DISTINCT new com.haui.ZenBook.chatbot.tool.dto.AiBookDto$SearchResponse(
+            b.id, 
+            b.title, 
+            b.salePrice, 
+            b.stockQuantity,
+            b.slug
+        )
+        FROM BookEntity b 
+        LEFT JOIN b.authors a
+        LEFT JOIN b.categories c
+        WHERE (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+           OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+           OR LOWER(c.categoryName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+           OR :keyword = '' OR :keyword IS NULL)
+          AND b.status = 'ACTIVE' AND b.deletedAt IS NULL
+    """)
     List<AiBookDto.SearchResponse> searchBooksForAi(@Param("keyword") String keyword, Pageable pageable);
+
+    // 👉 Hàm tìm kiếm NÂNG CẤP: Tìm theo từ khóa (kể cả tác giả, thể loại) + LỌC KHOẢNG GIÁ
+    @Query("""
+        SELECT DISTINCT new com.haui.ZenBook.chatbot.tool.dto.AiBookDto$SearchResponse(
+            b.id, 
+            b.title, 
+            b.salePrice, 
+            b.stockQuantity,
+            b.slug
+        )
+        FROM BookEntity b 
+        LEFT JOIN b.authors a
+        LEFT JOIN b.categories c
+        WHERE (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+               OR LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(c.categoryName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR :keyword = '' OR :keyword IS NULL)
+          AND (:minPrice IS NULL OR b.salePrice >= :minPrice)
+          AND (:maxPrice IS NULL OR b.salePrice <= :maxPrice)
+          AND b.status = 'ACTIVE' AND b.deletedAt IS NULL
+    """)
+    List<AiBookDto.SearchResponse> searchBooksWithPriceForAi(
+            @Param("keyword") String keyword,
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double maxPrice,
+            Pageable pageable
+    );
+
+    // ==========================================
+    // USER BEHAVIOR QUERIES (Dùng cho Recommender System)
+    // ==========================================
+
+    @Query("SELECT DISTINCT c.id FROM OrderEntity o JOIN o.details od JOIN od.book b JOIN b.categories c WHERE o.userId = :userId")
+    List<String> findCategoryIdsFromUserOrders(@Param("userId") String userId);
+
+    @Query("SELECT DISTINCT c.id FROM WishlistEntity w JOIN w.book b JOIN b.categories c WHERE w.user.id = :userId")
+    List<String> findCategoryIdsFromUserWishlist(@Param("userId") String userId);
+
+    @EntityGraph(attributePaths = {"authors", "categories", "publisher", "promotions", "images"})
+    @Query("SELECT DISTINCT b FROM BookEntity b JOIN b.categories c " +
+            "WHERE c.id IN :categoryIds " +
+            "AND b.status = 'ACTIVE' AND b.deletedAt IS NULL " +
+            "ORDER BY b.soldQuantity DESC, b.views DESC")
+    List<BookEntity> findPersonalizedBooks(@Param("categoryIds") List<String> categoryIds, Pageable pageable);
 }

@@ -10,6 +10,7 @@ import com.haui.ZenBook.repository.UserRepository;
 import com.haui.ZenBook.repository.WishlistRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict; // 👉 Import quan trọng
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -27,109 +28,65 @@ public class WishlistServiceImpl implements WishlistService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final WishlistMapper wishlistMapper;
-
-    // 🔥 THÊM Ở ĐÂY: Inject PromotionService giống BookService
     private final PromotionService promotionService;
 
-    // ==========================================
-    // HELPER METHODS: XỬ LÝ LẤY USER TỪ JWT
-    // ==========================================
-
-    private String getCurrentUserEmail() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+    // 👉 Helper: Lấy User ID (Chuyển sang public để SpEL truy cập được)
+    public String getCurrentUserId() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"))
+                .getId();
     }
 
     private UserEntity getCurrentUser() {
-        String email = getCurrentUserEmail();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
-    private String getCurrentUserId() {
-        return getCurrentUser().getId();
-    }
-
-    // 🔥 THÊM Ở ĐÂY: Hàm map dữ liệu + tính giá khuyến mãi y hệt BookServiceImpl
     private WishlistResponse mapToResponseWithDiscount(WishlistEntity wishlist) {
         if (wishlist == null || wishlist.getBook() == null) return null;
-
         WishlistResponse response = wishlistMapper.toResponse(wishlist);
         BookEntity book = wishlist.getBook();
-
         double promoPrice = promotionService.getPromotionalPrice(book);
-
         if (promoPrice > 0) {
             response.setSalePrice(promoPrice);
             if (response.getOriginalPrice() != null && response.getOriginalPrice() > 0) {
-                int discountPercent = (int) Math.round((1 - (promoPrice / response.getOriginalPrice())) * 100);
-                response.setDiscount(discountPercent);
+                response.setDiscount((int) Math.round((1 - (promoPrice / response.getOriginalPrice())) * 100));
             }
         } else {
-            // Nếu không có khuyến mãi, giá bán = giá gốc, discount = 0
             response.setSalePrice(response.getOriginalPrice());
             response.setDiscount(0);
         }
-
         return response;
     }
 
-    // ==========================================
-    // MAIN BUSINESS LOGIC
-    // ==========================================
-
     @Override
     @Transactional
+    // 👉 Sửa lỗi SpEL: Gọi method bean để lấy ID từ SecurityContext
+    @CacheEvict(value = "bookRecommendations", key = "@wishlistServiceImpl.getCurrentUserId()")
     public void addToWishlist(WishlistRequest request) {
         UserEntity user = getCurrentUser();
-
-        if (wishlistRepository.existsByUserIdAndBookId(user.getId(), request.getBookId())) {
-            return;
-        }
-
-        BookEntity book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new EntityNotFoundException("Book not found"));
-
-        WishlistEntity wishlist = WishlistEntity.builder()
-                .user(user)
-                .book(book)
-                .build();
-
-        wishlistRepository.save(wishlist);
+        if (wishlistRepository.existsByUserIdAndBookId(user.getId(), request.getBookId())) return;
+        BookEntity book = bookRepository.findById(request.getBookId()).orElseThrow(() -> new EntityNotFoundException("Book not found"));
+        wishlistRepository.save(WishlistEntity.builder().user(user).book(book).build());
     }
 
     @Override
     @Transactional
+    // 👉 Thêm: Xóa cache khi xóa khỏi yêu thích
+    @CacheEvict(value = "bookRecommendations", key = "@wishlistServiceImpl.getCurrentUserId()")
     public void removeFromWishlist(String bookId) {
         wishlistRepository.deleteByUserIdAndBookId(getCurrentUserId(), bookId);
     }
 
     @Override
-    @Transactional(readOnly = true) // 🔥 THÊM Ở ĐÂY
-    public List<WishlistResponse> getMyWishlist() {
-        return wishlistRepository.findAllByUserIdWithBook(getCurrentUserId())
-                .stream()
-                .map(this::mapToResponseWithDiscount) // 🔥 SỬA Ở ĐÂY
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public WishlistCheckResponse checkInWishlist(String bookId) {
-        boolean exists = wishlistRepository.existsByUserIdAndBookId(getCurrentUserId(), bookId);
-        return WishlistCheckResponse.builder().inWishlist(exists).build();
-    }
-
-    @Override
-    public WishlistCountResponse countMyWishlist() {
-        long count = wishlistRepository.countByUserId(getCurrentUserId());
-        return WishlistCountResponse.builder().count(count).build();
-    }
-
-    @Override
     @Transactional
+    // 👉 Thêm: Xóa cache khi toggle
+    @CacheEvict(value = "bookRecommendations", key = "@wishlistServiceImpl.getCurrentUserId()")
     public WishlistToggleResponse toggleWishlist(String bookId) {
         String userId = getCurrentUserId();
         boolean exists = wishlistRepository.existsByUserIdAndBookId(userId, bookId);
-
         if (exists) {
             wishlistRepository.deleteByUserIdAndBookId(userId, bookId);
             return WishlistToggleResponse.builder().status("removed").build();
@@ -140,20 +97,27 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    @Transactional(readOnly = true) // 🔥 THÊM Ở ĐÂY
+    @Transactional(readOnly = true)
+    public List<WishlistResponse> getMyWishlist() {
+        return wishlistRepository.findAllByUserIdWithBook(getCurrentUserId()).stream().map(this::mapToResponseWithDiscount).collect(Collectors.toList());
+    }
+
+    @Override
+    public WishlistCheckResponse checkInWishlist(String bookId) {
+        return WishlistCheckResponse.builder().inWishlist(wishlistRepository.existsByUserIdAndBookId(getCurrentUserId(), bookId)).build();
+    }
+
+    @Override
+    public WishlistCountResponse countMyWishlist() {
+        return WishlistCountResponse.builder().count(wishlistRepository.countByUserId(getCurrentUserId())).build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<WishlistResponse> getMyWishlist(String keyword, String sortBy) {
-        List<WishlistEntity> entities = wishlistRepository.searchAndSortWishlist(getCurrentUserId(), keyword, Sort.by("createdAt").descending());
-
-        List<WishlistResponse> responses = entities.stream()
-                .map(this::mapToResponseWithDiscount) // 🔥 SỬA Ở ĐÂY
-                .collect(Collectors.toList());
-
-        if ("price-asc".equals(sortBy)) {
-            responses.sort(Comparator.comparing(WishlistResponse::getSalePrice));
-        } else if ("price-desc".equals(sortBy)) {
-            responses.sort(Comparator.comparing(WishlistResponse::getSalePrice).reversed());
-        }
-
+        List<WishlistResponse> responses = wishlistRepository.searchAndSortWishlist(getCurrentUserId(), keyword, Sort.by("createdAt").descending()).stream().map(this::mapToResponseWithDiscount).collect(Collectors.toList());
+        if ("price-asc".equals(sortBy)) responses.sort(Comparator.comparing(WishlistResponse::getSalePrice));
+        else if ("price-desc".equals(sortBy)) responses.sort(Comparator.comparing(WishlistResponse::getSalePrice).reversed());
         return responses;
     }
 }

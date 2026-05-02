@@ -6,31 +6,19 @@ import com.haui.ZenBook.dto.order.OrderItemRequest;
 import com.haui.ZenBook.dto.order.OrderResponse;
 import com.haui.ZenBook.dto.order.OrderUpdateRequest;
 import com.haui.ZenBook.entity.*;
-import com.haui.ZenBook.enums.ActionRole;
-import com.haui.ZenBook.enums.BookStatus;
-import com.haui.ZenBook.enums.MemberTier;
-import com.haui.ZenBook.enums.OrderStatus;
-import com.haui.ZenBook.enums.PaymentStatus;
+import com.haui.ZenBook.enums.*;
 import com.haui.ZenBook.exception.AppException;
 import com.haui.ZenBook.exception.ErrorCode;
 import com.haui.ZenBook.mapper.OrderMapper;
-import com.haui.ZenBook.repository.AddressRepository;
-import com.haui.ZenBook.repository.BookRepository;
-import com.haui.ZenBook.repository.OrderRepository;
-import com.haui.ZenBook.repository.ReviewRepository;
-// 👉 Import Chat Components
-import com.haui.ZenBook.repository.ChatRoomRepository;
-import com.haui.ZenBook.repository.MessageRepository;
-import com.haui.ZenBook.enums.MessageType;
-import com.haui.ZenBook.enums.MessageStatus;
+import com.haui.ZenBook.repository.*;
 import com.haui.ZenBook.dto.chat.ChatMessageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-
 import com.haui.ZenBook.shipping.GHNShippingProvider;
 import com.haui.ZenBook.shipping.ShippingCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict; // 👉 Import quan trọng
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -64,8 +52,6 @@ public class OrderServiceImpl implements OrderService {
     private final EmailService emailService;
     private final MembershipService membershipService;
     private final NotificationService notificationService;
-
-    // 👉 Dependency cho Chat Automation
     private final ChatRoomRepository chatRoomRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
@@ -77,6 +63,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    // 👉 Xóa cache gợi ý khi người dùng đặt hàng thành công
+    @CacheEvict(value = "bookRecommendations", key = "#userId")
     public OrderResponse createOrder(OrderCreateRequest request, String actionBy, ActionRole role, String userId) {
         String method = request.getPaymentMethod();
         if (method == null || (!method.equalsIgnoreCase(PAYMENT_METHOD_COD) && !method.equalsIgnoreCase(PAYMENT_METHOD_VNPAY))) {
@@ -161,7 +149,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         processOrderItems(newOrder, request.getItems());
-        recordHistory(newOrder, null, OrderStatus.PENDING, actionBy, role, "Tạo đơn hàng mới với phương thức " + method.toUpperCase());
+        recordHistory(newOrder, null, OrderStatus.PENDING, actionBy, role, "Tạo đơn hàng mới");
 
         OrderEntity savedOrder = orderRepository.save(newOrder);
 
@@ -179,43 +167,31 @@ public class OrderServiceImpl implements OrderService {
         }
 
         OrderResponse response = orderMapper.toOrderResponse(savedOrder);
-
         if (PAYMENT_METHOD_COD.equalsIgnoreCase(method)) {
             emailService.sendOrderConfirmationEmail(response);
         }
 
         try {
-            notificationService.notifyOrder(
-                    savedOrder.getUserId(),
-                    savedOrder.getOrderCode(),
-                    "Đơn hàng đã xác nhận",
-                    "Đơn hàng #" + savedOrder.getOrderCode() + " đã được tạo thành công với phương thức " + method.toUpperCase() + ". Chúng tôi sẽ xác nhận sớm."
-            );
+            notificationService.notifyOrder(userId, savedOrder.getOrderCode(), "Đơn hàng đã xác nhận", "Đơn hàng #" + savedOrder.getOrderCode() + " đã được tạo thành công.");
         } catch (Exception e) {
-            log.error("Lỗi khi gửi thông báo tạo đơn hàng cho user {}", userId, e);
+            log.error("Lỗi gửi thông báo", e);
         }
 
-        // 👉 Logic: Gửi tin nhắn Chat khi vừa đặt hàng xong
         sendAutoChatMessage(savedOrder, userId, "Chúng tôi sẽ sớm xác nhận đơn hàng của bạn.");
-
         return response;
     }
 
-    // 👉 Helper chung: Hàm xử lý bắn tin nhắn tự động vào Chat
     private void sendAutoChatMessage(OrderEntity order, String userId, String customMessage) {
         try {
             ChatRoomEntity room = chatRoomRepository.findByUserId(userId).orElse(null);
             if (room == null) return;
-
             Map<String, Object> orderData = new HashMap<>();
             orderData.put("orderId", order.getId());
-            orderData.put("orderCode", order.getOrderCode()); // Dùng orderCode để khớp với Route Frontend
+            orderData.put("orderCode", order.getOrderCode());
             orderData.put("total", order.getFinalTotal());
             orderData.put("paymentMethod", order.getPaymentMethod());
             orderData.put("message", customMessage);
-
             String jsonContent = objectMapper.writeValueAsString(orderData);
-
             MessageEntity autoMsg = new MessageEntity();
             autoMsg.setRoomId(room.getId());
             autoMsg.setSenderId(SYSTEM_ADMIN_ID);
@@ -224,25 +200,16 @@ public class OrderServiceImpl implements OrderService {
             autoMsg.setContent(jsonContent);
             autoMsg.setStatus(MessageStatus.SENT);
             autoMsg.setCreatedAt(LocalDateTime.now());
-
             messageRepository.save(autoMsg);
-
             ChatMessageResponse msgResponse = ChatMessageResponse.builder()
-                    .id(autoMsg.getId())
-                    .roomId(autoMsg.getRoomId())
-                    .senderId(autoMsg.getSenderId())
-                    .content(autoMsg.getContent())
-                    .messageType(autoMsg.getMessageType())
-                    .status(autoMsg.getStatus())
-                    .createdAt(autoMsg.getCreatedAt())
-                    .build();
-
+                    .id(autoMsg.getId()).roomId(autoMsg.getRoomId()).senderId(autoMsg.getSenderId())
+                    .content(autoMsg.getContent()).messageType(autoMsg.getMessageType())
+                    .status(autoMsg.getStatus()).createdAt(autoMsg.getCreatedAt()).build();
             messagingTemplate.convertAndSend("/topic/messages." + userId, msgResponse);
-
             room.setUpdatedAt(LocalDateTime.now());
             chatRoomRepository.save(room);
         } catch (Exception e) {
-            log.error("Lỗi gửi tin nhắn tự động vào Chat: ", e);
+            log.error("Lỗi chat tự động", e);
         }
     }
 
@@ -252,32 +219,17 @@ public class OrderServiceImpl implements OrderService {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseGet(() -> orderRepository.findByOrderCode(orderId)
                         .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND)));
-
-        boolean isOwner = (actionBy != null) &&
-                (actionBy.equals(order.getUserId()) || actionBy.equalsIgnoreCase(order.getCustomerEmail()));
-
-        if (isOwner && role != ActionRole.USER && newStatus != OrderStatus.CANCELLED) {
-            throw new AppException(ErrorCode.INVALID_ACTION);
-        }
-
+        boolean isOwner = (actionBy != null) && (actionBy.equals(order.getUserId()) || actionBy.equalsIgnoreCase(order.getCustomerEmail()));
+        if (isOwner && role != ActionRole.USER && newStatus != OrderStatus.CANCELLED) throw new AppException(ErrorCode.INVALID_ACTION);
         OrderStatus oldStatus = order.getStatus();
-        if (oldStatus == OrderStatus.CANCELLED || oldStatus == OrderStatus.RETURNED) {
-            throw new AppException(ErrorCode.ORDER_STATUS_INVALID);
-        }
+        if (oldStatus == OrderStatus.CANCELLED || oldStatus == OrderStatus.RETURNED) throw new AppException(ErrorCode.ORDER_STATUS_INVALID);
 
         if (newStatus == OrderStatus.RETURNED) {
-            if (oldStatus != OrderStatus.COMPLETED) {
-                throw new AppException(ErrorCode.ORDER_RETURN_NOT_COMPLETED, order.getId());
-            }
+            if (oldStatus != OrderStatus.COMPLETED) throw new AppException(ErrorCode.ORDER_RETURN_NOT_COMPLETED, order.getId());
             LocalDateTime completedAt = order.getUpdatedAt();
             MembershipEntity membership = membershipService.getOrCreateMembership(order.getUserId());
-            int returnDaysAllowed = (membership.getTier() == MemberTier.GOLD ||
-                    membership.getTier() == MemberTier.PLATINUM ||
-                    membership.getTier() == MemberTier.DIAMOND) ? 14 : 7;
-
-            if (completedAt != null && completedAt.plusDays(returnDaysAllowed).isBefore(LocalDateTime.now())) {
-                throw new AppException(ErrorCode.ORDER_RETURN_EXPIRED, order.getOrderCode());
-            }
+            int returnDaysAllowed = (membership.getTier() == MemberTier.GOLD || membership.getTier() == MemberTier.PLATINUM || membership.getTier() == MemberTier.DIAMOND) ? 14 : 7;
+            if (completedAt != null && completedAt.plusDays(returnDaysAllowed).isBefore(LocalDateTime.now())) throw new AppException(ErrorCode.ORDER_RETURN_EXPIRED, order.getOrderCode());
         }
 
         boolean valid = switch (oldStatus) {
@@ -288,27 +240,12 @@ public class OrderServiceImpl implements OrderService {
             case COMPLETED -> newStatus == OrderStatus.RETURNED;
             default -> false;
         };
-
         if (!valid) throw new AppException(ErrorCode.ORDER_STATUS_INVALID);
 
         if (newStatus == OrderStatus.COMPLETED) {
-
-            // COD: giao xong mới thu tiền
-            if ("COD".equalsIgnoreCase(order.getPaymentMethod())
-                    && order.getPaymentStatus() == PaymentStatus.UNPAID) {
-                order.setPaymentStatus(PaymentStatus.PAID);
-            }
-
+            if ("COD".equalsIgnoreCase(order.getPaymentMethod()) && order.getPaymentStatus() == PaymentStatus.UNPAID) order.setPaymentStatus(PaymentStatus.PAID);
             membershipService.processOrderCompletion(order);
-
-            String completionMsg = """
-        🎊 Đơn hàng đã hoàn tất
-
-        Cảm ơn bạn đã tin tưởng lựa chọn ZenBook 📚✨
-        Đừng quên đánh giá sản phẩm để nhận thêm điểm thưởng nhé.
-        """;
-
-            sendAutoChatMessage(order, order.getUserId(), completionMsg);
+            sendAutoChatMessage(order, order.getUserId(), "🎊 Đơn hàng đã hoàn tất. Cảm ơn bạn!");
         }
 
         if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.RETURNED) {
@@ -319,38 +256,19 @@ public class OrderServiceImpl implements OrderService {
                 b.setSoldQuantity(Math.max(currentSold - detail.getQuantity(), 0));
                 bookRepository.save(b);
             }
-            if (order.getPaymentStatus() == PaymentStatus.PAID) {
-                order.setPaymentStatus(PaymentStatus.REFUNDED);
-            }
-            if (newStatus == OrderStatus.RETURNED) {
-                membershipService.processOrderRefund(order);
-            }
+            if (order.getPaymentStatus() == PaymentStatus.PAID) order.setPaymentStatus(PaymentStatus.REFUNDED);
+            if (newStatus == OrderStatus.RETURNED) membershipService.processOrderRefund(order);
         }
 
         order.setStatus(newStatus);
         recordHistory(order, oldStatus, newStatus, actionBy, role, note);
         OrderEntity savedOrder = orderRepository.save(order);
-
         OrderResponse response = orderMapper.toOrderResponse(savedOrder);
-        if (oldStatus != newStatus) {
-            emailService.sendOrderStatusEmail(response);
-        }
+        if (oldStatus != newStatus) emailService.sendOrderStatusEmail(response);
 
         try {
-            String statusName = switch (newStatus) {
-                case CONFIRMED -> "đã được xác nhận";
-                case PACKING -> "đang được đóng gói";
-                case SHIPPING -> "đang được giao tới bạn";
-                case COMPLETED -> "đã giao thành công";
-                case CANCELLED -> "đã bị hủy";
-                case RETURNED -> "đã hoàn trả";
-                default -> newStatus.name();
-            };
-            String title = (newStatus == OrderStatus.COMPLETED) ? "Giao hàng thành công" : "Cập nhật đơn hàng";
-            notificationService.notifyOrder(order.getUserId(), order.getOrderCode(), title, "Đơn hàng #" + order.getOrderCode() + " " + statusName + ".");
-        } catch (Exception e) {
-            log.error("Lỗi khi gửi thông báo: ", e);
-        }
+            notificationService.notifyOrder(order.getUserId(), order.getOrderCode(), "Cập nhật đơn hàng", "Đơn hàng #" + order.getOrderCode() + " đã chuyển sang " + newStatus.name());
+        } catch (Exception e) { log.error("Lỗi thông báo", e); }
 
         return response;
     }
@@ -361,19 +279,13 @@ public class OrderServiceImpl implements OrderService {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseGet(() -> orderRepository.findByOrderCode(orderId)
                         .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND)));
-        if (role == ActionRole.USER) {
-            if (!order.getCustomerEmail().equalsIgnoreCase(actionBy) && !order.getUserId().equals(actionBy)) {
-                throw new AppException(ErrorCode.ACCESS_DENIED);
-            }
-        }
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new AppException(ErrorCode.ORDER_CANNOT_UPDATE, "Không thể chỉnh sửa đơn hàng đã được xử lý hoặc đã hủy");
-        }
+        if (role == ActionRole.USER && !order.getCustomerEmail().equalsIgnoreCase(actionBy) && !order.getUserId().equals(actionBy)) throw new AppException(ErrorCode.ACCESS_DENIED);
+        if (order.getStatus() != OrderStatus.PENDING) throw new AppException(ErrorCode.ORDER_CANNOT_UPDATE);
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setShippingAddress(request.getShippingAddress());
         order.setNote(request.getNote());
-        recordHistory(order, OrderStatus.PENDING, OrderStatus.PENDING, actionBy, role, "Cập nhật thông tin đơn hàng");
+        recordHistory(order, OrderStatus.PENDING, OrderStatus.PENDING, actionBy, role, "Cập nhật thông tin");
         return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
@@ -381,12 +293,9 @@ public class OrderServiceImpl implements OrderService {
         double totalItemsPrice = 0.0;
         if (order.getDetails() == null) order.setDetails(new ArrayList<>());
         for (OrderItemRequest itemReq : items) {
-            BookEntity book = bookRepository.findById(itemReq.getBookId())
-                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, itemReq.getBookId()));
-            if (book.getDeletedAt() != null || !BookStatus.ACTIVE.equals(book.getStatus()))
-                throw new AppException(ErrorCode.BOOK_NOT_ACTIVE, book.getTitle());
-            if (book.getStockQuantity() < itemReq.getQuantity())
-                throw new AppException(ErrorCode.BOOK_STOCK_INVALID, book.getTitle(), book.getStockQuantity(), itemReq.getQuantity());
+            BookEntity book = bookRepository.findById(itemReq.getBookId()).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+            if (book.getDeletedAt() != null || !BookStatus.ACTIVE.equals(book.getStatus())) throw new AppException(ErrorCode.BOOK_NOT_ACTIVE);
+            if (book.getStockQuantity() < itemReq.getQuantity()) throw new AppException(ErrorCode.BOOK_STOCK_INVALID);
             book.setStockQuantity(book.getStockQuantity() - itemReq.getQuantity());
             int currentSold = book.getSoldQuantity() != null ? book.getSoldQuantity() : 0;
             book.setSoldQuantity(currentSold + itemReq.getQuantity());
@@ -395,26 +304,22 @@ public class OrderServiceImpl implements OrderService {
             double actualPrice = (promoPrice > 0) ? promoPrice : book.getSalePrice();
             double subTotal = itemReq.getQuantity() * actualPrice;
             totalItemsPrice += subTotal;
-            order.getDetails().add(OrderDetailEntity.builder()
-                    .order(order).book(book).quantity(itemReq.getQuantity())
-                    .priceAtPurchase(actualPrice).subTotal(subTotal).build());
+            order.getDetails().add(OrderDetailEntity.builder().order(order).book(book).quantity(itemReq.getQuantity()).priceAtPurchase(actualPrice).subTotal(subTotal).build());
         }
         order.setTotalItemsPrice(totalItemsPrice);
     }
 
     private void recordHistory(OrderEntity order, OrderStatus from, OrderStatus to, String by, ActionRole role, String note) {
         if (order.getHistories() == null) order.setHistories(new ArrayList<>());
-        order.getHistories().add(OrderHistoryEntity.builder()
-                .order(order).fromStatus(from).toStatus(to)
-                .actionBy(by).role(role).note(note).build());
+        order.getHistories().add(OrderHistoryEntity.builder().order(order).fromStatus(from).toStatus(to).actionBy(by).role(role).note(note).build());
     }
 
     @Override
-    public Page<OrderResponse> getAllOrders(OrderStatus s, String startDate, String endDate, Pageable p) {
-        LocalDateTime start = StringUtils.hasText(startDate) ? LocalDate.parse(startDate).atStartOfDay() : LocalDateTime.of(2000, 1, 1, 0, 0);
-        LocalDateTime end = StringUtils.hasText(endDate) ? LocalDate.parse(endDate).atTime(23, 59, 59) : LocalDateTime.now().plusYears(10);
-        if (s != null) return orderRepository.findByStatusAndCreatedAtBetween(s, start, end, p).map(orderMapper::toOrderResponse);
-        else return orderRepository.findByCreatedAtBetween(start, end, p).map(orderMapper::toOrderResponse);
+    public Page<OrderResponse> getAllOrders(OrderStatus s, String start, String end, Pageable p) {
+        LocalDateTime startDate = StringUtils.hasText(start) ? LocalDate.parse(start).atStartOfDay() : LocalDateTime.of(2000, 1, 1, 0, 0);
+        LocalDateTime endDate = StringUtils.hasText(end) ? LocalDate.parse(end).atTime(23, 59, 59) : LocalDateTime.now().plusYears(10);
+        if (s != null) return orderRepository.findByStatusAndCreatedAtBetween(s, startDate, endDate, p).map(orderMapper::toOrderResponse);
+        return orderRepository.findByCreatedAtBetween(startDate, endDate, p).map(orderMapper::toOrderResponse);
     }
 
     @Override
@@ -427,16 +332,12 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public OrderResponse getOrderById(String idOrCode) {
-        OrderEntity order = orderRepository.findById(idOrCode)
-                .orElseGet(() -> orderRepository.findByOrderCode(idOrCode)
-                        .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND)));
+        OrderEntity order = orderRepository.findById(idOrCode).orElseGet(() -> orderRepository.findByOrderCode(idOrCode).orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND)));
         return enrichOrderResponse(orderMapper.toOrderResponse(order));
     }
 
     @Override
-    public long countPendingOrders() {
-        return orderRepository.countByStatus(OrderStatus.PENDING);
-    }
+    public long countPendingOrders() { return orderRepository.countByStatus(OrderStatus.PENDING); }
 
     private String generateOrderCode() {
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"));
@@ -448,10 +349,7 @@ public class OrderServiceImpl implements OrderService {
 
     private OrderResponse enrichOrderResponse(OrderResponse response) {
         if (response == null || response.getDetails() == null) return response;
-        response.getDetails().forEach(detail -> {
-            boolean hasReviewed = reviewRepository.existsByOrderDetailIdAndDeletedAtIsNull(detail.getId());
-            detail.setIsReviewed(hasReviewed);
-        });
+        response.getDetails().forEach(detail -> detail.setIsReviewed(reviewRepository.existsByOrderDetailIdAndDeletedAtIsNull(detail.getId())));
         return response;
     }
 }

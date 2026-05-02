@@ -15,10 +15,35 @@ public class BookSearchAiService {
 
     private final BookRepository bookRepository;
 
-    // Cache kết quả tìm kiếm trong vòng 10-30 phút
-    @Cacheable(value = "ai_book_search", key = "#keyword.toLowerCase().trim()")
-    public List<AiBookDto.SearchResponse> search(String keyword) {
-        // Chỉ lấy 5 cuốn phù hợp nhất, giảm tải tối đa cho AI
-        return bookRepository.searchBooksForAi(keyword, PageRequest.of(0, 5));
+    @Cacheable(value = "ai_book_search", key = "T(java.util.Objects).hash(#keyword, #minPrice, #maxPrice)")
+    public List<AiBookDto.SearchResponse> search(String keyword, Double minPrice, Double maxPrice) {
+
+        // 1. Chuẩn hóa từ khóa
+        String searchKey = (keyword != null) ? keyword.trim() : "";
+        if (searchKey.equalsIgnoreCase("sách") || searchKey.equalsIgnoreCase("cuốn sách") || searchKey.equalsIgnoreCase("quyển sách")) {
+            searchKey = "";
+        }
+
+        // 2. 👉 BẪY LỖI AI "NGÁO" GIÁ:
+        // Nếu AI lỡ truyền 0.0, ta ép về null để Hibernate bỏ qua điều kiện này
+        if (minPrice != null && minPrice <= 0.0) {
+            minPrice = null;
+        }
+        if (maxPrice != null && maxPrice <= 0.0) {
+            maxPrice = null;
+        }
+
+        // Bẫy lỗi Logic: Tránh trường hợp AI điền min = 100k, max = 0 (max nhỏ hơn min)
+        if (minPrice != null && maxPrice != null && maxPrice < minPrice) {
+            maxPrice = null; // Xóa luôn điều kiện maxPrice vô lý
+        }
+
+        // 3. Truy vấn Database an toàn
+        return bookRepository.searchBooksWithPriceForAi(
+                searchKey,
+                minPrice,
+                maxPrice,
+                PageRequest.of(0, 5) // Chỉ lấy 5 quyển cho AI đỡ bị ngợp
+        );
     }
 }

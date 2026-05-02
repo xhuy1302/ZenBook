@@ -79,5 +79,12 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="add-note-to-receipt-details" author="zenbook">
+        <addColumn tableName="receipt_details">
+            <column name="note" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 
 </databaseChangeLog>

@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderDetailResponse {
+public class OrderDetailResponse implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     private String bookId;
     private String bookSlug;

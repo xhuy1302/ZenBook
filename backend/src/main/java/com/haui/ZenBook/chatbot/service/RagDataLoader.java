@@ -21,22 +21,20 @@ public class RagDataLoader {
 
     private final VectorStore vectorStore;
 
-    // Đây là "Sách giáo khoa" thu nhỏ. Trong thực tế, bạn có thể lưu ra file .txt hoặc .pdf rồi đọc vào.
+    // 👉 ĐÃ CẬP NHẬT "SÁCH GIÁO KHOA": Xóa rule 250k cứng, thêm chi tiết hạng điểm
     private static final String FAQ_KNOWLEDGE_BASE = """
-            CHÍNH SÁCH VẬN CHUYỂN (GIAO HÀNG):
-            Nhà sách ZenBook hợp tác với GHN để giao hàng toàn quốc.
-            - Phí vận chuyển tiêu chuẩn là 30.000đ cho mọi đơn hàng.
-            - Freeship (Miễn phí vận chuyển) cho đơn hàng có tổng giá trị từ 250.000đ trở lên.
-            - Đối với khách hàng thành viên VIP (Hạng Platinum và Diamond), luôn được Freeship 100% mọi đơn hàng bất kể giá trị.
-            - Thời gian giao hàng dự kiến: Nội thành Hà Nội (1-2 ngày), Ngoại tỉnh (3-5 ngày).
+            CHÍNH SÁCH VẬN CHUYỂN & ĐỔI TRẢ:
+            - Nhà sách ZenBook hợp tác với GHN giao hàng toàn quốc. Nội thành Hà Nội (1-2 ngày), Ngoại tỉnh (3-5 ngày).
+            - Phí vận chuyển tiêu chuẩn là 30.000đ. Điều kiện Freeship phụ thuộc vào mã khuyến mãi hiện hành trên hệ thống.
+            - Đặc quyền: Khách hàng hạng Bạch Kim (Platinum) và Kim Cương (Diamond) luôn được Freeship 100% mọi đơn hàng bất kể giá trị.
+            - Đổi trả sách (do lỗi in ấn, giao sai): Thời hạn 7 ngày đối với Thành viên thường & Bạc. Lên đến 14 ngày đối với hạng Vàng, Bạch Kim, Kim Cương.
 
-            CHÍNH SÁCH ĐỔI TRẢ VÀ BẢO HÀNH:
-            Khách hàng được quyền yêu cầu đổi hoặc trả hàng (Hoàn tiền) trong các trường hợp sau:
-            - Sách bị lỗi in ấn (Thiếu trang, mờ chữ, rách trang, bung gáy) từ nhà xuất bản.
-            - Giao sai sách (Không đúng tựa sách, không đúng ấn bản đã đặt).
-            - Thời hạn yêu cầu đổi trả: 
-                + Khách hàng thường: Trong vòng 7 ngày kể từ khi đơn hàng ở trạng thái "Đã giao thành công" (COMPLETED).
-                + Khách hàng VIP (Gold, Platinum, Diamond): Được gia hạn thời gian đổi trả lên tới 14 ngày.
+            HỆ THỐNG HẠNG THÀNH VIÊN VÀ QUYỀN LỢI (ZPOINTS):
+            - Thành viên Mới (MEMBER): Tích lũy x1.0 ZPoints.
+            - Hạng BẠC (SILVER): Tích lũy x1.05 ZPoints. Nhận Voucher sinh nhật 5%. Ưu tiên CSKH.
+            - Hạng VÀNG (GOLD): Tích lũy x1.10 ZPoints. Nhận Voucher tháng 10%. Quyền đổi trả lên tới 14 ngày.
+            - Hạng BẠCH KIM (PLATINUM): Tích lũy x1.20 ZPoints. Freeship không giới hạn (Unlimited). Tặng Box quà sinh nhật.
+            - Hạng KIM CƯƠNG (DIAMOND): Tích lũy x1.30 ZPoints. CSKH & Hotline riêng. Voucher sinh nhật 15-20%. Hoàn xu 3-5%.
 
             TƯ VẤN SÁCH THEO TÂM TRẠNG (CHỮA LÀNH):
             - Nếu khách hàng cảm thấy mệt mỏi, áp lực công việc, overthinking, mất phương hướng: Hãy tư vấn các cuốn sách như "Hiểu về trái tim", "Tuổi trẻ đáng giá bao nhiêu", "Muôn kiếp nhân sinh".
@@ -47,30 +45,25 @@ public class RagDataLoader {
     public void loadKnowledgeBase() {
         log.info("Đang kiểm tra dữ liệu RAG trong Redis...");
 
-        // Đoạn logic này kiểm tra xem trong Redis có data chưa. Nếu chưa mới nạp vào để tránh nạp trùng lặp.
-        List<Document> testDocs = vectorStore.similaritySearch("chính sách vận chuyển");
+        // Đổi từ khóa check để ép hệ thống nhận diện bản Update mới
+        List<Document> testDocs = vectorStore.similaritySearch("HỆ THỐNG HẠNG THÀNH VIÊN");
 
-        // Kiểm tra xem có kết quả trả về không, và nội dung có chứa từ khóa của FAQ không
-        if (!testDocs.isEmpty() && testDocs.get(0).getContent().contains("CHÍNH SÁCH VẬN CHUYỂN")) {
-            log.info("Dữ liệu RAG đã có sẵn trong Redis. Bỏ qua bước nạp.");
+        if (!testDocs.isEmpty() && testDocs.get(0).getContent().contains("ZPOINTS")) {
+            log.info("Dữ liệu RAG (Bản mới nhất) đã có sẵn trong Redis. Bỏ qua bước nạp.");
             return;
         }
 
-        log.info("Bắt đầu nạp 'Sách Giáo Khoa' (FAQ) vào Redis Vector Database...");
+        log.info("Bắt đầu nạp 'Sách Giáo Khoa' bản nâng cấp vào Redis Vector Database...");
 
-        // 1. Chuyển String thành Resource để Reader đọc
         Resource resource = new ByteArrayResource(FAQ_KNOWLEDGE_BASE.getBytes(StandardCharsets.UTF_8));
         TextReader textReader = new TextReader(resource);
-        textReader.getCustomMetadata().put("source", "zenbook-faq"); // Thêm metadata để sau này filter nếu cần
+        textReader.getCustomMetadata().put("source", "zenbook-faq-v2");
 
         List<Document> documents = textReader.get();
 
-        // 2. Chunking thông minh (Chia nhỏ văn bản tránh nhồi quá nhiều vào Prompt)
-        // Chia thành các đoạn tối đa 150 token, overlap 50 token để giữ ngữ cảnh liền mạch
         TokenTextSplitter textSplitter = new TokenTextSplitter(150, 50, 5, 10000, true);
         List<Document> splitDocuments = textSplitter.apply(documents);
 
-        // 3. Nạp vào Vector DB (Tự động gọi Embedding Model để mã hóa)
         vectorStore.add(splitDocuments);
 
         log.info("Đã nạp thành công {} chunks vào Redis Vector Store!", splitDocuments.size());

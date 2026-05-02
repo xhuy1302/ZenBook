@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class PublisherResponse {
+public class PublisherResponse  implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     private String name;
     private String contactName;

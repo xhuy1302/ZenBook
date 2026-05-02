@@ -402,11 +402,21 @@ const SupportChat: React.FC<Props> = ({ currentUser, isAdmin = false, adminTarge
                       </div>
                     )}
                     <div
-                      className={`px-3.5 py-2.5 rounded-2xl max-w-[82%] text-sm ${msg.role === 'user' ? 'bg-green-600 text-white rounded-tr-sm' : 'bg-white border rounded-tl-sm'}`}
+                      className={`px-3.5 py-2.5 rounded-2xl max-w-[82%] text-sm ${
+                        msg.role === 'user'
+                          ? 'bg-green-600 text-white rounded-tr-sm'
+                          : 'bg-white border rounded-tl-sm text-slate-800' // Thêm text-slate-800 cho rõ
+                      }`}
+                      style={{
+                        whiteSpace: 'pre-wrap', // 👉 DÒNG QUAN TRỌNG NHẤT: Giữ khoảng trắng và xuống dòng
+                        wordBreak: 'break-word' // Tránh tràn chữ ra ngoài bubble
+                      }}
                     >
                       {msg.role === 'bot' ? (
-                        <div className='prose prose-sm'>
-                          <ReactMarkdown>{msg.content.replace('[ACTION:LOGIN]', '')}</ReactMarkdown>
+                        <div className='prose prose-sm max-w-none prose-ul:my-0 prose-li:my-0 prose-p:my-0'>
+                          {' '}
+                          {/* Thêm các class my-0 này để xóa khoảng cách dọc */}
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
                         </div>
                       ) : (
                         msg.content
