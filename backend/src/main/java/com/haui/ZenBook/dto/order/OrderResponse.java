@@ -15,7 +15,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderResponse {
+public class OrderResponse implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     private String orderCode;
     private String userId;

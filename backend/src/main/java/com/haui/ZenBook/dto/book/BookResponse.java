@@ -18,7 +18,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BookResponse {
+public class BookResponse implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     String id;
     String title;
     String slug;

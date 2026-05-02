@@ -64,7 +64,7 @@ public class MembershipServiceImpl implements MembershipService {
             membership.setTier(newTier);
             notificationService.createNotification(
                     order.getUserId(), "MEMBERSHIP", "🎉 Thăng hạng thành viên!",
-                    "Chúc mừng! Bạn đã thăng hạng lên " + newTier.getDisplayName(), "/customer/membership"
+                    "Chúc mừng! Bạn đã thăng hạng lên " + newTier.getDisplayName(), "/zenbookvip"
             );
         }
 
@@ -157,7 +157,7 @@ public class MembershipServiceImpl implements MembershipService {
         membershipRepository.save(membership);
 
         notificationService.createNotification(userId, "MEMBERSHIP", "🔥 Điểm danh thành công!",
-                "Chuỗi " + currentStreak + " ngày. Bạn nhận được +" + bonusPoints + " ZPoints.", "/customer/membership");
+                "Chuỗi " + currentStreak + " ngày. Bạn nhận được +" + bonusPoints + " ZPoints.", "/zenbookvip");
 
         return "Chuỗi " + currentStreak + " ngày! +" + bonusPoints + " ZPoints.";
     }

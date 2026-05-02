@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface CartRepository extends JpaRepository<CartEntity, String> {
     // 👉 Đổi từ findByUserId thành findByUserEmail
     Optional<CartEntity> findByUserEmail(String email);
+    Optional<CartEntity> findByUserId(String userId);
 }

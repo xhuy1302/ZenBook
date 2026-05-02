@@ -118,4 +118,20 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="20260502-fix-updated-at-messages" author="vuxuanhuy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="messages" columnName="updated_at"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="messages">
+            <column
+                    name="updated_at"
+                    type="TIMESTAMP"
+                    defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

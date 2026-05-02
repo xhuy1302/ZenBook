@@ -15,6 +15,7 @@ import com.haui.ZenBook.repository.CartRepository;
 import com.haui.ZenBook.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,6 +93,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "bookRecommendations", key = "#userId")
     public CartResponse addToCart(String userId, CartItemRequest request) {
         CartEntity cart = getOrCreateCart(userId);
         BookEntity book = bookRepository.findById(request.getBookId())

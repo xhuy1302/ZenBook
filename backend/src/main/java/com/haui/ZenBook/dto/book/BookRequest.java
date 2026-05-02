@@ -41,6 +41,7 @@ public class BookRequest {
     String dimensions;
     Integer weight;
     String language;
+    String award;
 
     @Builder.Default
     List<String> deleteImageIds = new ArrayList<>(); // ID ảnh cần xóa

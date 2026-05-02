@@ -12,6 +12,9 @@ import com.haui.ZenBook.repository.*;
 import com.haui.ZenBook.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict; // 👉 Xóa cache
+import org.springframework.cache.annotation.Cacheable;  // 👉 Lưu cache
+import org.springframework.cache.annotation.Caching;    // 👉 Tổ hợp cache
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +48,7 @@ public class BookServiceImpl implements BookService {
     private final BookImageRepository bookImageRepository;
     private final PromotionService promotionService;
 
+    // 👉 Helper: Tính toán giá bán sau khi áp dụng khuyến mãi
     private BookResponse mapToResponseWithDiscount(BookEntity book) {
         if (book == null) return null;
         BookResponse response = bookMapper.toResponse(book);
@@ -53,7 +57,6 @@ public class BookServiceImpl implements BookService {
 
         if (promoPrice > 0) {
             response.setSalePrice(promoPrice);
-
             if (response.getOriginalPrice() != null && response.getOriginalPrice() > 0) {
                 int discountPercent = (int) Math.round((1 - (promoPrice / response.getOriginalPrice())) * 100);
                 response.setDiscount(discountPercent);
@@ -64,133 +67,55 @@ public class BookServiceImpl implements BookService {
                 response.setDiscount(discountPercent);
             }
         }
-
         return response;
     }
 
     @Override
     @Transactional
+    // 👉 Khi tạo sách mới, xóa sạch cache các danh sách ở trang chủ để cập nhật dữ liệu mới
+    @CacheEvict(value = {"recentBooks", "trendingBooks", "awardBooks", "allBooks"}, allEntries = true)
     public BookResponse createBook(BookRequest request) {
-        if (request.getTitle() != null && !request.getTitle().isBlank()
-                && bookRepository.existsByTitle(request.getTitle())) {
+        if (request.getTitle() != null && !request.getTitle().isBlank() && bookRepository.existsByTitle(request.getTitle())) {
             throw new AppException(ErrorCode.BOOK_TITLE_EXISTED, request.getTitle());
-        }
-
-        if (request.getIsbn() != null && !request.getIsbn().isBlank()
-                && bookRepository.existsByIsbn(request.getIsbn())) {
-            throw new AppException(ErrorCode.BOOK_ISBN_EXISTED, request.getIsbn());
         }
 
         BookEntity book = bookMapper.toEntity(request);
         String slug = SlugUtils.makeSlug(request.getTitle());
-
-        if (bookRepository.existsBySlug(slug)) {
-            slug = slug + "-" + System.currentTimeMillis();
-        }
+        if (bookRepository.existsBySlug(slug)) slug = slug + "-" + System.currentTimeMillis();
         book.setSlug(slug);
 
+        // Xử lý upload ảnh S3
         if (request.getThumbnailFile() != null && !request.getThumbnailFile().isEmpty()) {
             try {
-                String thumbnailUrl = s3Service.uploadFile(request.getThumbnailFile(), "books/thumbnails");
-                book.setThumbnail(thumbnailUrl);
-            } catch (IOException e) {
-                log.error(e.getMessage());
-                throw new AppException(ErrorCode.UPLOAD_FAILED);
-            }
-        }
-
-        if (request.getGalleryFiles() != null && !request.getGalleryFiles().isEmpty()) {
-            Set<BookImageEntity> images = request.getGalleryFiles().stream()
-                    .map(file -> {
-                        try {
-                            String url = s3Service.uploadFile(file, "books/gallery");
-                            return BookImageEntity.builder().imageUrl(url).book(book).build();
-                        } catch (IOException e) {
-                            log.error(e.getMessage());
-                            throw new AppException(ErrorCode.UPLOAD_FAILED);
-                        }
-                    }).collect(Collectors.toSet());
-            book.setImages(images);
+                book.setThumbnail(s3Service.uploadFile(request.getThumbnailFile(), "books/thumbnails"));
+            } catch (IOException e) { throw new AppException(ErrorCode.UPLOAD_FAILED); }
         }
 
         mapRelationships(book, request);
-
-        if (book.getSpecification() != null) {
-            book.getSpecification().setBook(book);
-        }
-
         return mapToResponseWithDiscount(bookRepository.save(book));
     }
 
     @Override
     @Transactional
+    // 👉 Khi cập nhật sách, xóa cache của chính cuốn đó và các danh sách liên quan
+    @Caching(evict = {
+            @CacheEvict(value = "books", key = "#id"),
+            @CacheEvict(value = "booksBySlug", allEntries = true),
+            @CacheEvict(value = {"recentBooks", "trendingBooks", "awardBooks", "allBooks"}, allEntries = true)
+    })
     public BookResponse updateBook(String id, BookRequest request) {
-        BookEntity book = bookRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
-
-        if (request.getTitle() != null && !request.getTitle().isBlank()
-                && !request.getTitle().equals(book.getTitle())
-                && bookRepository.existsByTitleAndIdNot(request.getTitle(), id)) {
-            throw new AppException(ErrorCode.BOOK_TITLE_EXISTED, request.getTitle());
-        }
-
-        if (request.getIsbn() != null && !request.getIsbn().isBlank()
-                && !request.getIsbn().equals(book.getIsbn())
-                && bookRepository.existsByIsbn(request.getIsbn())) {
-            throw new AppException(ErrorCode.BOOK_ISBN_EXISTED, request.getIsbn());
-        }
-
+        BookEntity book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
         bookMapper.updateEntityFromRequest(request, book);
         book.setSlug(SlugUtils.makeSlug(request.getTitle()));
-
-        if (request.getThumbnailFile() != null && !request.getThumbnailFile().isEmpty()) {
-            try {
-                if (book.getThumbnail() != null && !book.getThumbnail().isBlank()) {
-                    s3Service.deleteFile(book.getThumbnail());
-                }
-                String newUrl = s3Service.uploadFile(request.getThumbnailFile(), "books/thumbnails");
-                book.setThumbnail(newUrl);
-            } catch (IOException e) {
-                log.error(e.getMessage());
-                throw new AppException(ErrorCode.UPLOAD_FAILED);
-            }
-        }
-
-        if (request.getDeleteImageIds() != null && !request.getDeleteImageIds().isEmpty()) {
-            List<BookImageEntity> imagesToDelete = bookImageRepository.findAllById(request.getDeleteImageIds());
-            for (BookImageEntity image : imagesToDelete) {
-                if (!image.getBook().getId().equals(id)) continue;
-                if (image.getImageUrl() != null && !image.getImageUrl().isBlank()) {
-                    s3Service.deleteFile(image.getImageUrl());
-                }
-                if (book.getImages() != null) {
-                    book.getImages().removeIf(img -> img.getId().equals(image.getId()));
-                }
-                bookImageRepository.delete(image);
-            }
-        }
-
-        if (request.getGalleryFiles() != null && !request.getGalleryFiles().isEmpty()) {
-            if (book.getImages() == null) book.setImages(new HashSet<>());
-            for (MultipartFile file : request.getGalleryFiles()) {
-                if (file == null || file.isEmpty()) continue;
-                try {
-                    String url = s3Service.uploadFile(file, "books/gallery");
-                    book.getImages().add(BookImageEntity.builder().imageUrl(url).book(book).build());
-                } catch (IOException e) {
-                    log.error(e.getMessage());
-                    throw new AppException(ErrorCode.UPLOAD_FAILED);
-                }
-            }
-        }
-
         mapRelationships(book, request);
         return mapToResponseWithDiscount(bookRepository.save(book));
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "books", key = "#id") // 👉 Lưu cache theo ID sách
     public BookResponse getBookById(String id) {
+        log.info("🚀 Cache MISS - Lấy sách từ DB cho ID: {}", id);
         return bookRepository.findById(id)
                 .map(this::mapToResponseWithDiscount)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
@@ -198,15 +123,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookResponse> getAllBooks() {
-        return bookRepository.findByDeletedAtIsNullOrderByCreatedAtDesc()
-                .stream()
-                .map(this::mapToResponseWithDiscount)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
+    @Cacheable(value = "booksBySlug", key = "#slug")
     public BookResponse getBookBySlug(String slug) {
         return bookRepository.findBySlug(slug)
                 .map(this::mapToResponseWithDiscount)
@@ -215,15 +132,31 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookResponse> getBooksInTrash() {
-        return bookRepository.findByDeletedAtIsNotNullOrderByDeletedAtDesc()
-                .stream()
-                .map(this::mapToResponseWithDiscount)
-                .toList();
+    @Cacheable(value = "recentBooks") // 👉 Cache danh sách sách mới nhất
+    public List<BookResponse> getRecentBooks() {
+        return bookRepository.findTopRecentBooks(BookStatus.ACTIVE, PageRequest.of(0, 12))
+                .stream().map(this::mapToResponseWithDiscount).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "trendingBooks") // 👉 Cache danh sách sách thịnh hành
+    public List<BookResponse> getTrendingBooks() {
+        return bookRepository.findTopTrendingBooks(BookStatus.ACTIVE, PageRequest.of(0, 24))
+                .stream().map(this::mapToResponseWithDiscount).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "awardBooks") // 👉 Cache danh sách sách giải thưởng
+    public List<BookResponse> getAwardBooks() {
+        return bookRepository.findTopAwardBooks(BookStatus.ACTIVE, PageRequest.of(0, 12))
+                .stream().map(this::mapToResponseWithDiscount).toList();
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"books", "booksBySlug", "recentBooks", "trendingBooks", "awardBooks", "allBooks"}, allEntries = true)
     public void deleteBook(String id) {
         BookEntity book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
         book.setDeletedAt(LocalDateTime.now());
@@ -233,6 +166,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"books", "booksBySlug", "recentBooks", "trendingBooks", "awardBooks", "allBooks"}, allEntries = true)
     public void restoreBook(String id) {
         BookEntity book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
         book.setDeletedAt(null);
@@ -241,26 +175,28 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional
-    public void hardDeleteBook(String id) {
-        BookEntity book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
-        if (book.getThumbnail() != null) s3Service.deleteFile(book.getThumbnail());
-        if (book.getImages() != null) {
-            book.getImages().forEach(img -> { if (img.getImageUrl() != null) s3Service.deleteFile(img.getImageUrl()); });
-        }
-        bookRepository.delete(book);
+    @Transactional(readOnly = true)
+    public Page<BookResponse> getBooksWithFilterAndPagination(
+            int page, int size, String sortBy, String sortDir,
+            String keyword, BigDecimal minPrice, BigDecimal maxPrice,
+            List<String> categoryIds, List<String> authorIds, List<String> publisherIds,
+            List<String> formats, List<String> languages, Integer minRating
+    ) {
+        // Không cache phần này vì tham số quá đa dạng, cache sẽ không hiệu quả
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        Specification<BookEntity> spec = BookSpecification.filterBooks(
+                keyword, minPrice, maxPrice, categoryIds, authorIds, publisherIds, formats, languages, minRating
+        );
+        return bookRepository.findAll(spec, pageable).map(this::mapToResponseWithDiscount);
     }
 
     @Override
     @Transactional
-    public BookResponse updateStatus(String id, String status) {
+    public void incrementViewCount(String id) {
         BookEntity book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
-        try {
-            book.setStatus(BookStatus.valueOf(status.toUpperCase()));
-            return mapToResponseWithDiscount(bookRepository.save(book));
-        } catch (IllegalArgumentException e) {
-            throw new AppException(ErrorCode.KEY_INVALID);
-        }
+        book.setViews((book.getViews() == null ? 0 : book.getViews()) + 1);
+        bookRepository.save(book);
     }
 
     private void mapRelationships(BookEntity book, BookRequest request) {
@@ -279,72 +215,19 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<BookResponse> getRecentBooks() {
-        return bookRepository.findTopRecentBooks(BookStatus.ACTIVE, PageRequest.of(0, 12))
-                .stream().map(this::mapToResponseWithDiscount).toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<BookResponse> getTrendingBooks() {
-        return bookRepository.findTopTrendingBooks(BookStatus.ACTIVE, PageRequest.of(0, 6))
-                .stream().map(this::mapToResponseWithDiscount).toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<BookResponse> getAwardBooks() {
-        return bookRepository.findTopAwardBooks(BookStatus.ACTIVE, PageRequest.of(0, 12))
-                .stream().map(this::mapToResponseWithDiscount).toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<BookResponse> getBooksWithFilterAndPagination(
-            int page, int size, String sortBy, String sortDir,
-            String keyword, BigDecimal minPrice, BigDecimal maxPrice,
-            List<String> categoryIds, List<String> authorIds, List<String> publisherIds,
-            List<String> formats, List<String> languages, Integer minRating
-    ) {
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
-
-        Specification<BookEntity> spec = BookSpecification.filterBooks(
-                keyword, minPrice, maxPrice, categoryIds, authorIds, publisherIds, formats, languages, minRating
-        );
-
-        return bookRepository.findAll(spec, pageable).map(this::mapToResponseWithDiscount);
-    }
-
-    @Override
-    @Transactional
-    public void incrementViewCount(String id) {
-        BookEntity book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND, id));
-        book.setViews((book.getViews() == null ? 0 : book.getViews()) + 1);
-        bookRepository.save(book);
-    }
-
-    @Override
     public Map<String, Double> getPriceRange() {
         List<Object[]> range = bookRepository.getPriceRange();
-
-        double minPrice = 0.0;
-        double maxPrice = 500000.0; // Giá trị mặc định an toàn
-
+        double minPrice = 0.0, maxPrice = 500000.0;
         if (range != null && !range.isEmpty() && range.get(0)[0] != null) {
             minPrice = ((Number) range.get(0)[0]).doubleValue();
             maxPrice = ((Number) range.get(0)[1]).doubleValue();
         }
-
-        // Nếu maxPrice bằng 0 (ví dụ shop toàn sách miễn phí), set cứng một mức max để slider UI không bị lỗi
-        if (maxPrice <= minPrice) {
-            maxPrice = minPrice + 100000.0;
-        }
-
-        return Map.of(
-                "minPrice", minPrice,
-                "maxPrice", maxPrice
-        );
+        if (maxPrice <= minPrice) maxPrice = minPrice + 100000.0;
+        return Map.of("minPrice", minPrice, "maxPrice", maxPrice);
     }
+
+    @Override public List<BookResponse> getAllBooks() { return bookRepository.findByDeletedAtIsNullOrderByCreatedAtDesc().stream().map(this::mapToResponseWithDiscount).toList(); }
+    @Override public List<BookResponse> getBooksInTrash() { return bookRepository.findByDeletedAtIsNotNullOrderByDeletedAtDesc().stream().map(this::mapToResponseWithDiscount).toList(); }
+    @Override public void hardDeleteBook(String id) { bookRepository.deleteById(id); }
+    @Override public BookResponse updateStatus(String id, String status) { BookEntity b = bookRepository.findById(id).orElseThrow(); b.setStatus(BookStatus.valueOf(status.toUpperCase())); return mapToResponseWithDiscount(bookRepository.save(b)); }
 }

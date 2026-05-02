@@ -103,7 +103,7 @@ function App() {
             <Route path='/products' element={<ProductListPage />} />
             <Route path='/search' element={<ProductListPage />} />
             <Route path='/products/:slug' element={<ProductDetailPage />} />
-            <Route path='/zenbokvip' element={<ZenBookVipPage />} />
+            <Route path='/zenbookvip' element={<ZenBookVipPage />} />
 
             {/* CUSTOMER API (Mua hàng & Thanh toán): CHỈ USER / ADMIN */}
             <Route

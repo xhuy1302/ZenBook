@@ -1,25 +1,54 @@
 package com.haui.ZenBook.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
 
 @Configuration
-@EnableCaching // 👉 Đây là "chìa khóa" kích hoạt toàn bộ hệ thống Cache
+@EnableCaching
 public class RedisConfig {
 
     @Bean
     public RedisCacheConfiguration cacheConfiguration() {
+        // 1. Cấu hình ObjectMapper tối ưu
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // Hỗ trợ Java 8 Time (LocalDateTime)
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        // Tránh lỗi khi gặp thuộc tính lạ trong JSON
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        // 👉 CẤU HÌNH QUAN TRỌNG: Giúp Jackson lưu Type ID một cách an toàn cho cả List và Record
+        objectMapper.activateDefaultTyping(
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.EVERYTHING,
+                JsonTypeInfo.As.PROPERTY
+        );
+
+        // 2. Tạo Serializer với ObjectMapper đã cấu hình
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
+        // 3. Thiết lập cấu hình Cache
         return RedisCacheConfiguration.defaultCacheConfig()
-                // Cài đặt thời gian sống (TTL) của Cache là 30 phút.
-                // Sau 30 phút, Redis tự xóa, AI chọc vào sẽ quét lại DB để lấy giá mới nhất.
-                .entryTtl(Duration.ofMinutes(30))
-                .disableCachingNullValues() // Đỡ tốn RAM lưu mấy cái rỗng
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+                .entryTtl(Duration.ofMinutes(60)) // Thời gian sống của cache
+                .disableCachingNullValues()
+                // Serialize Key dạng String dễ đọc
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                // Serialize Value dạng JSON có Type ID
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
     }
 }

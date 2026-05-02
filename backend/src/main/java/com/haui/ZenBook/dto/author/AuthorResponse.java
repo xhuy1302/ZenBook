@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class AuthorResponse {
-
+public class AuthorResponse implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
 
     private String name;

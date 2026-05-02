@@ -12,7 +12,9 @@ import java.util.List;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CategoryResponse {
+public class CategoryResponse implements java.io.Serializable {
+
+    private static final long serialVersionUID = 1L;
     private String id;
     private String categoryName;
     private String slug;

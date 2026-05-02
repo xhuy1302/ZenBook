@@ -8,7 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class WishlistResponse {
+public class WishlistResponse implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private String bookId;
     private String title;
     private String slug;
