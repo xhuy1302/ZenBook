@@ -3,13 +3,12 @@ package com.haui.ZenBook.shipping;
 import com.haui.ZenBook.dto.order.OrderItemRequest;
 import com.haui.ZenBook.entity.BookEntity;
 import com.haui.ZenBook.service.PromotionService;
+import com.haui.ZenBook.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import com.haui.ZenBook.repository.BookRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +17,7 @@ public class ShippingCalculator {
     private final PromotionService promotionService;
 
     public Map<String, BookEntity> getBooksForOrder(List<OrderItemRequest> items) {
-        List<String> bookIds = items.stream().map(OrderItemRequest::getBookId).collect(Collectors.toList());
+        List<String> bookIds = items.stream().map(OrderItemRequest::getBookId).toList();
         return bookRepository.findAllById(bookIds).stream()
                 .collect(Collectors.toMap(BookEntity::getId, book -> book));
     }
@@ -27,13 +26,16 @@ public class ShippingCalculator {
         int totalGram = 0;
         for (OrderItemRequest item : items) {
             BookEntity book = bookMap.get(item.getBookId());
-            // Lấy trực tiếp số gram từ DB (Ví dụ: 300)
+
+            // Lấy weight từ bảng BookSpecificationEntity (Integer)
+            // Nếu không có specification hoặc weight, mặc định 250g
             int weight = (book != null && book.getSpecification() != null && book.getSpecification().getWeight() != null)
                     ? book.getSpecification().getWeight()
-                    : 400; // Mặc định 400g nếu chưa nhập
+                    : 250;
+
             totalGram += weight * item.getQuantity();
         }
-        return totalGram / 1000.0; // Trả về Kg (Ví dụ: 0.3kg)
+        return (double) totalGram; // Trả về ví dụ: 200.0, 400.0 (Gram)
     }
 
     public double calculateOrderTotal(List<OrderItemRequest> items, Map<String, BookEntity> bookMap) {

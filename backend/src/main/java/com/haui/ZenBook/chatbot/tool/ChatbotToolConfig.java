@@ -24,22 +24,26 @@ import java.util.stream.Collectors;
 @Configuration
 public class ChatbotToolConfig {
 
+    // ==========================================
+    // 1. TÌM KIẾM SÁCH (CÓ LINK CLICK ĐƯỢC VÀ LỌC GIÁ)
+    // ==========================================
     public record SearchBookRequest(String keyword, Double minPrice, Double maxPrice) {
     }
 
     @Bean("searchBookTool")
     @Description("""
         Tìm kiếm sách trong cửa hàng. 
-        - keyword: từ khóa tên sách, tác giả hoặc thể loại. NẾU KHÁCH KHÔNG NÊU RÕ TÊN SÁCH (Ví dụ chỉ hỏi "Có sách nào trên 30k không"), BẮT BUỘC ĐỂ KEYWORD LÀ CHUỖI RỖNG "". TUYỆT ĐỐI KHÔNG điền các từ chung chung như "sách", "cuốn sách".
-        - minPrice: giá thấp nhất khách yêu cầu (Ví dụ: khách hỏi 'trên 30k' thì điền 30000). 
-        - maxPrice: giá cao nhất khách yêu cầu (Ví dụ: khách hỏi 'dưới 100k' thì điền 100000).
+        - keyword: từ khóa tên sách, tác giả hoặc thể loại. NẾU KHÁCH KHÔNG NÊU RÕ TÊN SÁCH, BẮT BUỘC ĐỂ KEYWORD LÀ CHUỖI RỖNG "". TUYỆT ĐỐI KHÔNG điền các từ chung như "sách".
+        - minPrice: giá thấp nhất. 
+        - maxPrice: giá cao nhất.
         
-        ⚠️ QUY TẮC: Nếu khách không nhắc đến giá, để minPrice và maxPrice là null. Không lấy giá từ câu hỏi cũ.
+        ⚠️ LUẬT VỀ GIÁ (QUAN TRỌNG): 
+        - Nếu khách hỏi giá "BẰNG" hoặc "ĐÚNG" một số tiền (VD: "sách giá 50k"), BẮT BUỘC phải điền số tiền đó vào CẢ minPrice VÀ maxPrice.
+        - Nếu khách không nhắc đến giá, để minPrice và maxPrice là null. Không lấy giá từ câu hỏi cũ.
         """)
     public Function<SearchBookRequest, String> searchBookTool(BookSearchAiService aiSearchService) {
         return request -> {
             try {
-                // 👉 IN RA CONSOLE ĐỂ DEBUG XEM AI NÓ ĐIỀN CÁI GÌ
                 System.out.println("🤖 AI GỌI TOOL SEARCH => keyword: '" + request.keyword() + "', minPrice: " + request.minPrice() + ", maxPrice: " + request.maxPrice());
 
                 List<AiBookDto.SearchResponse> books = aiSearchService.search(
@@ -49,13 +53,12 @@ public class ChatbotToolConfig {
                 );
 
                 if (books.isEmpty()) {
-                    String msg = "Không có sách nào khớp yêu cầu";
-                    return "SYSTEM_ALERT: " + msg + ". KHÔNG ĐƯỢC TỰ BỊA TÊN SÁCH.";
+                    return "SYSTEM_ALERT: Không có sách nào khớp yêu cầu. KHÔNG ĐƯỢC TỰ BỊA TÊN SÁCH.";
                 }
 
                 return "Kết quả tìm kiếm:\n" + books.stream()
-                        .map(b -> String.format("- [%s](/products/%s) | Giá: %.0fđ | Tồn kho: %d",
-                                b.title(), b.slug(), b.price(), b.stock()))
+                        .map(b -> String.format("- ID: %s | [%s](/products/%s) | Giá: %.0fđ | Tồn kho: %d",
+                                b.id(), b.title(), b.slug(), b.price(), b.stock()))
                         .collect(Collectors.joining("\n"));
             } catch (Exception e) {
                 return "Lỗi tìm kiếm: " + e.getMessage();
@@ -64,14 +67,19 @@ public class ChatbotToolConfig {
     }
 
     // ==========================================
-    // 2. THÊM VÀO GIỎ HÀNG (KIỂM TRA FREESHIP ĐỘNG)
+    // 2. THÊM VÀO GIỎ HÀNG (KIỂM TRA FREESHIP VÀ SỐ LƯỢNG)
     // ==========================================
     public record AddCartRequest(String userId, String bookId, Integer quantity) {
     }
 
     @Bean("addToCartTool")
-    @Description("Dùng để thêm sách vào giỏ hàng. Cần bookId và userId. Trả về tổng giỏ hàng và điều kiện Freeship.")
-    public Function<AddCartRequest, String> addToCartTool(CartService cartService, UserRepository userRepository, CouponRepository couponRepository) {
+    @Description("""
+        Dùng để thêm sách vào giỏ hàng. 
+        - bookId: Có thể truyền mã sách gốc HOẶC truyền 'slug' (phần đuôi của link sách, ví dụ: 'chi-pheo').
+        - userId: ID khách hàng hiện tại.
+        - quantity: Số lượng cần thêm.
+        """)
+    public Function<AddCartRequest, String> addToCartTool(CartService cartService, UserRepository userRepository, CouponRepository couponRepository, BookRepository bookRepository) { // 👉 THÊM BookRepository VÀO ĐÂY
         return request -> {
             if (request.userId() == null || request.userId().equals("GUEST")) {
                 return "Dạ, bạn cần đăng nhập để mua hàng nhé!";
@@ -83,14 +91,26 @@ public class ChatbotToolConfig {
 
                 int qty = (request.quantity() != null && request.quantity() > 0) ? request.quantity() : 1;
 
+                // 👉 XỬ LÝ MA THUẬT: ĐỌC ID HOẶC SLUG MÀ AI TRUYỀN VÀO
+                var bookOpt = bookRepository.findById(request.bookId());
+                if (bookOpt.isEmpty()) {
+                    // Thử tra bằng slug nếu AI truyền slug thay vì ID
+                    bookOpt = bookRepository.findBySlug(request.bookId());
+                }
+
+                if (bookOpt.isEmpty()) {
+                    return "LỖI: Hệ thống không tìm thấy mã sách hay slug là: " + request.bookId() + ". Hãy báo lỗi cho khách hàng.";
+                }
+
+                String realBookId = bookOpt.get().getId();
+
                 com.haui.ZenBook.dto.cart.CartItemRequest itemReq = new com.haui.ZenBook.dto.cart.CartItemRequest();
-                itemReq.setBookId(request.bookId());
+                itemReq.setBookId(realBookId);
                 itemReq.setQuantity(qty);
 
                 var cart = cartService.addToCart(userEmail, itemReq);
                 double total = cart.getTotalPrice();
 
-                // 👉 Cập nhật: Tự động lấy điều kiện Freeship từ Database thay vì gán cứng 250k
                 Optional<CouponEntity> freeshipCoupon = couponRepository
                         .findAllByStatusAndUserIdIsNullAndDeletedAtIsNullOrderByCreatedAtDesc(CouponStatus.ACTIVE)
                         .stream().filter(c -> c.getCouponType() == CouponType.SHIPPING).findFirst();
@@ -100,16 +120,14 @@ public class ChatbotToolConfig {
                     double minOrder = freeshipCoupon.get().getMinOrderValue();
                     double missingForFreeship = minOrder - total;
                     if (missingForFreeship > 0) {
-                        freeshipContext = String.format("Khách CÒN THIẾU %.0fđ nữa để được dùng mã Freeship '%s'. Hãy gợi ý họ mua thêm sách cho đủ %.0fđ.",
-                                missingForFreeship, freeshipCoupon.get().getCode(), minOrder);
+                        freeshipContext = String.format("Khách CÒN THIẾU %.0fđ nữa để được dùng mã Freeship '%s'.", missingForFreeship, freeshipCoupon.get().getCode());
                     } else {
                         freeshipContext = "Khách ĐÃ ĐỦ điều kiện dùng mã Freeship " + freeshipCoupon.get().getCode() + " rồi.";
                     }
                 }
 
-                return "SUCCESS: Đã thêm vào giỏ. Tổng tiền hiện tại: " + total + "đ. " + freeshipContext;
+                return "SUCCESS: Đã thêm " + qty + " cuốn vào giỏ. Tổng tiền hiện tại: " + total + "đ. " + freeshipContext;
             } catch (Exception e) {
-                e.printStackTrace();
                 return "ERROR: " + e.getMessage();
             }
         };

@@ -1,7 +1,9 @@
 package com.haui.ZenBook.dto.user;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.haui.ZenBook.dto.membership.MemberInfoResponse;
 import com.haui.ZenBook.enums.UserStatus;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,4 +28,13 @@ public class UserResponse {
     private LocalDateTime updatedAt;
 //    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime deletedAt;
+
+    private MemberInfoResponse membership;
+
+    @Data
+    public static class MemberInfoResponse {
+        private String tier;
+        private Integer availablePoints;
+        private Double totalSpending;
+    }
 }

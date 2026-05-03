@@ -3,8 +3,6 @@ import axiosClient from '@/api/axiosClient'
 import BookCard from './BookCard'
 import type { BookResponse } from '@/services/book/book.type'
 import { Sparkles, BookOpen } from 'lucide-react'
-
-// 👉 IMPORT HOOK AUTH CỦA BẠN VÀO ĐÂY
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
 
@@ -25,12 +23,8 @@ export interface ApiResponse<T> {
 // ============================================================================
 // 2. MAIN COMPONENT
 // ============================================================================
-
-// 👉 Bỏ luôn Props, không cần Component cha phải truyền userId vào nữa
 const PersonalizedRecommendations: React.FC = () => {
-  // 👉 LẤY TRỰC TIẾP USER TỪ CONTEXT
   const { user } = useAuth()
-
   const [sections, setSections] = useState<RecommendationSection[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -40,26 +34,23 @@ const PersonalizedRecommendations: React.FC = () => {
       setIsLoading(true)
       setError(null)
       try {
-        // Lấy ID từ user context
         const currentUserId = user?.id
 
-        // 👉 Đã có ID thì URL tự động nối thêm tham số
         const url = currentUserId
           ? `/recommendations/for-you?userId=${currentUserId}`
           : `/recommendations/for-you`
 
-        console.log('Đang gọi API Recommendation với URL:', url) // Log ra để check
-
-        const response = await axiosClient.get<any, ApiResponse<RecommendationSection[]>>(url)
+        // 👉 Dùng unknown thay cho any để fix lỗi ESLint
+        const response = await axiosClient.get<unknown, ApiResponse<RecommendationSection[]>>(url)
         const responseData = response.data || response
 
         if (Array.isArray(responseData)) {
           setSections(responseData)
-        } else {
-          toast.error('Định dạng dữ liệu không hợp lệ:', responseData)
         }
       } catch {
-        toast.error('Lỗi khi lấy sách gợi ý:')
+        if (user?.id) {
+          toast.error('Lỗi khi lấy sách gợi ý')
+        }
         setError('Không thể tải dữ liệu gợi ý lúc này.')
       } finally {
         setIsLoading(false)
@@ -67,7 +58,7 @@ const PersonalizedRecommendations: React.FC = () => {
     }
 
     fetchRecommendations()
-  }, [user?.id]) // 👉 Dependency là user?.id: Cứ đăng nhập/đăng xuất là tự động load lại sách
+  }, [user?.id])
 
   // --- RENDERING TRẠNG THÁI LOADING ---
   if (isLoading) {

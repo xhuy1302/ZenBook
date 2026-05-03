@@ -22,15 +22,6 @@ public class UserController {
     private final MessageUtil messageUtil;
     private final UserService userService;
 
-    // 1. Đăng ký/Tạo mới User
-//    @PostMapping("/register")
-//    public ApiResponse<UserResponse> createUser(@Valid @RequestBody UserCreationRequest request) {
-//        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
-//        apiResponse.setData(userService.create(request));
-//        apiResponse.setMessage(messageUtil.getMessage("created.success"));
-//        return apiResponse;
-//    }
-
     // 2. Lấy danh sách toàn bộ User (Active)
     @GetMapping
     public ApiResponse<List<UserResponse>> getAll() {

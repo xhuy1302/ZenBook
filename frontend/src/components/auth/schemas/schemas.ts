@@ -33,8 +33,6 @@ export const logInSchema = z.object({
 })
 
 export const signUpSchema = z.object({
-  // lastname: z.string().min(NAME_MIN_LENGTH, i18n.t('auth:errors.lastname.required')),
-  // firstname: z.string().min(NAME_MIN_LENGTH, i18n.t('auth:errors.firstname.required')),
   username: z.string().min(USERNAME_MIN_LENGTH, i18n.t('auth:errors.username.min')),
   email: z
     .string()
@@ -55,4 +53,13 @@ export const signUpSchema = z.object({
     .refine((val) => PASSWORD_SPECIAL_REGEX.test(val), {
       message: i18n.t('auth:errors.password.special')
     })
+})
+
+// 👉 THÊM SCHEMA CHO FORM OTP VÀO ĐÂY
+export const verifyOtpSchema = z.object({
+  email: z.string().email(i18n.t('auth:errors.email.invalid')),
+  otp: z
+    .string()
+    .length(6, i18n.t('auth:errors.otp.length') || 'Mã OTP phải bao gồm đúng 6 ký tự')
+    .regex(/^\d+$/, i18n.t('auth:errors.otp.numeric') || 'Mã OTP chỉ được chứa chữ số')
 })

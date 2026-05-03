@@ -48,10 +48,9 @@ public class SecurityConfig {
                         // ==========================================
                         // 2. ADMIN ONLY - STAFF KHÔNG ĐƯỢC PHÉP
                         // ==========================================
-                        // 2A. Chặn Dashboard, Nhà cung cấp, Chatbot (Giữ Admin Only)
+                        // 2A. Chặn Dashboard, Chatbot (Giữ Admin Only)
                         .requestMatchers(
                                 "/api/v1/admin/dashboard/**",
-                                "/api/v1/admin/suppliers/**",
                                 "/api/v1/admin/chatbot/**"
                         ).hasRole("ADMIN")
 

@@ -1,3 +1,4 @@
+// File: src/hooks/useChatStream.ts
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useCart } from '@/context/CartContext'
@@ -14,7 +15,6 @@ export const useChatStream = () => {
   const { user } = useAuth()
   const { refreshCartFromServer } = useCart()
 
-  // 👉 SỬA LỖI F5: Khởi tạo tin nhắn từ localStorage nếu có
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const savedMessages = localStorage.getItem('zenbook_chat_history')
     return savedMessages
@@ -30,8 +30,8 @@ export const useChatStream = () => {
 
   const [isTyping, setIsTyping] = useState<boolean>(false)
 
-  // 👉 SỬA LỖI MẤT SESSION: Lưu SessionId vào localStorage
-  const [sessionId] = useState<string>(() => {
+  // Lưu sessionId vào state để có thể cập nhật khi Clear Chat
+  const [sessionId, setSessionId] = useState<string>(() => {
     let savedId = localStorage.getItem('chat_session_id')
     if (!savedId) {
       savedId = Math.floor(Math.random() * 1000000000).toString()
@@ -46,12 +46,10 @@ export const useChatStream = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Tự động cuộn xuống khi có tin nhắn mới
   useEffect(() => {
     scrollToBottom()
   }, [messages])
 
-  // 👉 TỰ ĐỘNG LƯU LỊCH SỬ: Mỗi khi messages thay đổi, ghi vào localStorage
   useEffect(() => {
     localStorage.setItem('zenbook_chat_history', JSON.stringify(messages))
   }, [messages])
@@ -85,7 +83,7 @@ export const useChatStream = () => {
         headers: getAuthHeaders(),
         body: JSON.stringify({
           message: text,
-          sessionId: sessionId,
+          sessionId: sessionId, // Gửi session id hiện tại
           userId: user?.id || null
         })
       })
@@ -103,7 +101,6 @@ export const useChatStream = () => {
 
         if (value) {
           const chunk = decoder.decode(value, { stream: true })
-          // 👉 Tối ưu bóc tách chuỗi từ SSE stream
           const pieceOfText = chunk.replace(/^data:/gm, '').replace(/\n\n$/g, '')
 
           if (pieceOfText) {
@@ -118,11 +115,13 @@ export const useChatStream = () => {
       }
 
       const lowerContent = accumulatedContent.toLowerCase()
+      // Tự động load lại giỏ hàng (Bắt thêm keyword 'success' từ backend trả về)
       if (
         lowerContent.includes('thành công') ||
         lowerContent.includes('đã thêm') ||
         lowerContent.includes('đã xóa') ||
-        lowerContent.includes('đã cập nhật')
+        lowerContent.includes('đã cập nhật') ||
+        lowerContent.includes('success')
       ) {
         await refreshCartFromServer()
       }
@@ -135,9 +134,17 @@ export const useChatStream = () => {
     }
   }
 
-  // Thêm hàm để xóa lịch sử nếu cần (ví dụ nút Reset Chat)
+  // 👉 HÀM CLEAR CHAT CHUẨN CHỈ
   const clearChat = () => {
+    // 1. Xóa lịch sử tin nhắn
     localStorage.removeItem('zenbook_chat_history')
+
+    // 2. Tạo ID Phiên mới để "Tẩy não" AI trên Backend
+    const newSessionId = Math.floor(Math.random() * 1000000000).toString()
+    localStorage.setItem('chat_session_id', newSessionId)
+    setSessionId(newSessionId)
+
+    // 3. Reset giao diện
     setMessages([
       {
         id: 'welcome',

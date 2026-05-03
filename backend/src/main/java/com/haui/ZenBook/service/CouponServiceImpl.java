@@ -146,7 +146,7 @@ public class CouponServiceImpl implements CouponService {
                         savedCoupon.getUserId(),
                         "Tặng mã giảm giá riêng",
                         content,
-                        "/customer/vouchers"
+                        "/zenbookvip"
                 );
             } catch (Exception e) {
                 log.error("Lỗi gửi thông báo tặng voucher cho user: {}", savedCoupon.getUserId(), e);
@@ -256,6 +256,8 @@ public class CouponServiceImpl implements CouponService {
                 .orElseThrow(() -> new AppException(ErrorCode.COUPON_NOT_FOUND, id));
     }
 
+    // Trong file CouponServiceImpl.java
+
     @Override
     @Transactional(readOnly = true)
     public List<CouponResponse> getAllActiveCoupons(String currentUserId) {
@@ -265,8 +267,13 @@ public class CouponServiceImpl implements CouponService {
                     .map(couponMapper::toResponse)
                     .toList();
         } else {
+            // 👉 SỬA LỖI: Lấy mã cá nhân ra và lọc bỏ những mã đã sử dụng hết lượt
             return couponRepository.findAllActiveForUser(currentUserId)
                     .stream()
+                    .filter(coupon -> {
+                        // Nếu mã không có giới hạn, hoặc số lượt dùng (usedCount) vẫn nhỏ hơn giới hạn (usageLimit) thì giữ lại
+                        return coupon.getUsageLimit() == null || coupon.getUsedCount() < coupon.getUsageLimit();
+                    })
                     .map(couponMapper::toResponse)
                     .toList();
         }

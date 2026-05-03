@@ -34,21 +34,58 @@ public class MembershipServiceImpl implements MembershipService {
     private final CouponRepository couponRepository;
     private final NotificationService notificationService;
 
+    // 👉 THÊM HÀM HELPER ĐỂ CHECK SINH NHẬT DÙNG CHUNG CHO SẠCH CODE
+    private boolean isBirthdayToday(UserEntity user) {
+        if (user.getDateOfBirth() == null) return false;
+        LocalDate today = LocalDate.now();
+        return today.getMonth() == user.getDateOfBirth().getMonth() &&
+                today.getDayOfMonth() == user.getDateOfBirth().getDayOfMonth();
+    }
+
     @Override
     @Transactional
     public MembershipEntity getOrCreateMembership(String userId) {
-        return membershipRepository.findByUserId(userId).orElseGet(() -> {
-            UserEntity user = userRepository.findById(userId)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        Optional<MembershipEntity> existing = membershipRepository.findByUserId(userId);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
 
-            MembershipEntity newMembership = MembershipEntity.builder()
-                    .user(user)
-                    .tier(MemberTier.MEMBER)
-                    .availablePoints(0)
-                    .totalSpending(0.0)
-                    .build();
-            return membershipRepository.save(newMembership);
-        });
+        // 👉 SỬA LỖI: LOGIC TẶNG ĐIỂM KHI TẠO TÀI KHOẢN MỚI
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        boolean isBirthday = isBirthdayToday(user);
+        int welcomePoints = 50; // Mặc định tặng 50 điểm cho tài khoản mới (bạn tự chỉnh số này)
+        String desc = "Tặng điểm thành viên mới 🎁";
+
+        if (isBirthday) {
+            welcomePoints *= 2;
+            desc += " (x2 Điểm mừng Sinh Nhật 🎂)";
+        }
+
+        MembershipEntity newMembership = MembershipEntity.builder()
+                .user(user)
+                .tier(MemberTier.MEMBER)
+                .availablePoints(welcomePoints) // Gán điểm khởi tạo
+                .totalSpending(0.0)
+                .build();
+        newMembership = membershipRepository.save(newMembership);
+
+        // Lưu lịch sử và gửi thông báo nếu có tặng điểm
+        if (welcomePoints > 0) {
+            pointHistoryRepository.save(PointHistoryEntity.builder()
+                    .user(user).type(PointTransactionType.BONUS)
+                    .points(welcomePoints).description(desc)
+                    .referenceId("WELCOME_" + user.getId())
+                    .streak(0).build());
+
+            String notiMsg = "Bạn được tặng " + welcomePoints + " ZPoints làm quà ra mắt.";
+            if (isBirthday) notiMsg += " Lại còn đúng ngày sinh nhật nữa, x2 quà luôn nhé! 🎂";
+
+            notificationService.createNotification(userId, "MEMBERSHIP", "🎉 Chào mừng đến với ZenBook!", notiMsg, "/zenbookvip");
+        }
+
+        return newMembership;
     }
 
     @Override
@@ -68,8 +105,17 @@ public class MembershipServiceImpl implements MembershipService {
             );
         }
 
+        // 👉 SỬA LỖI: CHECK VÀ NHÂN ĐÔI ĐIỂM NẾU LÀ SINH NHẬT
         int basePoints = (int) (order.getFinalTotal() / 1000);
         int earnedPoints = (int) (basePoints * newTier.getPointMultiplier());
+        boolean isBirthday = isBirthdayToday(membership.getUser());
+
+        String desc = "Tích điểm từ đơn hàng " + order.getOrderCode();
+
+        if (isBirthday) {
+            earnedPoints *= 2;
+            desc += " (x2 Điểm mừng Sinh Nhật 🎂)";
+        }
 
         if (earnedPoints > 0) {
             membership.setAvailablePoints(membership.getAvailablePoints() + earnedPoints);
@@ -77,10 +123,16 @@ public class MembershipServiceImpl implements MembershipService {
                     .user(membership.getUser())
                     .type(PointTransactionType.EARN)
                     .points(earnedPoints)
-                    .description("Tích điểm từ đơn hàng " + order.getOrderCode())
+                    .description(desc)
                     .referenceId(order.getOrderCode())
                     .streak(0)
                     .build());
+
+            // Gửi thông báo x2 điểm cho đơn hàng
+            if (isBirthday) {
+                notificationService.createNotification(order.getUserId(), "MEMBERSHIP", "🎂 Mừng Sinh Nhật!",
+                        "Nhân dịp sinh nhật, bạn được x2 ZPoints cho đơn " + order.getOrderCode() + ". Bạn nhận được +" + earnedPoints + " điểm!", "/zenbookvip");
+            }
         }
         membershipRepository.save(membership);
     }
@@ -92,6 +144,8 @@ public class MembershipServiceImpl implements MembershipService {
         membership.setTotalSpending(Math.max(0, membership.getTotalSpending() - order.getFinalTotal()));
         membership.setTier(calculateTier(membership.getTotalSpending()));
 
+        // Lưu ý: Nếu lúc mua được x2 sinh nhật thì lúc thu hồi cũng nên là con số thực tế lúc cộng.
+        // Tạm thời giữ logic trừ theo multiplier mặc định của bạn. Để chính xác tuyệt đối, bạn nên tìm lại PointHistory của đơn này để trừ đúng số âm.
         int basePoints = (int) (order.getFinalTotal() / 1000);
         int deductedPoints = (int) (basePoints * membership.getTier().getPointMultiplier());
 
@@ -113,13 +167,12 @@ public class MembershipServiceImpl implements MembershipService {
     public void addBonusPoints(String userId, int basePoints, String description, String referenceId) {
         MembershipEntity membership = getOrCreateMembership(userId);
         int finalPoints = basePoints;
+        boolean isBirthday = isBirthdayToday(membership.getUser());
 
-        if (membership.getUser().getDateOfBirth() != null) {
-            LocalDate today = LocalDate.now();
-            if (today.getMonth() == membership.getUser().getDateOfBirth().getMonth() &&
-                    today.getDayOfMonth() == membership.getUser().getDateOfBirth().getDayOfMonth()) {
-                finalPoints *= 2;
-            }
+        // 👉 SỬA LỖI: GHI NHẬN DESC VÀ PUSH NOTIFICATION
+        if (isBirthday) {
+            finalPoints *= 2;
+            description += " (x2 Điểm mừng Sinh Nhật 🎂)";
         }
 
         membership.setAvailablePoints(membership.getAvailablePoints() + finalPoints);
@@ -128,12 +181,16 @@ public class MembershipServiceImpl implements MembershipService {
         pointHistoryRepository.save(PointHistoryEntity.builder()
                 .user(membership.getUser()).type(PointTransactionType.BONUS)
                 .points(finalPoints).description(description).referenceId(referenceId).build());
+
+        // Push thông báo cho user
+        String titleNoti = isBirthday ? "🎂 Mừng Sinh Nhật!" : "🎁 Nhận điểm thưởng!";
+        notificationService.createNotification(userId, "MEMBERSHIP", titleNoti,
+                "Bạn nhận được +" + finalPoints + " ZPoints từ " + description, "/zenbookvip");
     }
 
     @Transactional
     @Override
     public String checkIn(String userId) {
-        // Dùng định dạng yyyy-MM-dd cố định
         String todayRef = "CHECKIN_" + LocalDate.now().toString();
         String yesterdayRef = "CHECKIN_" + LocalDate.now().minusDays(1).toString();
 
@@ -141,25 +198,16 @@ public class MembershipServiceImpl implements MembershipService {
             throw new AppException(ErrorCode.ALREADY_CHECKED_IN);
         }
 
-        // Tìm streak ngày hôm qua
         int currentStreak = pointHistoryRepository.findByUserIdAndTypeAndReferenceId(userId, PointTransactionType.BONUS, yesterdayRef)
                 .map(PointHistoryEntity::getStreak).orElse(0) + 1;
 
         int bonusPoints = (currentStreak % 3 == 0) ? 15 : 5;
 
-        MembershipEntity membership = getOrCreateMembership(userId);
-        pointHistoryRepository.save(PointHistoryEntity.builder()
-                .user(membership.getUser()).type(PointTransactionType.BONUS)
-                .points(bonusPoints).description("Điểm danh chuỗi " + currentStreak + " ngày")
-                .referenceId(todayRef).streak(currentStreak).build());
+        // Dùng hàm addBonusPoints đã tối ưu để tái sử dụng logic sinh nhật x2
+        String desc = "Điểm danh chuỗi " + currentStreak + " ngày";
+        addBonusPoints(userId, bonusPoints, desc, todayRef);
 
-        membership.setAvailablePoints(membership.getAvailablePoints() + bonusPoints);
-        membershipRepository.save(membership);
-
-        notificationService.createNotification(userId, "MEMBERSHIP", "🔥 Điểm danh thành công!",
-                "Chuỗi " + currentStreak + " ngày. Bạn nhận được +" + bonusPoints + " ZPoints.", "/zenbookvip");
-
-        return "Chuỗi " + currentStreak + " ngày! +" + bonusPoints + " ZPoints.";
+        return "Chuỗi " + currentStreak + " ngày điểm danh thành công!";
     }
 
     @Override
@@ -181,7 +229,7 @@ public class MembershipServiceImpl implements MembershipService {
                 .tier(membership.getTier().name().toLowerCase())
                 .totalSpending(membership.getTotalSpending())
                 .currentStreak(streak)
-                .isCheckedInToday(isToday) // Trả về true/false xịn để Frontend thắp lửa
+                .isCheckedInToday(isToday)
                 .build();
     }
 

@@ -40,7 +40,7 @@ public class BirthdayVoucherJob {
 
     // Chạy lúc 8h sáng mỗi ngày.
     // (Nếu muốn test chạy liên tục mỗi 10 giây thì dùng: @Scheduled(cron = "*/10 * * * * ?"))
-    @Scheduled(cron = "0 0 8 * * ?")
+    @Scheduled(cron = "10 * * * * ?")
     @Transactional
     public void scanAndGiftBirthdayVouchers() {
         LocalDate today = LocalDate.now();
@@ -101,6 +101,10 @@ public class BirthdayVoucherJob {
                 request.setDiscountValue(discountPercent);
                 request.setMaxDiscountAmount(maxDiscountAmount);
                 request.setMinOrderValue(0.0); // Không yêu cầu đơn tối thiểu
+
+                // 👉 SỬA LỖI ĐÂY: Thêm giới hạn TỔNG lượt sử dụng là 1
+                request.setUsageLimit(1);
+
                 request.setMaxUsagePerUser(1);
                 request.setUserId(user.getId());
                 request.setStartDate(LocalDateTime.now());

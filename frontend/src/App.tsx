@@ -154,6 +154,7 @@ function App() {
             {/* GROUP 1: ADMIN ONLY (STAFF vào sẽ bị đá sang trang 403) */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'ROLE_ADMIN']} />}>
               <Route index element={<DashboardHome />} />
+              <Route path='users' element={<UserPage />} />
               <Route path='suppliers' element={<SuplierPage />} />
               <Route path='promotions' element={<PromotionPage />} />
               <Route path='coupons' element={<CouponPage />} />
@@ -161,9 +162,9 @@ function App() {
             </Route>
 
             {/* GROUP 2: SHARED STAFF & ADMIN (Nghiệp vụ vận hành lõi) */}
-            <Route path='users' element={<UserPage />} />
             <Route path='authors' element={<AuthorPage />} />
             <Route path='categories' element={<CategoryPage />} />
+
             <Route path='publishers' element={<PublisherPage />} />
             <Route path='books' element={<BookPage />} />
             <Route path='receipts' element={<ReceiptPage />} />

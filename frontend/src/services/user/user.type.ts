@@ -1,5 +1,12 @@
 import type { UserStatus } from '@/defines/user.enum'
 
+// 👉 THÊM INTERFACE NÀY ĐỂ HỨNG DỮ LIỆU TỪ BACKEND
+export interface MemberInfoResponse {
+  tier: string
+  availablePoints: number
+  totalSpending: number
+}
+
 export interface UserResponse {
   id: string
   username: string
@@ -12,6 +19,10 @@ export interface UserResponse {
   createdAt: string
   updatedAt: string
   deletedAt?: string | null
+
+  // 👉 THÊM TRƯỜNG MEMBERSHIP VÀO ĐÂY
+  // Để dấu ? vì có thể có trường hợp User chưa có thông tin membership (null)
+  membership?: MemberInfoResponse | null
 }
 
 export type UpdateUserRequest = {

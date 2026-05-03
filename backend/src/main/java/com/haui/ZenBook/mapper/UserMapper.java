@@ -1,6 +1,7 @@
 package com.haui.ZenBook.mapper;
 
 import com.haui.ZenBook.dto.user.*;
+import com.haui.ZenBook.entity.MembershipEntity;
 import com.haui.ZenBook.entity.RoleEntity;
 import com.haui.ZenBook.entity.UserEntity;
 import org.mapstruct.*;
@@ -19,7 +20,13 @@ public interface UserMapper {
     UserEntity toEntity(UserCreationRequest request);
 
     @Mapping(target = "roles", expression = "java(mapRoleNames(userEntity))")
+    @Mapping(target = "membership", source = "membership")
     UserResponse toUserResponse(UserEntity userEntity);
+
+    @Mapping(target = "tier", source = "tier")
+    @Mapping(target = "availablePoints", source = "availablePoints")
+    @Mapping(target = "totalSpending", source = "totalSpending")
+    UserResponse.MemberInfoResponse toMembershipDto(MembershipEntity membership);
 
     ProfileUpdateResponse toProfileUpdateResponse(UserEntity userEntity);
 

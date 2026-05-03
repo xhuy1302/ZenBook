@@ -51,6 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading] = useState(false)
   const isAuthenticated = !!user
 
+  // 👉 HÀM LOGIN: Nhận thẳng Token và User, không qua bước OTP
   const login = async (email: string, password: string): Promise<AuthResponseData> => {
     const response = await axiosClient.post<AuthResponseData, AuthResponseData>('/auth/login', {
       email,

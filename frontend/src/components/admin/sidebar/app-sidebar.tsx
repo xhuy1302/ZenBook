@@ -8,7 +8,6 @@ import {
   TicketPercent,
   Tags,
   Star,
-  Settings2,
   AudioWaveform,
   GalleryVerticalEnd,
   Package,
@@ -84,8 +83,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { name: t('systemMenus.coupons'), url: '/dashboard/coupons', icon: TicketPercent },
       { name: t('systemMenus.news'), url: '/dashboard/news', icon: FileText },
       { name: t('systemMenus.reviews'), url: '/dashboard/reviews', icon: Star },
-      { name: t('systemMenus.tags'), url: '/dashboard/tags', icon: Tags },
-      { name: t('systemMenus.settings'), url: '/dashboard/settings', icon: Settings2 }
+      { name: t('systemMenus.tags'), url: '/dashboard/tags', icon: Tags }
     ],
     [t, i18n.language]
   )
@@ -111,8 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: Package,
         items: [
           { title: t('navMain.inventorySuppliers'), url: '/dashboard/suppliers' },
-          { title: t('navMain.inventoryReceipts'), url: '/dashboard/receipts' },
-          { title: t('navMain.inventoryStockCheck'), url: '/dashboard/inventory' }
+          { title: t('navMain.inventoryReceipts'), url: '/dashboard/receipts' }
         ]
       },
       {

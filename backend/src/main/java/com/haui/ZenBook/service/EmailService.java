@@ -22,6 +22,36 @@ public class EmailService {
     private final TemplateEngine templateEngine;
 
     /**
+     * Gửi email chứa mã OTP xác thực đăng nhập
+     */
+    @Async
+    public void sendOtpEmail(String toEmail, String otpCode) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject("Mã xác nhận đăng nhập ZenBook");
+
+            // Dùng HTML text đơn giản để không cần tạo thêm file template
+            String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px;'>"
+                    + "<h2>Xác thực đăng nhập ZenBook</h2>"
+                    + "<p>Xin chào,</p>"
+                    + "<p>Mã OTP đăng nhập của bạn là: <strong style='font-size: 24px; color: #4CAF50;'>" + otpCode + "</strong></p>"
+                    + "<p>Mã này sẽ hết hạn trong <strong>5 phút</strong>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>"
+                    + "</div>";
+
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("Email chứa mã OTP đã được gửi tới {}", toEmail);
+
+        } catch (MessagingException e) {
+            log.error("Lỗi khi gửi email OTP cho {}", toEmail, e);
+        }
+    }
+
+    /**
      * Gửi email thông báo khi trạng thái đơn hàng thay đổi
      */
     @Async

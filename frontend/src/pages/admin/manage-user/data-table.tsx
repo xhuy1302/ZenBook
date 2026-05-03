@@ -1,4 +1,3 @@
-// import { CreateUserDialog } from '@/components/admin/data/manage-user/CreateUserDialog'
 import { TrashUserDialog } from '@/components/admin/data/manage-user/trash/TrashUserDialog'
 import { DataTablePagination } from '@/components/admin/datatable/DataTablePagination'
 import { DataTableViewOptions } from '@/components/admin/datatable/DataTableViewOptions'
@@ -20,6 +19,7 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { UserRole, UserStatus } from '@/defines/user.enum'
+import { MemberTier } from '@/defines/enum.membership'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -31,7 +31,7 @@ import {
   type SortingState,
   useReactTable
 } from '@tanstack/react-table'
-import { X } from 'lucide-react'
+import { X, Filter } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -55,44 +55,53 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
-
-    state: {
-      sorting,
-      columnFilters,
-      rowSelection
-    }
+    state: { sorting, columnFilters, rowSelection }
   })
 
   const isFiltered = table.getState().columnFilters.length > 0
-
-  const handleResetFilters = () => {
-    table.resetColumnFilters()
-    table.resetSorting()
-  }
-
   const { t } = useTranslation('user')
 
   return (
     <>
-      <div className='flex items-center gap-2 py-4'>
+      <div className='flex flex-wrap items-center gap-2 py-4'>
         <Input
           placeholder={t('filters.search')}
           value={(table.getColumn('user')?.getFilterValue() as string) ?? ''}
           onChange={(event) => table.getColumn('user')?.setFilterValue(event.target.value)}
-          className='max-w-sm'
+          className='max-w-xs'
         />
+
+        {/* Lọc Hạng */}
+        <Select
+          value={(table.getColumn('tier')?.getFilterValue() as string) ?? 'all'}
+          onValueChange={(value) => table.getColumn('tier')?.setFilterValue(value)}
+        >
+          <SelectTrigger className='w-[140px]'>
+            <Filter className='mr-2 h-4 w-4 text-muted-foreground' />
+            <SelectValue placeholder='Hạng' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>Tất cả hạng</SelectItem>
+            {Object.values(MemberTier).map((tier) => (
+              <SelectItem key={tier} value={tier}>
+                {tier}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Lọc Role */}
         <Select
           value={(table.getColumn('roles')?.getFilterValue() as string) ?? 'all'}
           onValueChange={(value) =>
             table.getColumn('roles')?.setFilterValue(value === 'all' ? undefined : value)
           }
         >
-          <SelectTrigger className='w-[150px]'>
+          <SelectTrigger className='w-[140px]'>
             <SelectValue placeholder={t('filters.role.label')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value='all'>{t('filters.role.all')}</SelectItem>
-
             {Object.values(UserRole).map((role) => (
               <SelectItem key={role} value={role}>
                 {t(`filters.role.${role}` as const)}
@@ -100,18 +109,19 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
             ))}
           </SelectContent>
         </Select>
+
+        {/* Lọc Status */}
         <Select
           value={(table.getColumn('status')?.getFilterValue() as string) ?? 'all'}
           onValueChange={(value) =>
             table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)
           }
         >
-          <SelectTrigger className='w-[160px]'>
+          <SelectTrigger className='w-[140px]'>
             <SelectValue placeholder={t('filters.status.label')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value='all'>{t('filters.status.all')}</SelectItem>
-
             {Object.values(UserStatus).map((status) => (
               <SelectItem key={status} value={status}>
                 {t(`filters.status.${status}` as const)}
@@ -119,16 +129,22 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
             ))}
           </SelectContent>
         </Select>
+
         {isFiltered && (
-          <Button size='default' className='h-8' onClick={handleResetFilters}>
+          <Button
+            variant='ghost'
+            className='h-8 px-2 lg:px-3'
+            onClick={() => table.resetColumnFilters()}
+          >
             {t('filters.reset')}
-            <X />
+            <X className='ml-2 h-4 w-4' />
           </Button>
         )}
 
-        <DataTableViewOptions table={table} />
-        {/* <CreateUserDialog /> */}
-        <TrashUserDialog />
+        <div className='ml-auto flex items-center gap-2'>
+          <DataTableViewOptions table={table} />
+          <TrashUserDialog />
+        </div>
       </div>
 
       <div className='overflow-hidden rounded-md border mb-5'>
@@ -159,7 +175,7 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className='text-center'>
+                <TableCell colSpan={columns.length} className='h-24 text-center'>
                   {t('table.noResults')}
                 </TableCell>
               </TableRow>

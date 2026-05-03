@@ -1,3 +1,4 @@
+// File: src/components/chat/MessageItem.tsx
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Check, CheckCheck, ShoppingCart, ChevronRight, Store, Zap } from 'lucide-react'

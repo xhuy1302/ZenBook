@@ -1,5 +1,6 @@
 package com.haui.ZenBook.service;
 
+import com.haui.ZenBook.dto.auth.PendingRegistration;
 import com.haui.ZenBook.dto.user.ProfileUpdateRequest;
 import com.haui.ZenBook.dto.user.ProfileUpdateResponse;
 import com.haui.ZenBook.dto.user.UserCreationRequest;
@@ -26,4 +27,8 @@ public interface UserService {
     void restoreUser(String userId);
 
     String updateAvatar(String userId, MultipartFile file);
+
+    UserResponse confirmRegistration(String email);
+
+    PendingRegistration getPendingRegistration(String email);
 }

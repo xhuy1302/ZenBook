@@ -1,6 +1,7 @@
 package com.haui.ZenBook.service;
 
 import com.haui.ZenBook.S3Client.S3Service;
+import com.haui.ZenBook.dto.auth.PendingRegistration;
 import com.haui.ZenBook.dto.user.ProfileUpdateRequest;
 import com.haui.ZenBook.dto.user.ProfileUpdateResponse;
 import com.haui.ZenBook.dto.user.UserCreationRequest;
@@ -22,9 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -35,9 +35,13 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final S3Service s3Service;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+
+    private final Map<String, PendingRegistration> pendingUsersMap = new ConcurrentHashMap<>();
 
     @Override
     public UserResponse create(UserCreationRequest request) {
+        // 1. Kiểm tra tài khoản đã tồn tại trong DB chưa
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_EXSISTED, request.getEmail());
         }
@@ -45,18 +49,54 @@ public class UserServiceImpl implements UserService {
             throw new AppException(ErrorCode.USERNAME_EXISTED, request.getUsername());
         }
 
+        // 2. Tạo OTP ngẫu nhiên 6 số
+        String otp = String.format("%06d", new Random().nextInt(999999));
+
+        // 3. Đóng gói vào DTO tạm và lưu vào bộ nhớ RAM (Map) với Key là Email, thời hạn 5 phút
+        PendingRegistration pendingReg = new PendingRegistration(request, otp, LocalDateTime.now().plusMinutes(5));
+        pendingUsersMap.put(request.getEmail(), pendingReg);
+
+        // 4. Gửi Email
+        emailService.sendOtpEmail(request.getEmail(), otp);
+
+        // Trả về một object rỗng báo hiệu đã nhận yêu cầu nhưng chưa lưu DB thực sự
+        return new UserResponse();
+    }
+
+    // 👉 THÊM HÀM NÀY ĐỂ BÊN AUTH SERVICE CÓ THỂ GỌI KHI XÁC THỰC OTP THÀNH CÔNG
+    public UserResponse confirmRegistration(String email) {
+        // Lấy thông tin từ Cache
+        PendingRegistration pendingReg = pendingUsersMap.get(email);
+        if (pendingReg == null) {
+            throw new RuntimeException("Không tìm thấy dữ liệu đăng ký hoặc phiên đã hết hạn.");
+        }
+
+        UserCreationRequest request = pendingReg.getRequest();
+
+        // Bắt đầu quá trình lưu vào Database thực sự
         UserEntity newUser = userMapper.toEntity(request);
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
 
         Set<RoleEntity> roles = new HashSet<>();
         RoleEntity role = roleRepository.findByName(Role.USER.name())
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND, Role.USER.name()));
-        newUser.setStatus(UserStatus.ACTIVE);
+
+        newUser.setStatus(UserStatus.ACTIVE); // Đã xác thực OTP thì là ACTIVE luôn
         roles.add(role);
         newUser.setRoles(roles);
         newUser.setAvatar("https://ui.shadcn.com/avatars/02.png");
+
         UserEntity savedUser = userRepository.save(newUser);
+
+        // Xóa khỏi Cache sau khi đã lưu DB thành công
+        pendingUsersMap.remove(email);
+
         return userMapper.toUserResponse(savedUser);
+    }
+
+    // 👉 HÀM NÀY ĐỂ BÊN AUTH SERVICE KIỂM TRA MÃ OTP
+    public PendingRegistration getPendingRegistration(String email) {
+        return pendingUsersMap.get(email);
     }
 
     @Override
@@ -104,10 +144,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void hardDeleteUser(String userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new AppException(ErrorCode.USER_NOT_FOUND, userId);
-        }
-        userRepository.deleteById(userId);
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, userId));
+
+        // 2. Xóa user -> Membership tự động "bay màu" theo, không lỗi đỏ
+        userRepository.delete(user);
     }
 
     @Override

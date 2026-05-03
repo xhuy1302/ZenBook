@@ -35,7 +35,7 @@ public class ChatService {
     private final ChatSessionRepository sessionRepository;
     private final ChatMessageRepository messageRepository;
     private final UserRepository userRepository;
-    private final MembershipRepository membershipRepository; // 👉 Đã thêm để tra cứu hạng điểm
+    private final MembershipRepository membershipRepository;
     private final ChatClient chatClient;
     private final VectorStore vectorStore;
 
@@ -48,7 +48,7 @@ public class ChatService {
         String userContext = buildUserContext(request.getUserId());
         StringBuilder fullAiResponse = new StringBuilder();
 
-        // 👉 RAG RETRIEVAL: Tìm kiếm kiến thức liên quan từ Vector DB
+        // RAG RETRIEVAL
         List<org.springframework.ai.document.Document> relevantDocs =
                 vectorStore.similaritySearch(
                         org.springframework.ai.vectorstore.SearchRequest.query(request.getMessage()).withTopK(2)
@@ -58,27 +58,25 @@ public class ChatService {
                 .map(org.springframework.ai.document.Document::getContent)
                 .collect(Collectors.joining("\n---\n"));
 
-        // 👉 RAG PROMPT ENGINEERING VỚI CÁC KỊCH BẢN ĐỈNH CAO
+        // 👉 ĐÃ NÂNG CẤP SYSTEM PROMPT: Ép AI xử lý đúng số lượng và giá
         String finalSystemPrompt = String.format("""
     %s
     🧠 KIẾN THỨC CƠ SỞ (TÀI LIỆU CỦA ZENBOOK):
     %s
     
-    🚨 KỶ LUẬT HIỂN THỊ (QUAN TRỌNG):
-    - Sử dụng Markdown gọn gàng. Tuyệt đối không chèn thêm dòng trống giữa các mục trong danh sách.
-    - Định dạng danh sách theo kiểu: "- [Tên Sách](/products/slug) | Giá | Tồn kho".
-    - Khi liệt kê nhiều sách, hãy viết sát dòng nhau.
-    
-    🚨 KỊCH BẢN HÀNH ĐỘNG:
-    ... (các kịch bản cũ của bạn) ...
-    
-    LƯU Ý: Mọi đường link sách BẮT BUỘC dùng slug: [Tên Sách](/products/book-slug).
+    🚨 KỶ LUẬT HIỂN THỊ VÀ HÀNH ĐỘNG (CỰC KỲ QUAN TRỌNG):
+    1. FORMAT HIỂN THỊ SÁCH: Mọi cuốn sách được nhắc đến BẮT BUỘC phải kèm theo link theo định dạng Markdown chuẩn: [Tên Sách](/products/slug).
+       - ĐÂY LÀ ĐIỀU KIỆN BẮT BUỘC ĐỂ GIAO DIỆN HIỂN THỊ ĐƯỢC HÌNH ẢNH SÁCH.
+    2. KHI KHÁCH YÊU CẦU THÊM VÀO GIỎ HÀNG:
+       - Ở biến bookId của addToCartTool, bạn có thể truyền thẳng chữ `slug` (đuôi link) vào đó (VD: "chi-pheo", "so-do"). 
+       - Trích xuất ĐÚNG số lượng khách yêu cầu (VD: "thêm 2 cuốn" -> quantity: 2).
+       - NẾU KHÁCH KHÔNG NÓI RÕ TÊN SÁCH, hãy hỏi lại.
+       - TUYỆT ĐỐI KHÔNG BÁO LỖI HAY BẮT KHÁCH TỰ THÊM NẾU BẠN CHƯA THỬ DÙNG TOOL.
     """, userContext, (ragContext.isBlank() ? "Không tìm thấy tài liệu phù hợp." : ragContext));
 
         return chatClient.prompt()
                 .system(finalSystemPrompt)
                 .messages(history)
-                // 👉 Đăng ký đầy đủ toàn bộ Tools đã cấu hình
                 .functions("searchBookTool", "checkOrderTool", "checkCouponTool",
                         "addToCartTool", "viewCartTool", "updateCartTool", "removeCartTool",
                         "checkPurchaseHistoryTool", "getCheckoutLinkTool", "suggestRelatedBooksTool")
@@ -92,7 +90,6 @@ public class ChatService {
                 });
     }
 
-    // --- HÀM TÌM KIẾM KIẾN THỨC (RETRIEVAL) ---
     private String searchKnowledgeBase(String query) {
         List<Document> similarDocuments = vectorStore.similaritySearch(
                 SearchRequest.query(query)
@@ -109,7 +106,6 @@ public class ChatService {
                 .collect(Collectors.joining("\n\n"));
     }
 
-    // --- XÂY DỰNG CONTEXT TỰ ĐỘNG CÓ HẠNG ĐIỂM ---
     private String buildUserContext(String userId) {
         if (userId == null || userId.equals("GUEST") || userId.isBlank()) {
             return "THÔNG TIN KHÁCH HÀNG: Đây là khách vãng lai. Hãy xưng hô là 'bạn'. Không thể tra cứu đơn hàng hay lịch sử mua hàng.";
@@ -122,7 +118,6 @@ public class ChatService {
             if (name == null || name.isBlank()) name = user.getRealUsername();
             if (name == null || name.isBlank()) name = user.getEmail();
 
-            // 👉 Lấy hạng thành viên và dịch sang tiếng Việt + Gắn Emoji
             Optional<MembershipEntity> memOpt = membershipRepository.findByUserId(userId);
             String rawTier = memOpt.map(m -> m.getTier().name()).orElse("MEMBER");
 
@@ -153,7 +148,6 @@ public class ChatService {
         return "THÔNG TIN KHÁCH HÀNG: Không tìm thấy thông tin chi tiết.";
     }
 
-    // --- Helper Methods ---
     private ChatSession getOrCreateSession(ChatRequest request) {
         if (request.getSessionId() != null) {
             return sessionRepository.findById(request.getSessionId())

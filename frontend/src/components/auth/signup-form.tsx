@@ -1,17 +1,19 @@
-import { cn } from '@/lib/utils'
-import { zodResolver } from '@hookform/resolvers/zod'
+import React, { useState } from 'react'
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Loader2, Key } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { signUpSchema } from '@/components/auth/schemas/schemas'
-import LanguageSelector from '@/components/common/LanguageSelector'
-import { Trans, useTranslation } from 'react-i18next'
+import { zodResolver } from '@hookform/resolvers/zod'
 import type { z } from 'zod'
 import { toast } from 'sonner'
-import type { AxiosError } from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { Trans, useTranslation } from 'react-i18next'
+import type { AxiosError } from 'axios'
+
+import axiosClient from '@/api/axiosClient'
+import { cn } from '@/lib/utils'
+import { signUpSchema } from '@/components/auth/schemas/schemas'
+import LanguageSelector from '@/components/common/LanguageSelector'
 import { useSignUp } from '@/hooks/user-signup'
 import type { ApiErrorResponse } from '@/defines/error.type'
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react'
-import { useState } from 'react'
 
 // ── Animated Book Stack Illustration ─────────────────────────────────────────
 
@@ -373,6 +375,12 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
   type SignUpFormValue = z.infer<typeof signUpSchema>
   const [showPassword, setShowPassword] = useState(false)
 
+  // 👉 THÊM STATE ĐỂ QUẢN LÝ 2 BƯỚC VÀ OTP
+  const [step, setStep] = useState<1 | 2>(1)
+  const [registeredEmail, setRegisteredEmail] = useState('')
+  const [otp, setOtp] = useState('')
+  const [isVerifying, setIsVerifying] = useState(false)
+
   const {
     register,
     handleSubmit,
@@ -384,16 +392,47 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
   const navigate = useNavigate()
   const signUpMutation = useSignUp()
 
+  // 👉 BƯỚC 1: XỬ LÝ SUBMIT ĐĂNG KÝ
   const onSubmit = async (data: SignUpFormValue) => {
     try {
+      // Gọi API đăng ký (Backend lúc này nên chỉ lưu user với status INACTIVE và gửi email)
       await signUpMutation.mutateAsync(data)
-      toast.success(t('signup.success') || 'Đăng ký thành công!')
-      navigate('/login')
+
+      setRegisteredEmail(data.email) // Lưu lại email để gửi cho bước xác thực
+      setStep(2) // Chuyển sang màn hình nhập OTP
+      toast.success('Mã xác thực đã được gửi! Vui lòng kiểm tra email của bạn.')
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ApiErrorResponse>
       const message =
         axiosError.response?.data?.message || t('signup.errors') || 'Đăng ký thất bại!'
       toast.error(message)
+    }
+  }
+
+  // 👉 BƯỚC 2: XỬ LÝ SUBMIT XÁC THỰC OTP
+  const onVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (otp.length < 6) {
+      toast.error('Vui lòng nhập đủ 6 số OTP')
+      return
+    }
+
+    setIsVerifying(true)
+    try {
+      // Gọi API xác thực OTP đăng ký của Spring Boot
+      await axiosClient.post('/auth/verify-signup', {
+        email: registeredEmail,
+        otp: otp
+      })
+
+      toast.success('Xác thực tài khoản thành công!')
+      navigate('/login') // Xác thực xong thì đẩy về trang đăng nhập
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>
+      const message = axiosError.response?.data?.message || 'Mã OTP không hợp lệ hoặc đã hết hạn!'
+      toast.error(message)
+    } finally {
+      setIsVerifying(false)
     }
   }
 
@@ -406,7 +445,6 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
           background: 'linear-gradient(145deg, #052e16 0%, #14532d 40%, #166534 70%, #15803d 100%)'
         }}
       >
-        {/* Grid overlay */}
         <div
           className='absolute inset-0 pointer-events-none opacity-10'
           style={{
@@ -418,7 +456,6 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
 
         <BookStackIllustration />
 
-        {/* Bottom quote */}
         <div className='absolute bottom-10 left-0 right-0 px-12 text-center'>
           <p className='text-green-200/70 text-sm italic leading-relaxed'>
             "Not all those who wander are lost."
@@ -429,7 +466,6 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
 
       {/* ── Right panel: Form ── */}
       <div className='flex-1 flex flex-col justify-center items-center px-8 py-12 bg-background relative overflow-hidden'>
-        {/* Subtle bg pattern */}
         <div
           className='absolute inset-0 pointer-events-none'
           style={{
@@ -453,141 +489,212 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
             />
           </a>
 
-          {/* Heading */}
-          <div className='mb-8'>
-            <h1 className='text-3xl font-bold text-foreground tracking-tight mb-2'>
-              {t('signup.title')}
-            </h1>
-            <p className='text-muted-foreground text-sm'>{t('signup.subtitle')}</p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-            {/* Username */}
-            <div className='space-y-1.5'>
-              <label htmlFor='username' className='text-sm font-medium text-foreground'>
-                {t('signup.username')}
-              </label>
-              <div className='relative'>
-                <User className='absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-                <input
-                  id='username'
-                  type='text'
-                  placeholder='Zbook'
-                  autoComplete='off'
-                  {...register('username')}
-                  className={cn(
-                    'w-full pl-10 pr-4 py-3 rounded-xl border bg-background text-sm text-foreground transition-all outline-none',
-                    'focus:ring-2 focus:ring-green-500/30 focus:border-green-500',
-                    'placeholder:text-muted-foreground/50',
-                    errors.username
-                      ? 'border-destructive'
-                      : 'border-border hover:border-green-400/60'
-                  )}
-                />
+          {/* 👉 RENDER FORM THEO STEP */}
+          {step === 1 ? (
+            <>
+              {/* Heading Step 1 */}
+              <div className='mb-8'>
+                <h1 className='text-3xl font-bold text-foreground tracking-tight mb-2'>
+                  {t('signup.title')}
+                </h1>
+                <p className='text-muted-foreground text-sm'>{t('signup.subtitle')}</p>
               </div>
-              {errors.username && (
-                <p className='text-destructive text-xs mt-1'>{errors.username.message}</p>
-              )}
-            </div>
 
-            {/* Email */}
-            <div className='space-y-1.5'>
-              <label htmlFor='email' className='text-sm font-medium text-foreground'>
-                {t('signup.email')}
-              </label>
-              <div className='relative'>
-                <Mail className='absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-                <input
-                  id='email'
-                  type='text'
-                  placeholder='zenbook@gmail.com'
-                  autoComplete='off'
-                  {...register('email')}
-                  className={cn(
-                    'w-full pl-10 pr-4 py-3 rounded-xl border bg-background text-sm text-foreground transition-all outline-none',
-                    'focus:ring-2 focus:ring-green-500/30 focus:border-green-500',
-                    'placeholder:text-muted-foreground/50',
-                    errors.email ? 'border-destructive' : 'border-border hover:border-green-400/60'
+              {/* Form Step 1 */}
+              <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                {/* Username */}
+                <div className='space-y-1.5'>
+                  <label htmlFor='username' className='text-sm font-medium text-foreground'>
+                    {t('signup.username')}
+                  </label>
+                  <div className='relative'>
+                    <User className='absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                    <input
+                      id='username'
+                      type='text'
+                      placeholder='Zbook'
+                      autoComplete='off'
+                      {...register('username')}
+                      className={cn(
+                        'w-full pl-10 pr-4 py-3 rounded-xl border bg-background text-sm text-foreground transition-all outline-none',
+                        'focus:ring-2 focus:ring-green-500/30 focus:border-green-500',
+                        'placeholder:text-muted-foreground/50',
+                        errors.username
+                          ? 'border-destructive'
+                          : 'border-border hover:border-green-400/60'
+                      )}
+                    />
+                  </div>
+                  {errors.username && (
+                    <p className='text-destructive text-xs mt-1'>{errors.username.message}</p>
                   )}
-                />
-              </div>
-              {errors.email && (
-                <p className='text-destructive text-xs mt-1'>{errors.email.message}</p>
-              )}
-            </div>
+                </div>
 
-            {/* Password */}
-            <div className='space-y-1.5'>
-              <label htmlFor='password' className='text-sm font-medium text-foreground'>
-                {t('signup.password')}
-              </label>
-              <div className='relative'>
-                <Lock className='absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-                <input
-                  id='password'
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete='new-password'
-                  {...register('password')}
-                  className={cn(
-                    'w-full pl-10 pr-11 py-3 rounded-xl border bg-background text-sm text-foreground transition-all outline-none',
-                    'focus:ring-2 focus:ring-green-500/30 focus:border-green-500',
-                    'placeholder:text-muted-foreground/50',
-                    errors.password
-                      ? 'border-destructive'
-                      : 'border-border hover:border-green-400/60'
+                {/* Email */}
+                <div className='space-y-1.5'>
+                  <label htmlFor='email' className='text-sm font-medium text-foreground'>
+                    {t('signup.email')}
+                  </label>
+                  <div className='relative'>
+                    <Mail className='absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                    <input
+                      id='email'
+                      type='text'
+                      placeholder='zenbook@gmail.com'
+                      autoComplete='off'
+                      {...register('email')}
+                      className={cn(
+                        'w-full pl-10 pr-4 py-3 rounded-xl border bg-background text-sm text-foreground transition-all outline-none',
+                        'focus:ring-2 focus:ring-green-500/30 focus:border-green-500',
+                        'placeholder:text-muted-foreground/50',
+                        errors.email
+                          ? 'border-destructive'
+                          : 'border-border hover:border-green-400/60'
+                      )}
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className='text-destructive text-xs mt-1'>{errors.email.message}</p>
                   )}
-                />
+                </div>
+
+                {/* Password */}
+                <div className='space-y-1.5'>
+                  <label htmlFor='password' className='text-sm font-medium text-foreground'>
+                    {t('signup.password')}
+                  </label>
+                  <div className='relative'>
+                    <Lock className='absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                    <input
+                      id='password'
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete='new-password'
+                      {...register('password')}
+                      className={cn(
+                        'w-full pl-10 pr-11 py-3 rounded-xl border bg-background text-sm text-foreground transition-all outline-none',
+                        'focus:ring-2 focus:ring-green-500/30 focus:border-green-500',
+                        'placeholder:text-muted-foreground/50',
+                        errors.password
+                          ? 'border-destructive'
+                          : 'border-border hover:border-green-400/60'
+                      )}
+                    />
+                    <button
+                      type='button'
+                      onClick={() => setShowPassword((v) => !v)}
+                      className='absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
+                    >
+                      {showPassword ? <EyeOff className='w-4 h-4' /> : <Eye className='w-4 h-4' />}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className='text-destructive text-xs mt-1'>{errors.password.message}</p>
+                  )}
+                </div>
+
+                {/* Submit */}
                 <button
-                  type='button'
-                  onClick={() => setShowPassword((v) => !v)}
-                  className='absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
+                  type='submit'
+                  disabled={isSubmitting}
+                  className='w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white transition-all mt-2'
+                  style={{
+                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                    boxShadow: '0 4px 24px rgba(34,197,94,0.35)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSubmitting) e.currentTarget.style.transform = 'translateY(-1px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                  }}
                 >
-                  {showPassword ? <EyeOff className='w-4 h-4' /> : <Eye className='w-4 h-4' />}
+                  {isSubmitting ? (
+                    <Loader2 className='w-4 h-4 animate-spin' />
+                  ) : (
+                    <>
+                      {t('signup.button')}
+                      <ArrowRight className='w-4 h-4' />
+                    </>
+                  )}
                 </button>
+              </form>
+            </>
+          ) : (
+            /* 👉 BƯỚC 2: FORM NHẬP OTP */
+            <div className='animate-in fade-in slide-in-from-right-4 duration-500'>
+              <div className='mb-8 text-center'>
+                <div className='w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4'>
+                  <Mail className='w-6 h-6 text-green-600' />
+                </div>
+                <h1 className='text-2xl font-bold text-foreground tracking-tight mb-2'>
+                  Xác thực Email
+                </h1>
+                <p className='text-muted-foreground text-sm leading-relaxed'>
+                  Chúng tôi đã gửi mã xác thực 6 số đến email
+                  <br />
+                  <span className='font-semibold text-foreground'>{registeredEmail}</span>
+                </p>
               </div>
-              {errors.password && (
-                <p className='text-destructive text-xs mt-1'>{errors.password.message}</p>
-              )}
+
+              <form onSubmit={onVerifyOtp} className='space-y-6'>
+                <div className='space-y-1.5'>
+                  <label htmlFor='otp' className='text-sm font-medium text-foreground'>
+                    Mã xác thực (OTP)
+                  </label>
+                  <div className='relative'>
+                    <Key className='absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                    <input
+                      id='otp'
+                      type='text'
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))} // Chỉ cho nhập số
+                      placeholder='Nhập 6 chữ số'
+                      className={cn(
+                        'w-full pl-10 pr-4 py-3 rounded-xl border bg-background text-center text-xl tracking-widest text-foreground transition-all outline-none',
+                        'focus:ring-2 focus:ring-green-500/30 focus:border-green-500 border-border hover:border-green-400/60'
+                      )}
+                    />
+                  </div>
+                </div>
+
+                <div className='flex gap-3'>
+                  <button
+                    type='button'
+                    onClick={() => setStep(1)} // Nút quay lại để sửa email
+                    disabled={isVerifying}
+                    className='w-1/3 py-3 rounded-xl font-semibold text-sm border border-border text-foreground hover:bg-muted transition-colors'
+                  >
+                    Quay lại
+                  </button>
+                  <button
+                    type='submit'
+                    disabled={isVerifying || otp.length < 6}
+                    className='w-2/3 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white transition-all disabled:opacity-50'
+                    style={{
+                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      boxShadow: '0 4px 24px rgba(34,197,94,0.35)'
+                    }}
+                  >
+                    {isVerifying ? <Loader2 className='w-4 h-4 animate-spin' /> : 'Xác thực ngay'}
+                  </button>
+                </div>
+              </form>
             </div>
+          )}
 
-            {/* Submit */}
-            <button
-              type='submit'
-              disabled={isSubmitting}
-              className='w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white transition-all mt-2'
-              style={{
-                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                boxShadow: '0 4px 24px rgba(34,197,94,0.35)'
-              }}
-              onMouseEnter={(e) => {
-                if (!isSubmitting) e.currentTarget.style.transform = 'translateY(-1px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-            >
-              {isSubmitting ? (
-                <Loader2 className='w-4 h-4 animate-spin' />
-              ) : (
-                <>
-                  {t('signup.button')}
-                  <ArrowRight className='w-4 h-4' />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Login link */}
-          <p className='text-center text-sm text-muted-foreground mt-5'>
-            {t('signup.hasAccount')}{' '}
-            <a
-              href='/login'
-              className='font-semibold text-green-600 hover:text-green-500 transition-colors'
-            >
-              {t('signup.login')}
-            </a>
-          </p>
+          {/* Login link (Chỉ hiện ở bước 1) */}
+          {step === 1 && (
+            <p className='text-center text-sm text-muted-foreground mt-5'>
+              {t('signup.hasAccount')}{' '}
+              <a
+                href='/login'
+                className='font-semibold text-green-600 hover:text-green-500 transition-colors'
+              >
+                {t('signup.login')}
+              </a>
+            </p>
+          )}
 
           {/* Terms */}
           <p className='text-xs text-muted-foreground text-center mt-5 px-2 leading-relaxed'>
